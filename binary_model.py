@@ -13,24 +13,6 @@ class BinaryClassifier(torch.nn.Module):
         self.reshape = True
         self.dropout = dropout
         self.test_mode = test_mode
-
-        if new_length is None:
-            self.new_length = 1 if modality == "RGB" else 5
-        else:
-            self.new_length = new_length
-        print(("""
-               Initializing BinaryClassifier with base model:{}
-               BinaryClassifier Configurations:
-                   input_modality: {}
-                   course_segment: {}
-                   num_segments:   {}
-                   new_length:     {}
-                   dropout_ratio:  {}
-                   bn_mode:        {}
-              """.format(base_model, self.modality, self.course_segment, self.num_segments,
-                         self.new_length, self.dropout)))
-        
-
         self.binary_classifier = nn.Linear(feature_dim, num_class)
 
     def forward(self, inputdata, target):
