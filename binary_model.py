@@ -5,11 +5,10 @@ from transforms import *
 import torchvision.models
 
 class BinaryClassifier(torch.nn.Module):
-    def __init__(self, num_class, course_segment, modality,
+    def __init__(self, num_class, course_segment,
                  new_length=None, dropout=0.8, test_mode=False):
 
         super(BinaryClassifier, self).__init__()
-        self.modality = modality
         self.num_segments = course_segment
         self.course_segment = course_segment
         self.reshape = True

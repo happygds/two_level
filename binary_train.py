@@ -34,22 +34,11 @@ def main():
     print(("=> the input features are extracted from '{}' and the dim is '{}'").format(args.feat_model, args.input_dim))
 
     model = BinaryClassifier(num_class, args.num_body_segments,
-                             args.modality, new_length = data_length,
-                             base_model=args.arch, dropout=args.dropout,
-                             bn_mode=args.bn_mode)
-
-
+                             new_length=data_length, dropout=args.dropout)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()
 
     cudnn.benchmark = True
     pin_memory = True
-    
-    # Data loading code
-    if args.modality != 'RGBDiff':
-        normalize = GroupNormalize(input_mean, input_std)
-    else:
-        normalize = IdentityTransform()
-
 
     train_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['train_list'])
     val_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['test_list'])

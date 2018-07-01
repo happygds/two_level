@@ -207,10 +207,12 @@ class BinaryDataSet(data.Dataset):
         frame_cnt = self.video_dict[prop[0][0]].num_frames
         # frame_cnt = 1572 
         frame_selected = self._sample_frames(prop[0][1])
-        frames = []
-        for idx in frame_selected:
-            for x in range(self.new_length):
-                frames.extend(self._load_image(prop[0][0], min(frame_cnt, idx+x)))
+        frames = np.zeros((len(frame_selected), self.input_dim), dtype='float32')
+        for i, idx in enumerate(frame_selected):
+            ind_floor, ind_ceil = int(idx // 8), int(idx // 8 + 1)
+            feat_floor, feat_ceil = self.data[feat_ind_floor], self.data[feat_ind_ceil]
+            feat_idx = feat_floor + (feat_ceil - feat_floor) * (idx / 8. - ind_floor)
+            frames[i] = feat_floor
 
         return frames, prop[1]
         # sample segment indices
