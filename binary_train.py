@@ -35,8 +35,7 @@ def main():
     print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
         args.feat_model, args.input_dim))
 
-    model = BinaryClassifier(num_class, args.num_body_segments,
-                             new_length=data_length, dropout=args.dropout)
+    model = BinaryClassifier(num_class, args.num_body_segments, dropout=args.dropout)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()
 
     cudnn.benchmark = True

@@ -67,7 +67,7 @@ activitynet1.2:
 activitynet1.3:
   train_list: activitynet1.3_sw_train
   test_list: activitynet1.3_sw_val
-  num_class: 200
+  num_class: 2
   sampling:
     fg_iou_thresh: 0.7
     bg_iou_thresh: 0.01
