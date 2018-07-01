@@ -35,32 +35,14 @@ def main():
                              base_model=args.arch, dropout=args.dropout,
                              bn_mode=args.bn_mode)
 
-    if args.init_weights:
-        if os.path.isfile(args.init_weights):
-            print(("=> loading pretrained weights from '{}'".format(args.init_weights)))
-            wd = torch.load(args.init_weights)
-            model.base_model.load_state_dict(wd['state_dict'])
-            print(("=> no weights file found at '{}'".format(args.init_weights)))
-        else:
-            print(("=> no weights file found at '{}'".format(args.init_weights)))
-    elif args.kinetics_pretrain:
-        model_url = dataset_configs['kinetics_pretrain'][args.arch][args.modality]
-        model.base_model.load_state_dict(model_zoo.load_url(model_url)['state_dict'])
-        print(("=> loaded init weights from '{}'".format(model_url)))
-    else:
-        # standard ImageNet pretraining
-        if args.modality == 'Flow':
-            model_url = dataset_configs['flow_init'][args.arch]
-            model.base_model.load_state_dict(model_zoo.load_url(model_url)['state_dict'])
-            print(("=> loaded flow init weights from '{}'".format(model_url)))
-
-
-    crop_size = model.crop_size
-    scale_size = model.scale_size
-    input_mean = model.input_mean
-    input_std = model.input_std
-    policies = model.get_optim_policies()
-    train_augmentation = model.get_augmentation()
+    # set the directory for the rgb features
+    if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
+        args.input_dim = 1024
+    elif args.feat_model == 'inception_resnet_v2' or args.feat_model == 'inception_resnet_v2_trained':
+        args.input_dim = 1536
+    if args.use_flow:
+        args.input_dim += 1024
+    print(("=> the input features are extracted from '{}' and the dim is '{}'").format(args.feat_model, args.input_dim))
 
     model = torch.nn.DataParallel(model, device_ids=args.gpus).cuda()
 

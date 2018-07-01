@@ -148,8 +148,8 @@ python gen_sliding_window_proposals.py testing rgb FRAME_PATH data/thumos14_sw_t
 
 - ActivityNet v1.2
 ```bash
-python gen_sliding_window_proposals.py training rgb FRAME_PATH data/activitynet1.2_sw_train_proposal_list.txt --dataset activitynet --version 1.2
-python gen_sliding_window_proposals.py validation rgb FRAME_PATH data/activitynet1.2_sw_val_proposal_list.txt --dataset activitynet --version 1.2
+python gen_sliding_window_proposals.py training rgb /data1/matheguo/important/data/activitynet/activity_net_frames data/activitynet1.3_sw_train_proposal_list.txt --dataset activitynet --version 1.3
+python gen_sliding_window_proposals.py validation rgb /data1/matheguo/important/data/activitynet/activity_net_frames data/activitynet1.3_sw_val_proposal_list.txt --dataset activitynet --version 1.3
 ```
 
 

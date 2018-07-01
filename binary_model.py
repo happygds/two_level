@@ -6,8 +6,7 @@ import torchvision.models
 
 class BinaryClassifier(torch.nn.Module):
     def __init__(self, num_class, course_segment, modality,
-                 new_length=None, dropout=0.8,
-                 crop_num=1, test_mode=False):
+                 new_length=None, dropout=0.8, test_mode=False):
 
         super(BinaryClassifier, self).__init__()
         self.modality = modality
@@ -15,9 +14,7 @@ class BinaryClassifier(torch.nn.Module):
         self.course_segment = course_segment
         self.reshape = True
         self.dropout = dropout
-        self.crop_num = crop_num
         self.test_mode = test_mode
-        self.bn_mode = bn_mode
 
         if new_length is None:
             self.new_length = 1 if modality == "RGB" else 5
@@ -33,7 +30,7 @@ class BinaryClassifier(torch.nn.Module):
                    dropout_ratio:  {}
                    bn_mode:        {}
               """.format(base_model, self.modality, self.course_segment, self.num_segments,
-                         self.new_length, self.dropout, self.bn_mode)))
+                         self.new_length, self.dropout)))
         
 
         self.binary_classifier = nn.Sequential(
@@ -79,14 +76,3 @@ class BinaryClassifier(torch.nn.Module):
         sample_len = (3 if self.modality == 'RGB' else 2) * self.new_length
         base_out = self.base_model(input.view((-1,sample_len) + input.size()[-2:]))
         return self.test_fc(base_out), base_out
-
-    def get_augmentation(self):
-        if self.modality == 'RGB':
-            return torchvision.transforms.Compose([GroupMultiScaleCrop(self.input_size, [1, .875, .75, .66]),
-                                                   GroupRandomHorizontalFlip(is_flow=False)])
-        elif self.modality == 'Flow':
-            return torchvision.transforms.Compose([GroupMultiScaleCrop(self.input_size, [1, .875, .75]),
-                                                   GroupRandomHorizontalFlip(is_flow=True)])
-        elif self.modality == 'RGBDiff':
-            return torchvision.transforms.Compose([GroupMultiScaleCrop(self.input_size, [1, .875, .75]),
-                                                   GroupRandomHorizontalFlip(is_flow=Flase)])
