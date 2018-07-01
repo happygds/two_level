@@ -65,3 +65,24 @@ activitynet1.2:
       Flow: https://yjxiong.blob.core.windows.net/ssn-models/inceptionv3_flow_kinetics_init-374d56ea4e66.pth
 
 
+activitynet1.3:
+  train_list: activitynet1.3_sw_train
+  test_list: activitynet1.3_sw_val
+  num_class: 200
+  sampling:
+    fg_iou_thresh: 0.7
+    bg_iou_thresh: 0.01
+    incomplete_iou_thresh: 0.3
+    bg_coverage_thresh: 0.02
+    incomplete_overlap_thresh: 0.7
+    prop_per_video: 8
+    fg_ratio: 1
+    bg_ratio: 1
+    incomplete_ratio: 6
+
+  stpp: [1, 1, 1]
+
+  evaluation:
+    top_k: 60
+    nms_threshold: 0.6
+    softmax_before_filter: false

@@ -31,10 +31,6 @@ class BinaryInstance:
         return self._lable if self._label is not None else -1
 
 
-
-
-
-
 class BinaryVideoRecord:
     def __init__(self, prop_record):
         self._data = prop_record
@@ -83,7 +79,7 @@ class BinaryDataSet(data.Dataset):
                  prop_file = None,
                  body_seg=5, video_centric=True,
                  new_length=1, modality='RGB',
-                 image_tmpl='img_{:05d}.jpg', transform=None,
+                 image_tmpl='frame{:06d}.jpg', transform=None,
                  random_shift=True, test_mode=False,
                  prop_per_video=12, fg_ratio=3, bg_ratio=9,
                  fg_iou_thresh=0.7,
