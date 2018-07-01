@@ -1,6 +1,6 @@
 import torch.utils.data as data
 
-import os
+import os, h5py
 import os.path
 from numpy.random import randint
 from ops.io import load_proposal_file
