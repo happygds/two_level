@@ -32,26 +32,7 @@ class BinaryClassifier(torch.nn.Module):
                          self.new_length, self.dropout)))
         
 
-        self.binary_classifier = nn.Sequential(
-            nn.Linear(feature_dim, num_class), nn.Softmax(dim=2))
-
-    def _prepare_binary_classifier(self, num_class):
-        feature_dim = getattr(self.base_model, self.base_model.last_layer_name).in_features
-        if self.dropout == 0:
-            setattr(self.base_model, self.base_model.last_layer_name, Identity())
-        else:
-            setattr(self.base_model, self.base_model.last_layer_name, nn.Dropout(p=self.dropout))
-
-        self.classifier_fc = nn.Linear(feature_dim, num_class)
-
-        nn.init.normal(self.classifier_fc.weight.data, 0, 0.001)
-        nn.init.constant(self.classifier_fc.bias.data, 0)
-
-        self.test_fc = None
-        self.feature_dim = feature_dim
-
-        return feature_dim
-
+        self.binary_classifier = nn.Linear(feature_dim, num_class)
 
     def forward(self, inputdata, target):
         if not self.test_mode:

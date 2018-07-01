@@ -16,6 +16,7 @@ from ops.utils import get_actionness_configs
 from torch.utils import model_zoo
 best_loss = 100
 
+
 def main():
     global args, best_loss
     args = parser.parse_args()
@@ -23,7 +24,7 @@ def main():
     sampling_configs = dataset_configs['sampling']
     num_class = dataset_configs['num_class']
     args.dropout = 0.8
-    
+
     # set the directory for the rgb features
     if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
         args.input_dim = 1024
@@ -31,7 +32,8 @@ def main():
         args.input_dim = 1536
     if args.use_flow:
         args.input_dim += 1024
-    print(("=> the input features are extracted from '{}' and the dim is '{}'").format(args.feat_model, args.input_dim))
+    print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
+        args.feat_model, args.input_dim))
 
     model = BinaryClassifier(num_class, args.num_body_segments,
                              new_length=data_length, dropout=args.dropout)
@@ -40,55 +42,30 @@ def main():
     cudnn.benchmark = True
     pin_memory = True
 
-    train_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['train_list'])
-    val_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['test_list'])
+    train_prop_file = 'data/{}_proposal_list.txt'.format(
+        dataset_configs['train_list'])
+    val_prop_file = 'data/{}_proposal_list.txt'.format(
+        dataset_configs['test_list'])
     train_loader = torch.utils.data.DataLoader(
-        BinaryDataSet("", train_prop_file,
-                      new_length=data_length,
-                      modality=args.modality, exclude_empty=True,
-                      body_seg=args.num_body_segments,
-                      image_tmpl="img_{:05d}.jpg" if args.modality in ['RGB', 'RGBDiff'] else args.flow_prefix+"{}_{:05d}.jpg",
-                      transform=torchvision.transforms.Compose([
-                          train_augmentation,
-                          Stack(roll=(args.arch in ['BNInception', 'InceptionV3'])),
-                          ToTorchFormatTensor(div=(args.arch not in ['BNInception', 'InceptionV3'])),
-                          normalize,
-                      ])),
-         batch_size=4, shuffle=True,
-         num_workers=args.workers, pin_memory=pin_memory,
-         drop_last = True) 
-
+        BinaryDataSet(args.feat_root, args.feat_model, train_prop_file, 
+                      exclude_empty=True, body_seg=args.num_body_segments),
+        batch_size=4, shuffle=True,
+        num_workers=args.workers, pin_memory=pin_memory,
+        drop_last=True)
 
     val_loader = torch.utils.data.DataLoader(
-         BinaryDataSet("", val_prop_file, new_length=data_length,
-                       modality=args.modality, exclude_empty=True,
-                       body_seg = args.num_body_segments,
-                       image_tmpl="img_{:05}.jpg" if args.modality in ["RGB", "RGBDiff"] else args.flow_prefix+"{}_{:05d}.jpg",
-                       random_shift=False, fg_ratio = 6, bg_ratio = 6,
-                       transform=torchvision.transforms.Compose([
-                           GroupScale(int(scale_size)),
-                           GroupCenterCrop(crop_size),
-                           Stack(roll=(args.arch in ['BNInception', 'InceptionV3'])),
-                           ToTorchFormatTensor(div=(args.arch not in ['BNInception', 'InceptionV3'])),
-                           normalize,
-                       ])),
-         batch_size=4, shuffle=False,
-         num_workers=args.workers, pin_memory=pin_memory)
-
-
+        BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, 
+                      exclude_empty=True, body_seg=args.num_body_segments,
+                      fg_ratio=6, bg_ratio=6),
+        batch_size=1, shuffle=False,
+        num_workers=args.workers, pin_memory=pin_memory)
 
     binary_criterion = torch.nn.CrossEntropyLoss().cuda()
 
-    for group in policies:
-        print(('group: {} has params, lr_mult: {}, decay_mult: {}'.format(
-            group['name'], len(group['params']), group['lr_mult'], group['decay_mult'])))
-
-
-    optimizer = torch.optim.SGD(policies,
+    optimizer = torch.optim.SGD(model.parameters(),
                                 args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
-
 
     for epoch in range(args.start_epoch, args.epochs):
         adjust_learning_rate(optimizer, epoch, args.lr_steps)
@@ -96,8 +73,9 @@ def main():
         train(train_loader, model, binary_criterion, optimizer, epoch)
 
         # evaluate on validation list
-        if (epoch + 1) % args.eval_freq ==0 or epoch == args.epochs - 1:
-            loss = validate(val_loader, model, binary_criterion, (epoch + 1) * len(train_loader))
+        if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
+            loss = validate(val_loader, model, binary_criterion,
+                            (epoch + 1) * len(train_loader))
 
         # remember best prec@1 and save checkpoint
             is_best = loss < best_loss
@@ -137,9 +115,9 @@ def train(train_loader, model, criterion, optimizer, epoch):
         loss = criterion(binary_score, prop_type_target)
 
         losses.update(loss.data[0], out_frames.size(0))
-        fg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:,0,:].contiguous(),
+        fg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 0, :].contiguous(),
                           prop_type_target.view(-1, 2)[:, 0].contiguous())
-        bg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:,1,:].contiguous(),
+        bg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 1, :].contiguous(),
                           prop_type_target.view(-1, 2)[:, 1].contiguous())
 
         fg_accuracies.update(fg_acc[0].data[0], binary_score.size(0) // 2)
@@ -158,7 +136,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
         if args.clip_gradient is not None:
             total_norm = clip_grad_norm(model.parameters(), args.clip_gradient)
             if total_norm > args.clip_gradient:
-                print('Clipping gradient: {} with coef {}'.format(total_norm, args.clip_gradient / total_norm))
+                print('Clipping gradient: {} with coef {}'.format(
+                    total_norm, args.clip_gradient / total_norm))
         else:
             total_norm = 0
 
@@ -176,10 +155,10 @@ def train(train_loader, model, criterion, optimizer, epoch):
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   '\n FG{fg_acc.val:.02f}({fg_acc.avg:.02f}) BG {bg_acc.val:.02f} ({bg_acc.avg:.02f})'
                   .format(
-                  epoch, i, len(train_loader), batch_time=batch_time,
-                  data_time=data_time, loss=losses, lr=optimizer.param_groups[0]['lr'],
-                  fg_acc=fg_accuracies, bg_acc=bg_accuracies)
-                 )
+                      epoch, i, len(train_loader), batch_time=batch_time,
+                      data_time=data_time, loss=losses, lr=optimizer.param_groups[0]['lr'],
+                      fg_acc=fg_accuracies, bg_acc=bg_accuracies)
+                  )
 
 
 def validate(val_loader, model, criterion, iter):
@@ -201,10 +180,10 @@ def validate(val_loader, model, criterion, iter):
 
         loss = criterion(binary_score, prop_type_target)
         losses.update(loss.data[0], out_frames.size(0))
-        fg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:,0,:].contiguous(),
-                          prop_type_target.view(-1,2)[:, 0].contiguous())
-        bg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:,1,:].contiguous(),
-                          prop_type_target.view(-1,2)[:, 1].contiguous())
+        fg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 0, :].contiguous(),
+                          prop_type_target.view(-1, 2)[:, 0].contiguous())
+        bg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 1, :].contiguous(),
+                          prop_type_target.view(-1, 2)[:, 1].contiguous())
 
         fg_accuracies.update(fg_acc[0].data[0], binary_score.size(0) // 2)
         bg_accuracies.update(bg_acc[0].data[0], binary_score.size(0) // 2)
@@ -217,8 +196,8 @@ def validate(val_loader, model, criterion, iter):
                   'Time {batch_time.val:.4f} ({loss.avg:.4f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'FG {fg_acc.val:.02f} BG {bg_acc.val:.02f}'.format(
-                  i, len(val_loader), batch_time=batch_time, loss=losses,
-                  fg_acc=fg_accuracies, bg_acc=bg_accuracies))
+                      i, len(val_loader), batch_time=batch_time, loss=losses,
+                      fg_acc=fg_accuracies, bg_acc=bg_accuracies))
 
     print('Testing Results: Loss {loss.avg:.5f} \t'
           'FG Acc. {fg_acc.avg:.02f} BG Acc. {bg_acc.avg:.02f}'
@@ -227,15 +206,15 @@ def validate(val_loader, model, criterion, iter):
     return losses.avg
 
 
-
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    filename = 'binaryclassifier'+'_'.join((args.snapshot_pref, args.dataset, args.arch, args.modality.lower(), filename))
+    filename = 'binaryclassifier' + \
+        '_'.join((args.snapshot_pref, args.dataset,
+                  args.arch, args.modality.lower(), filename))
     torch.save(state, filename)
     if is_best:
-        best_name = '_'.join((args.snapshot_pref, args.modality.lower(), 'model_best.pth.tar'))
+        best_name = '_'.join(
+            (args.snapshot_pref, args.modality.lower(), 'model_best.pth.tar'))
         shutil.copyfile(filename, best_name)
-
-
 
 
 def adjust_learning_rate(optimizer, epoch, lr_steps):
@@ -246,9 +225,6 @@ def adjust_learning_rate(optimizer, epoch, lr_steps):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr * param_group['lr_mult']
         param_group['weight_decay'] = decay * param_group['decay_mult']
-
-
-
 
 
 class AverageMeter(object):
@@ -269,8 +245,6 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-
-
 def accuracy(output, target, topk=(1,)):
     # computes the precision@k for the specific values of k
     maxk = max(topk)
@@ -285,8 +259,6 @@ def accuracy(output, target, topk=(1,)):
         correct_k = correct[:k].view(-1).float().sum(0)
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
-
-
 
 
 if __name__ == '__main__':
