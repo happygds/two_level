@@ -97,7 +97,8 @@ class BinaryDataSet(data.Dataset):
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
                  bg_coverage_thresh=0.02,
                  gt_as_fg=True, test_interval=6, verbose=True,
-                 exclude_empty=True, epoch_multiplier=1):
+                 exclude_empty=True, epoch_multiplier=1,
+                 use_flow=True):
 
         self.feat_stride=feat_stride
         self.prop_file=prop_file
