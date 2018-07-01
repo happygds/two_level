@@ -39,7 +39,7 @@ class BinaryVideoRecord:
         frame_count = int(self._data[1])
         self.id = self._data[0]
         vid_name = self._data[0]
-        if not vid_name.startwith('v_'):
+        if not vid_name.startswith('v_'):
             # directly read feature from h5 file
             vid_name = 'v_{}'.format(vid_name)
         with h5py.File(rgb_h5_path, 'r') as f:
