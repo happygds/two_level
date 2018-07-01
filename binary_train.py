@@ -23,18 +23,7 @@ def main():
     sampling_configs = dataset_configs['sampling']
     num_class = dataset_configs['num_class']
     args.dropout = 0.8
-    if args.modality == 'RGB':
-        data_length = 1
-    elif args.modality in ['Flow','RGBDiff']:
-        data_length = 5
-    else:
-        raise ValueError("unknown modality {}".format(args.modality))
-
-    model = BinaryClassifier(num_class, args.num_body_segments,
-                             args.modality, new_length = data_length,
-                             base_model=args.arch, dropout=args.dropout,
-                             bn_mode=args.bn_mode)
-
+    
     # set the directory for the rgb features
     if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
         args.input_dim = 1024
@@ -44,10 +33,16 @@ def main():
         args.input_dim += 1024
     print(("=> the input features are extracted from '{}' and the dim is '{}'").format(args.feat_model, args.input_dim))
 
-    model = torch.nn.DataParallel(model, device_ids=args.gpus).cuda()
+    model = BinaryClassifier(num_class, args.num_body_segments,
+                             args.modality, new_length = data_length,
+                             base_model=args.arch, dropout=args.dropout,
+                             bn_mode=args.bn_mode)
+
+
+    model = torch.nn.DataParallel(model, device_ids=None).cuda()
 
     cudnn.benchmark = True
-    pin_memory = (args.modality == 'RGB')
+    pin_memory = True
     
     # Data loading code
     if args.modality != 'RGBDiff':

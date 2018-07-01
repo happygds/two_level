@@ -1,10 +1,23 @@
 import argparse
 parser = argparse.ArgumentParser(description="PyTorch code to train Structured Segment Networks (SSN)")
-parser.add_argument('dataset', type=str, choices=['activitynet1.2', 'thumos14'])
-parser.add_argument('modality', type=str, choices=['RGB', 'Flow', 'RGBDiff'])
+parser.add_argument('dataset', type=str, choices=['activitynet1.2',, 'activitynet1.3' 'thumos14'])
+
+parser.add_argument('--annotation_path', default='/data1/matheguo/important/data/activitynet/activity_net.v1-3.min_save.json',
+                    type=str, help='Annotation file path')
+parser.add_argument('--feat_root', default='/data1/matheguo/important/data/activitynet',
+                    type=str, help='Feature directory path')
+parser.add_argument('--result_path', default='/data1/matheguo/important/result/activitynet/self_att',
+                    type=str, help='Result directory path')
+parser.add_argument('--model', default='TAG', type=str,
+                    help='(self_att | TAG')
+parser.add_argument('--feat_model', default='i3d_rgb_trained', type=str,
+                    help='the model for extracting pretrained features ('
+                    'i3d_rgb | i3d_rgb_trained | inception_resnet_v2 | inception_resnet_v2_trained)')
+parser.add_argument('--use_flow', action='store_true',
+                    help='whether use i3d_flow feature')
+parser.set_defaults(use_flow=True)
 
 # ========================= Model Configs ==========================
-parser.add_argument('--arch', type=str, default="BNInception")
 parser.add_argument('--num_aug_segments', type=int, default=2)
 parser.add_argument('--num_body_segments', type=int, default=5)
 
@@ -48,17 +61,10 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
-parser.add_argument('--kinetics_pretrain', '--kin', default=False, action='store_true',
-                    help='whether to use kinetics pretrained models')
-parser.add_argument('--init_weights', default='', type=str, metavar='PATH',
-                    help='path to pretrained weights')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
-parser.add_argument('--snapshot_pref', type=str, default="")
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('--gpus', nargs='+', type=int, default=None)
-parser.add_argument('--flow_prefix', default="", type=str)
 
 
 
