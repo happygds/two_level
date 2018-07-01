@@ -1,0 +1,6 @@
+torchvision
+numpy
+scikit-learn
+terminaltables
+pandas
+scipy
