@@ -248,7 +248,7 @@ class BinaryDataSet(data.Dataset):
         frames = np.zeros((len(frame_selected), self.input_dim), dtype='float32')
         for i, idx in enumerate(frame_selected):
             ind_floor, ind_ceil = int(idx // self.feat_stride), int(idx // self.feat_stride + 1)
-            feat_floor, feat_ceil = feat[feat_ind_floor], feat[feat_ind_ceil]
+            feat_floor, feat_ceil = feat[ind_floor], feat[ind_ceil]
             feat_idx = feat_floor + (feat_ceil - feat_floor) * (idx / self.feat_stride - ind_floor)
             frames[i] = feat_floor
 
