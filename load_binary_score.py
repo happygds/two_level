@@ -319,6 +319,27 @@ class BinaryDataSet(data.Dataset):
         # Since there are many frames for each video during testing, instead of returning the read frames
         # we return a generator which gives the frames in samll batches, this lower the momeory burden
         # runtime overhead. Usually stting batchsize=4 would fit most cases.
+        
+        # def frame_gen(batchsize):
+        #     frames= []
+        #     cnt = 0
+        #     for idx, seg_ind in enumerate(frame_ticks):
+        #         p = int(seg_ind)
+        #         for x in range(self.new_length):
+        #             frames.extend(self._load_image(video_id, min(frame_cnt, p+x)))
+        #         cnt += 1
+
+        #         if cnt % batchsize == 0:
+        #             frames = self.transform(frames)
+        #             yield frames
+        #             frames = []
+            
+        #     if len(frames):
+        #         frames = self.transform(frames)
+        #         yield frames
+
+        # return frame_gen(gen_batchsize), len(frame_ticks)
+E
 
         return feat[frame_ticks], len(frame_ticks)
 
