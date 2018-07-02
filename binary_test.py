@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     print("model epoch {} loss: {}".format(checkpoint['epoch'], checkpoint['best_loss']))
     base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint['state_dict'].items())}
-    dataset = BinaryDataSet(args.feat_root, args.feat_model, train_prop_file, 
+    dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, 
                             exclude_empty=True, body_seg=args.num_body_segments,
                             input_dim=args.input_dim, test_mode=True, 
                             test_interval=args.frame_interval, verbose=False)
