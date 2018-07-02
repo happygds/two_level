@@ -196,7 +196,7 @@ if args.write_proposals:
     print('list {} written. got {} videos'.format(args.write_proposals, len(dumped_list)))
 
 
-import pd
+import pandas as pd
 video_lst, t_start_lst, t_end_lst, score_lst = [], [], [], []
 for k, v in pr_dict.items():
     video_lst.extend([k] * len(v))
