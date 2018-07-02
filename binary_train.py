@@ -83,7 +83,7 @@ def main():
             best_loss = min(loss, best_loss)
             save_checkpoint({
                 'epoch': epoch + 1,
-                'arch': args.arch,
+                'arch': args.model,
                 'state_dict': model.state_dict(),
                 'best_loss': best_loss,
             }, is_best)
@@ -208,13 +208,11 @@ def validate(val_loader, model, criterion, iter):
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    filename = 'binaryclassifier' + \
-        '_'.join((args.snapshot_pref, args.dataset,
-                  args.arch, args.modality.lower(), filename))
+    filename = args.result_path + '/binaryclassifier' + \
+        '_'.join((args.dataset, args.model, filename))
     torch.save(state, filename)
     if is_best:
-        best_name = '_'.join(
-            (args.snapshot_pref, args.modality.lower(), 'model_best.pth.tar'))
+        best_name = args.result_path + '/model_best.pth.tar'
         shutil.copyfile(filename, best_name)
 
 
