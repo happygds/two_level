@@ -110,8 +110,8 @@ def dump_window_list(video_info, named_proposals, frame_path, name_pattern, allo
 
     # convert time to frame number
     real_fps = float(frame_cnt) / float(video_info.duration)
-    if abs(real_fps - 24) > 5.:
-         print('video {} real_fps {}'.format(video_name, real_fps))
+    # if abs(real_fps - 24) > 5.:
+    #      print('video {} real_fps {}'.format(video_name, real_fps))
 
     # get groundtruth windows
     gt_w = [(x.num_label, x.time_span) for x in video_info.instance]
