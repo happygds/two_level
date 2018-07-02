@@ -89,7 +89,8 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         index = index_queue.get()
         frames_gen, frame_cnt = dataset[index]
         input_feat = Variable(frames_gen)
-        output = net(input_feat, None)
+        with torch.no_grad():
+            output = net(input_feat, None)
         print(output[0, 0])
         # output = torch.zeros((frame_cnt, output_dim)).cuda()
         # cnt = 0
