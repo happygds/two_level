@@ -116,10 +116,14 @@ def train(train_loader, model, criterion, optimizer, epoch):
         loss = criterion(binary_score, prop_type_target)
 
         losses.update(loss.data[0], out_frames.size(0))
-        fg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 0, :].contiguous(),
-                          prop_type_target.view(-1, 2)[:, 0].contiguous())
-        bg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 1, :].contiguous(),
-                          prop_type_target.view(-1, 2)[:, 1].contiguous())
+        fg_acc = accuracy(binary_score[:, 0, :].contiguous(),
+                          1 - prop_type_target)
+        bg_acc = accuracy(binary_score[:, 1, :].contiguous(),
+                          prop_type_target)
+        # fg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 0, :].contiguous(),
+        #                   prop_type_target.view(-1, 2)[:, 0].contiguous())
+        # bg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 1, :].contiguous(),
+        #                   prop_type_target.view(-1, 2)[:, 1].contiguous())
 
         fg_accuracies.update(fg_acc[0].data[0], binary_score.size(0) // 2)
         bg_accuracies.update(bg_acc[0].data[0], binary_score.size(0) // 2)
@@ -182,9 +186,9 @@ def validate(val_loader, model, criterion, iter):
         loss = criterion(binary_score, prop_type_target)
         losses.update(loss.data[0], out_frames.size(0))
         fg_acc = accuracy(binary_score[:, 0, :].contiguous(),
-                          prop_type_target.view(-1, 2)[:, 0].contiguous())
+                          1 - prop_type_target)
         bg_acc = accuracy(binary_score[:, 1, :].contiguous(),
-                          prop_type_target.view(-1, 2)[:, 1].contiguous())
+                          prop_type_target)
 
         fg_accuracies.update(fg_acc[0].data[0], binary_score.size(0) // 2)
         bg_accuracies.update(bg_acc[0].data[0], binary_score.size(0) // 2)
