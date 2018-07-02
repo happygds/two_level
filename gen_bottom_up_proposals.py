@@ -177,7 +177,7 @@ print('Average Recall: {:.04f} {:.04f}'.format(*(np.mean(p_list, axis=0)*100)))
 
 if args.write_proposals:
 
-    name_pattern = 'img_*.jpg'
+    name_pattern = 'frame*.jpg'
     frame_path = args.frame_path
 
     named_proposal_list = [name_proposal(x, y) for x, y in zip(gt_spans_full, proposal_list)]
