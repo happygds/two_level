@@ -251,7 +251,7 @@ class BinaryDataSet(data.Dataset):
         for i, idx in enumerate(frame_selected):
             ind_floor, ind_ceil = int(idx // self.feat_stride), min(int(idx // self.feat_stride + 1), feat.shape[0] - 1)
             # ind_floor, ind_ceil = min(ind_floor, feat.shape[0] - 1), min(ind_ceil, feat.shape[0] - 1)
-            assert ind_floor <= ind_ceil, "video {} select frame {}, feat.shape {}".format(video_id, idx, len(feat))
+            assert ind_floor <= ind_ceil, "video {} select frame {}, feat.shape {}".format(video_id, idx, len(feat), prop)
             if ind_floor < ind_ceil:
                 feat_floor, feat_ceil = feat[ind_floor], feat[ind_ceil]
                 feat_idx = feat_floor + (feat_ceil - feat_floor) * (idx / float(self.feat_stride) - ind_floor)
