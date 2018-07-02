@@ -251,7 +251,7 @@ class BinaryDataSet(data.Dataset):
         for i, idx in enumerate(frame_selected):
             ind_floor, ind_ceil = int(idx // self.feat_stride), int(idx // self.feat_stride + 1)
             if ind_floor == feat.shape[0] or ind_ceil == feat.shape[0]:
-                frame[i] = feat[-1]
+                frames[i] = feat[-1]
             else:
                 assert ind_ceil < feat.shape[0], "video {} select frame {}, feat.shape {}, prop {}".format(video_id, idx, len(feat), prop)
                 feat_floor, feat_ceil = feat[ind_floor], feat[ind_ceil]
