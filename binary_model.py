@@ -24,10 +24,10 @@ class BinaryClassifier(torch.nn.Module):
 
     def train_forward(self, inputdata, target):
         course_ft = inputdata[:, :, :].mean(dim=1)
-        raw_course_ft = self.classifier_fc(course_ft)
+        raw_course_ft = self.binary_classifier(course_ft)
         target = target.view(-1)
         return raw_course_ft, target
                 
 
     def test_forward(self, inputdata):
-        return self.self.classifier_fc(inputdata), inputdata
+        return self.self.binary_classifier(inputdata), inputdata
