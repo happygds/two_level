@@ -65,6 +65,16 @@ elif args.dataset == 'activitynet1.3':
     elif args.subset == 'validation':    
         test_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['test_list'])
 
+# set the directory for the rgb features
+if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
+    args.input_dim = 1024
+elif args.feat_model == 'inception_resnet_v2' or args.feat_model == 'inception_resnet_v2_trained':
+    args.input_dim = 1536
+if args.use_flow:
+    args.input_dim += 1024
+print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
+    args.feat_model, args.input_dim))
+
 gpu_list = args.gpus if args.gpus is not None else range(8)
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
@@ -94,16 +104,6 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
 
 
 if __name__ == '__main__':
-    
-    # set the directory for the rgb features
-    if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
-        args.input_dim = 1024
-    elif args.feat_model == 'inception_resnet_v2' or args.feat_model == 'inception_resnet_v2_trained':
-        args.input_dim = 1536
-    if args.use_flow:
-        args.input_dim += 1024
-    print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
-        args.feat_model, args.input_dim))
 
     ctx = multiprocessing.get_context('spawn')
     net = BinaryClassifier(num_class, args.num_body_segments, args.input_dim, dropout=args.dropout)
