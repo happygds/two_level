@@ -340,7 +340,7 @@ class BinaryDataSet(data.Dataset):
 
         # return frame_gen(gen_batchsize), len(frame_ticks)
 
-        return feat[frame_ticks], len(frame_ticks)
+        return torch.from_numpy(feat[frame_ticks]), len(frame_ticks)
 
     def __len__(self):
         return len(self.video_list) * self.epoch_multiplier 
