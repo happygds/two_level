@@ -240,12 +240,13 @@ class BinaryDataSet(data.Dataset):
             return [x_img, y_img]
         
 
-    def _load_prop_data(self, prop, feat):
+    def _load_prop_data(self, prop, feat, video_id):
         # read frame count
         frame_cnt = self.video_dict[prop[0][0]].num_frames
         # frame_cnt = 1572 
         frame_selected = self._sample_frames(prop[0][1])
-        print(frame_selected / 8., feat.shape)
+        if max(frame_selected) > feat.shape[0] * self.feat_stride:
+            print(frame_selected, feat.shape[0], video_id)
         frames = np.zeros((len(frame_selected), self.input_dim), dtype='float32')
         for i, idx in enumerate(frame_selected):
             ind_floor, ind_ceil = int(idx // self.feat_stride), int(idx // self.feat_stride + 1)
@@ -290,7 +291,7 @@ class BinaryDataSet(data.Dataset):
          
         frames = []
         for idx, p in enumerate(props):
-            processed_frames, prop_type = self._load_prop_data(p, feat)
+            processed_frames, prop_type = self._load_prop_data(p, feat, video.id)
             out_feats.append(processed_frames)
             out_prop_type.append(prop_type)
 
