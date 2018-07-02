@@ -173,21 +173,21 @@ def validate(val_loader, model, criterion, iter):
     end = time.time()
 
     for i, (out_frames, out_prop_type) in enumerate(val_loader):
-        input_var = torch.autograd.Variable(out_frames, volatile=True)
-        prop_type_var = torch.autograd.Variable(out_prop_type)
-
-        # compute output
-        binary_score, prop_type_target = model(input_var, prop_type_var)
+        with torch.no_grad():
+            input_var = torch.autograd.Variable(out_frames)
+            prop_type_var = torch.autograd.Variable(out_prop_type)
+            # compute output
+            binary_score, prop_type_target = model(input_var, prop_type_var)
 
         loss = criterion(binary_score, prop_type_target)
-        losses.update(loss.data[0], out_frames.size(0))
+        losses.update(loss.item(), out_frames.size(0))
         fg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 0, :].contiguous(),
                           prop_type_target.view(-1, 2)[:, 0].contiguous())
         bg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 1, :].contiguous(),
                           prop_type_target.view(-1, 2)[:, 1].contiguous())
 
-        fg_accuracies.update(fg_acc[0].data[0], binary_score.size(0) // 2)
-        bg_accuracies.update(bg_acc[0].data[0], binary_score.size(0) // 2)
+        fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)
+        bg_accuracies.update(bg_acc[0].item(), binary_score.size(0) // 2)
 
         batch_time.update(time.time() - end)
         end = time.time()
