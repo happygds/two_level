@@ -245,7 +245,7 @@ class BinaryDataSet(data.Dataset):
         frame_cnt = self.video_dict[prop[0][0]].num_frames
         # frame_cnt = 1572 
         frame_selected = self._sample_frames(prop[0][1])
-        print(frame_selected, feat.shape)
+        print(frame_selected / 8., feat.shape)
         frames = np.zeros((len(frame_selected), self.input_dim), dtype='float32')
         for i, idx in enumerate(frame_selected):
             ind_floor, ind_ceil = int(idx // self.feat_stride), int(idx // self.feat_stride + 1)
