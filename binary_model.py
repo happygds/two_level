@@ -29,4 +29,4 @@ class BinaryClassifier(torch.nn.Module):
                 
 
     def test_forward(self, inputdata):
-        return self.self.binary_classifier(inputdata), inputdata
+        return self.binary_classifier(inputdata), inputdata
