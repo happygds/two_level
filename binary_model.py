@@ -14,6 +14,7 @@ class BinaryClassifier(torch.nn.Module):
         self.dropout = dropout
         self.test_mode = test_mode
         self.binary_classifier = nn.Linear(input_dim, num_class)
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, inputdata, target):
         if not self.test_mode:
@@ -29,4 +30,5 @@ class BinaryClassifier(torch.nn.Module):
                 
 
     def test_forward(self, inputdata):
-        return self.binary_classifier(inputdata), inputdata
+        output = self.binary_classifier(inputdata)
+        return self.softmax(output), inputdata
