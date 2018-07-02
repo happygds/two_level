@@ -290,7 +290,7 @@ class BinaryDataSet(data.Dataset):
 
         out_prop_type = torch.from_numpy(np.array(out_prop_type))
         out_feats = torch.cat(out_feats)
-        print(out_feats.size(), out_prop_type.size())
+        # print(out_feats.size(), out_prop_type.size())
         return out_feats, out_prop_type
 
 
