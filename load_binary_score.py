@@ -228,16 +228,6 @@ class BinaryDataSet(data.Dataset):
             index = np.random.choice(range(split_stage[i],split_stage[i+1]), 1)
             frame_indice.extend(index)
         return frame_indice
-  
-
-    def _load_image(self, directory, idx):
-        if self.modality == 'RGB' or self.modality == 'RGBDiff':
-            return [Image.open(os.path.join(directory, self.image_tmpl.format(idx))).convert('RGB')]
-        elif self.modality == 'Flow':
-            x_img = Image.open(os.path.join(directory, self.image_tmpl.format('x', idx))).convert('L')
-            y_img = Image.open(os.path.join(directory, self.image_tmpl.format('y', idx))).convert('L')
-
-            return [x_img, y_img]
         
 
     def _load_prop_data(self, prop, feat, video_id):
@@ -259,7 +249,6 @@ class BinaryDataSet(data.Dataset):
                 frames[0, i] = feat_idx
 
         return torch.from_numpy(frames), prop[1]
-        # sample segment indices
 
 
     def _video_centric_sampling(self, video):
