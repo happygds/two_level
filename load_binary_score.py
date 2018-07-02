@@ -42,6 +42,8 @@ class BinaryVideoRecord:
         if not vid_name.startswith('v_'):
             # directly read feature from h5 file
             vid_name = 'v_{}'.format(vid_name)
+        import pdb
+        pdb.set_trace()
         with h5py.File(rgb_h5_path, 'r') as f:
             rgb_feat = f[vid_name][rgb_feat_key][:][::int(feat_stride // 8)]
         if use_flow:
