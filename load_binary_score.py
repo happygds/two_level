@@ -253,7 +253,7 @@ class BinaryDataSet(data.Dataset):
             if ind_floor == feat.shape[0] or ind_ceil == feat.shape[0]:
                 frame[i] = feat[-1]
             else:
-                assert ind_floor <= ind_ceil, "video {} select frame {}, feat.shape {}, prop {}".format(video_id, idx, len(feat), prop)
+                assert ind_ceil < feat.shape[0], "video {} select frame {}, feat.shape {}, prop {}".format(video_id, idx, len(feat), prop)
                 feat_floor, feat_ceil = feat[ind_floor], feat[ind_ceil]
                 feat_idx = feat_floor + (feat_ceil - feat_floor) * (idx / float(self.feat_stride) - ind_floor)
                 frames[i] = feat_idx
