@@ -194,3 +194,17 @@ if args.write_proposals:
             of.write(e)
 
     print('list {} written. got {} videos'.format(args.write_proposals, len(dumped_list)))
+
+
+import pd
+video_lst, t_start_lst, t_end_lst, score_lst = [], [], [], []
+for k, v in pr_dict.items():
+    video_lst.extend([k] * len(v))
+    t_start_lst.extend([x[0] for x in v])
+    t_end_lst.extend([x[1] for x in v])
+    score_lst.extend(pr_score_dict[k])
+prediction = pd.DataFrame({'video-id': video_lst,
+                            't-start': t_start_lst,
+                            't-end': t_end_lst,
+                            'score': score_lst})
+prediction.to_csv('val.csv')
