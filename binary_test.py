@@ -26,8 +26,6 @@ parser.add_argument('--max_num', type=int, default=-1)
 parser.add_argument('--input_size', type=int, default=224)
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--use_reference', default=False, action='store_true')
-parser.add_argument('--use_kinetics_reference', default=False, action='store_true')
 
 args = parser.parse_args()
 
@@ -63,14 +61,16 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     while True:
         index = index_queue.get()
         frames_gen, frame_cnt = dataset[index]
-        output = torch.zeros((frame_cnt, num_crop, output_dim)).cuda()
-        cnt = 0
-        for frames in frames_gen:
-            input_var = Variable(frames)
-            rst, _ = net(input_var, None)
-            sc = rst.data.view(-1, num_crop, output_dim)
-            output[cnt:cnt + sc.size(0), :, :] = sc
-            cnt += sc.size(0)
+        input_feat = Variable(frames)
+        output = net(input_feat, None)
+        print(output[0, 0])
+        # output = torch.zeros((frame_cnt, output_dim)).cuda()
+        # cnt = 0
+        # for frames in frames_gen:
+        #     rst, _ = net(input_var, None)
+        #     sc = rst.data.view(-1, output_dim)
+        #     output[cnt:cnt + sc.size(0), :, :] = sc
+        #     cnt += sc.size(0)
 
         result_queue.put((dataset.video_list[index].id.split('/')[-1], output.cpu().numpy()))
         
