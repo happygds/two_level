@@ -53,8 +53,6 @@ score_list = []
 for fname in args.score_files:
     score_list.append(pickle.load(open(fname, 'rb')))
 print('load {} piles of scores'.format(len(score_list)))
-import pdb
-pdb.set_trace()
 
 
 # load classification scores if specified
@@ -113,6 +111,8 @@ print('generating proposals')
 pr_dict = {}
 pr_score_dict = {}
 topk = 1
+import pdb
+pdb.set_trace()
 
 
 def gen_prop(v):
