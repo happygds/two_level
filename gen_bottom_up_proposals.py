@@ -53,6 +53,8 @@ score_list = []
 for fname in args.score_files:
     score_list.append(pickle.load(open(fname, 'rb')))
 print('load {} piles of scores'.format(len(score_list)))
+import pdb
+pdb.set_trace()
 
 
 # load classification scores if specified
