@@ -43,8 +43,6 @@ parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float,
                     metavar='W', help='weight decay (default: 5e-4)')
 parser.add_argument('--clip-gradient', '--gd', default=None, type=float,
                     metavar='W', help='gradient norm clipping (default: disabled)')
-parser.add_argument('--bn_mode', '--bn', default='frozen', type=str,
-                    help="the mode of bn layers")
 parser.add_argument('--comp_loss_weight', '--lw', default=0.1, type=float,
                     metavar='LW', help='the weight for the completeness loss')
 parser.add_argument('--reg_loss_weight', '--rw', default=0.1, type=float,
@@ -53,7 +51,7 @@ parser.add_argument('--reg_loss_weight', '--rw', default=0.1, type=float,
 # ========================= Monitor Configs ==========================
 parser.add_argument('--print-freq', '-p', default=20, type=int,
                     metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--eval-freq', '-ef', default=1, type=int,
+parser.add_argument('--eval-freq', '-ef', default=100, type=int,
                     metavar='N', help='evaluation frequency (default: 5)')
 
 # ========================= Runtime Configs ==========================

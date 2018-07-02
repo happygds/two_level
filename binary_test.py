@@ -19,11 +19,11 @@ parser.add_argument('subset', type=str, choices=['training','validation','testin
 parser.add_argument('weights', type=str)
 parser.add_argument('save_scores', type=str)
 parser.add_argument('--save_raw_scores', type=str, default=None)
-parser.add_argument('--frame_interval', type=int, default=5)
+parser.add_argument('--frame_interval', type=int, default=16)
 parser.add_argument('--test_batchsize', type=int, default=512)
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--max_num', type=int, default=-1)
-parser.add_argument('--input_size', type=int, default=224)
+parser.add_argument('--num_body_segments', type=int, default=5)
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 
