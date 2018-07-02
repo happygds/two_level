@@ -170,7 +170,7 @@ print('{} groundtruth boxes from'.format(sum(map(len, gt_spans))))
 
 
 print('average # of proposals: {}'.format(np.mean(list(map(len, proposal_list)))))
-IOU_thresh = np.arange(0.5, 1, 0.2)
+IOU_thresh = np.arange(0.5, 0.95, 0.05)
 p_list = []
 for th in IOU_thresh:
     pv, pi = get_temporal_proposal_recall(proposal_list, gt_spans, th)
@@ -184,8 +184,8 @@ if args.write_proposals:
     frame_path = args.frame_path
 
     named_proposal_list = [name_proposal(x, y) for x, y in zip(gt_spans_full, proposal_list)]
-    allow_empty = args.dataset == 'activitynet' and args.subset == 'testing'
-    dumped_list = [dump_window_list(v, prs, frame_path, name_pattern, score=score, allow_empty=allow_empty) for v, prs, score in
+    # allow_empty = args.dataset == 'activitynet' and args.subset == 'testing'
+    dumped_list = [dump_window_list(v, prs, frame_path, name_pattern, score=score, allow_empty=True) for v, prs, score in
                    zip(filter(lambda x: x.id in pr_dict, video_list), named_proposal_list, score_list)]
 
     with open(args.write_proposals, 'w') as of:
