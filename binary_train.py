@@ -49,7 +49,7 @@ def main():
         BinaryDataSet(args.feat_root, args.feat_model, train_prop_file, 
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.input_dim),
-        batch_size=args.b, shuffle=True,
+        batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=pin_memory,
         drop_last=True)
 
