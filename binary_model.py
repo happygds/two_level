@@ -26,6 +26,7 @@ class BinaryClassifier(torch.nn.Module):
         course_ft = inputdata[:, :, :].mean(dim=1)
         raw_course_ft = self.binary_classifier(course_ft)
         target = target.view(-1)
+        print(inputdata.size(), target.size())
         return raw_course_ft, target
                 
 
