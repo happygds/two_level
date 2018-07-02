@@ -55,7 +55,7 @@ def main():
 
     val_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, 
-                      exclude_empty=True, body_seg=args.num_body_segments,,
+                      exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.input_dim,
                       fg_ratio=6, bg_ratio=6),
         batch_size=1, shuffle=False,
