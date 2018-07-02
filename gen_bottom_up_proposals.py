@@ -76,18 +76,19 @@ else:
 # merge scores
 print('merging scores')
 score_dict = {}
-for key in score_list[0].keys():
-    out_score = score_list[0][key].mean(axis=1) * (1.0 if args.score_weights is None else args.score_weights[0])
-    for i in range(1, len(score_list)):
-        add_score = score_list[i][key].mean(axis=1)
-        if add_score.shape[0] < out_score.shape[0]:
-            out_score = out_score[:add_score.shape[0], :]
-        elif add_score.shape[0] > out_score.shape[0]:
-            tick = add_score.shape[0] / float(out_score.shape[0])
-            indices = [int(x * tick) for x in range(out_score.shape[0])]
-            add_score = add_score[indices, :]
-        out_score += add_score * (1.0 if args.score_weights is None else args.score_weights[i])
-    score_dict[key] = out_score
+# for key in score_list[0].keys():
+#     out_score = score_list[0][key].mean(axis=1) * (1.0 if args.score_weights is None else args.score_weights[0])
+#     for i in range(1, len(score_list)):
+#         add_score = score_list[i][key].mean(axis=1)
+#         if add_score.shape[0] < out_score.shape[0]:
+#             out_score = out_score[:add_score.shape[0], :]
+#         elif add_score.shape[0] > out_score.shape[0]:
+#             tick = add_score.shape[0] / float(out_score.shape[0])
+#             indices = [int(x * tick) for x in range(out_score.shape[0])]
+#             add_score = add_score[indices, :]
+#         out_score += add_score * (1.0 if args.score_weights is None else args.score_weights[i])
+#     score_dict[key] = out_score
+score_dict = score_list[0]
 print('done')
 
 # merge regression scores
