@@ -252,7 +252,7 @@ class BinaryDataSet(data.Dataset):
             feat_idx = feat_floor + (feat_ceil - feat_floor) * (idx / self.feat_stride - ind_floor)
             frames[i] = feat_floor
 
-        return frames, prop[1]
+        return torch.from_numpy(frames), prop[1]
         # sample segment indices
 
 
