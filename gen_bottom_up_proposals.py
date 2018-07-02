@@ -193,4 +193,4 @@ if args.write_proposals:
             of.write('# {}\n'.format(i + 1))
             of.write(e)
 
-    print('list written. got {} videos'.format(len(dumped_list)))
+    print('list {} written. got {} videos'.format(args.write_proposals, len(dumped_list)))
