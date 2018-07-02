@@ -250,7 +250,7 @@ class BinaryDataSet(data.Dataset):
         frames = np.zeros((1, len(frame_selected), self.input_dim), dtype='float32')
         for i, idx in enumerate(frame_selected):
             ind_floor, ind_ceil = int(idx // self.feat_stride), int(idx // self.feat_stride + 1)
-            if ind_floor == feat.shape[0] or ind_ceil == feat.shape[0]:
+            if ind_floor >= feat.shape[0] or ind_ceil >= feat.shape[0]:
                 frames[0, i] = feat[-1]
             else:
                 assert ind_ceil < feat.shape[0], "video {} select frame {}, feat.shape {}, prop {}".format(video_id, idx, len(feat), prop)
