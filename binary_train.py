@@ -49,7 +49,7 @@ def main():
         BinaryDataSet(args.feat_root, args.feat_model, train_prop_file, 
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.input_dim),
-        batch_size=4, shuffle=True,
+        batch_size=128, shuffle=True,
         num_workers=args.workers, pin_memory=pin_memory,
         drop_last=True)
 
@@ -253,7 +253,7 @@ def accuracy(output, target, topk=(1,)):
 
     _, pred = output.topk(maxk, 1, True, True)
     pred = pred.t()
-    print(output.size(), pred.size(), target.size())
+    # print(output.size(), pred.size(), target.size())
     correct = pred.eq(target.view(1, -1).expand_as(pred))
 
     res = []
