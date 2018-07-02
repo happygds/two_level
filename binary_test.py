@@ -90,8 +90,8 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         frames_gen, frame_cnt = dataset[index]
         input_feat = Variable(frames_gen).cuda()
         with torch.no_grad():
-            output = net(input_feat, None)
-        print(output[0, 0])
+            output, _ = net(input_feat, None)
+        print(output[:, 1])
         # output = torch.zeros((frame_cnt, output_dim)).cuda()
         # cnt = 0
         # for frames in frames_gen:
