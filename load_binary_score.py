@@ -303,7 +303,7 @@ class BinaryDataSet(data.Dataset):
         frame_ticks = np.arange(0, frame_cnt, test_interval, dtype=np.int)
         num_sampled_frames = len(frame_ticks)
 
-        frames_ticks = (frame_ticks // 8).astype('int32')
+        frames_ticks = (frame_ticks // 8).astype('int32').clip(0, feat.shape[0] - 1)
 
         # avoid empty proposal list
         for i in frame_ticks:
@@ -339,7 +339,7 @@ class BinaryDataSet(data.Dataset):
         #         yield frames
 
         # return frame_gen(gen_batchsize), len(frame_ticks)
-        
+
         return feat[frame_ticks], len(frame_ticks)
 
     def __len__(self):
