@@ -246,6 +246,8 @@ class BinaryDataSet(data.Dataset):
         # frame_cnt = 1572 
         frame_selected = self._sample_frames(prop[0][1])
         frames = np.zeros((len(frame_selected), self.input_dim), dtype='float32')
+        import pdb
+        pdb.set_trace()
         for i, idx in enumerate(frame_selected):
             ind_floor, ind_ceil = int(idx // self.feat_stride), int(idx // self.feat_stride + 1)
             feat_floor, feat_ceil = feat[ind_floor], feat[ind_ceil]
