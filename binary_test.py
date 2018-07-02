@@ -27,6 +27,21 @@ parser.add_argument('--num_body_segments', type=int, default=5)
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 
+parser.add_argument('--annotation_path', default='/data1/matheguo/important/data/activitynet/activity_net.v1-3.min_save.json',
+                    type=str, help='Annotation file path')
+parser.add_argument('--feat_root', default='/data1/matheguo/important/data/activitynet',
+                    type=str, help='Feature directory path')
+parser.add_argument('--result_path', default='/data1/matheguo/important/result/activitynet/self_att',
+                    type=str, help='Result directory path')
+parser.add_argument('--model', default='TAG', type=str,
+                    help='(self_att | TAG')
+parser.add_argument('--feat_model', default='i3d_rgb_trained', type=str,
+                    help='the model for extracting pretrained features ('
+                    'i3d_rgb | i3d_rgb_trained | inception_resnet_v2 | inception_resnet_v2_trained)')
+parser.add_argument('--use_flow', action='store_true',
+                    help='whether use i3d_flow feature')
+parser.set_defaults(use_flow=True)
+
 args = parser.parse_args()
 
 dataset_configs = get_actionness_configs(args.dataset)
