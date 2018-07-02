@@ -247,16 +247,16 @@ class BinaryDataSet(data.Dataset):
         frame_selected = self._sample_frames(prop[0][1])
         # if max(frame_selected) > feat.shape[0] * self.feat_stride:
         #     print(frame_selected, feat.shape[0], video_id)
-        frames = np.zeros((len(frame_selected), self.input_dim), dtype='float32')
+        frames = np.zeros((1, len(frame_selected), self.input_dim), dtype='float32')
         for i, idx in enumerate(frame_selected):
             ind_floor, ind_ceil = int(idx // self.feat_stride), int(idx // self.feat_stride + 1)
             if ind_floor == feat.shape[0] or ind_ceil == feat.shape[0]:
-                frames[i] = feat[-1]
+                frames[0, i] = feat[-1]
             else:
                 assert ind_ceil < feat.shape[0], "video {} select frame {}, feat.shape {}, prop {}".format(video_id, idx, len(feat), prop)
                 feat_floor, feat_ceil = feat[ind_floor], feat[ind_ceil]
                 feat_idx = feat_floor + (feat_ceil - feat_floor) * (idx / float(self.feat_stride) - ind_floor)
-                frames[i] = feat_idx
+                frames[0, i] = feat_idx
 
         return torch.from_numpy(frames), prop[1]
         # sample segment indices
@@ -301,7 +301,7 @@ class BinaryDataSet(data.Dataset):
 
         out_prop_type = torch.from_numpy(np.array(out_prop_type))
         out_feats = torch.cat(out_feats)
-        print(out_feats.size(), out_prop_type.size())
+        # print(out_feats.size(), out_prop_type.size())
         return out_feats, out_prop_type
 
 
