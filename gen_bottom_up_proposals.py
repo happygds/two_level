@@ -170,7 +170,7 @@ print('{} groundtruth boxes from'.format(sum(map(len, gt_spans))))
 
 
 print('average # of proposals: {}'.format(np.mean(list(map(len, proposal_list)))))
-IOU_thresh = np.arange(0.5, 0.95, 0.05)
+IOU_thresh = np.arange(0.5, 1.0, 0.05)
 p_list = []
 for th in IOU_thresh:
     pv, pi = get_temporal_proposal_recall(proposal_list, gt_spans, th)
