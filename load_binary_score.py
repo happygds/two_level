@@ -249,15 +249,14 @@ class BinaryDataSet(data.Dataset):
         #     print(frame_selected, feat.shape[0], video_id)
         frames = np.zeros((len(frame_selected), self.input_dim), dtype='float32')
         for i, idx in enumerate(frame_selected):
-            ind_floor, ind_ceil = int(idx // self.feat_stride), min(int(idx // self.feat_stride + 1), feat.shape[0] - 1)
-            # ind_floor, ind_ceil = min(ind_floor, feat.shape[0] - 1), min(ind_ceil, feat.shape[0] - 1)
-            assert ind_floor <= ind_ceil, "video {} select frame {}, feat.shape {}, prop {}".format(video_id, idx, len(feat), prop)
-            if ind_floor < ind_ceil:
+            ind_floor, ind_ceil = int(idx // self.feat_stride), int(idx // self.feat_stride + 1)
+            if ind_floor == feat.shape[0] or ind_ceil == feat.shape[0]:
+                frame[i] = feat[-1]
+            else:
+                assert ind_floor <= ind_ceil, "video {} select frame {}, feat.shape {}, prop {}".format(video_id, idx, len(feat), prop)
                 feat_floor, feat_ceil = feat[ind_floor], feat[ind_ceil]
                 feat_idx = feat_floor + (feat_ceil - feat_floor) * (idx / float(self.feat_stride) - ind_floor)
-            else:
-                feat_idx = feat[ind_floor]
-            frames[i] = feat_idx
+                frames[i] = feat_idx
 
         return torch.from_numpy(frames), prop[1]
         # sample segment indices
