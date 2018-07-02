@@ -92,7 +92,7 @@ class BinaryDataSet(data.Dataset):
 
     def __init__(self, feat_root, feat_model,
                  prop_file=None, body_seg=5, video_centric=True,
-                 test_mode=False, feat_stride=8,
+                 test_mode=False, feat_stride=8, input_dim=1024,
                  prop_per_video=12, fg_ratio=3, bg_ratio=9,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
                  bg_coverage_thresh=0.02,
@@ -108,6 +108,7 @@ class BinaryDataSet(data.Dataset):
         self.video_centric=video_centric
         self.exclude_empty=exclude_empty
         self.epoch_multiplier=epoch_multiplier
+        self.input_dim = input_dim
 
         self.test_mode=test_mode
         self.test_interval=test_interval
