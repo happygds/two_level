@@ -77,12 +77,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
 
 
 if __name__ == '__main__':
-
-    ctx = multiprocessing.get_context('spawn')
-    net = BinaryClassifier(num_class, args.num_body_segments, args.input_dim, dropout=args.dropout)
-
-    checkpoint = torch.load(args.weights)
-
+    
     # set the directory for the rgb features
     if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
         args.input_dim = 1024
@@ -92,6 +87,11 @@ if __name__ == '__main__':
         args.input_dim += 1024
     print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
         args.feat_model, args.input_dim))
+
+    ctx = multiprocessing.get_context('spawn')
+    net = BinaryClassifier(num_class, args.num_body_segments, args.input_dim, dropout=args.dropout)
+
+    checkpoint = torch.load(args.weights)
 
     print("model epoch {} loss: {}".format(checkpoint['epoch'], checkpoint['best_loss']))
     base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint['state_dict'].items())}
