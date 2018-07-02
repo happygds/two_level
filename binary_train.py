@@ -58,7 +58,7 @@ def main():
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.input_dim,
                       fg_ratio=6, bg_ratio=6),
-        batch_size=1, shuffle=False,
+        batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
     binary_criterion = torch.nn.CrossEntropyLoss().cuda()
