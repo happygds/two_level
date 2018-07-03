@@ -95,6 +95,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         nframes = len(output) * args.frame_interval
         output = np.interp(
             np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output)
+        output = output.reshape((-1, 1))
         output = np.concatenate([1. - output, output], axis=1)
         print(output.shape)
         # output = torch.zeros((frame_cnt, output_dim)).cuda()
