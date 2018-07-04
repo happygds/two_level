@@ -15,7 +15,7 @@ from ops.thumos_db import THUMOSDB
 from ops.detection_metrics import get_temporal_proposal_recall, name_proposal
 from ops.sequence_funcs import temporal_nms
 from ops.io import dump_window_list
-from opts.eval_utils import area_under_curve
+from ops.eval_utils import area_under_curve
 
 parser = argparse.ArgumentParser()
 parser.add_argument('score_files', type=str, nargs='+')
