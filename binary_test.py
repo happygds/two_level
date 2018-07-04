@@ -91,12 +91,12 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         input_feat = Variable(frames_gen).cuda()
         with torch.no_grad():
             output, _ = net(input_feat, None)
-            output = output.cpu().numpy()[:, 1]
-        nframes = len(output) * args.frame_interval
-        output = np.interp(
-            np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output)
-        output = output.reshape((-1, 1))
-        output = np.concatenate([1. - output, output], axis=1)
+            output = output.cpu().numpy()
+        # nframes = len(output) * args.frame_interval
+        # output = np.interp(
+        #     np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output[:, 1])
+        # output = output.reshape((-1, 1))
+        # output = np.concatenate([1. - output, output], axis=1)
         print(output.shape)
         # output = torch.zeros((frame_cnt, output_dim)).cuda()
         # cnt = 0
