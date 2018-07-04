@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import math
+import pandas as pd
 import numpy as np
 import multiprocessing
 from sklearn.metrics import confusion_matrix
@@ -14,6 +15,8 @@ from ops.thumos_db import THUMOSDB
 from ops.detection_metrics import get_temporal_proposal_recall, name_proposal
 from ops.sequence_funcs import temporal_nms
 from ops.io import dump_window_list
+from opts.eval_utils import area_under_curve
+
 parser = argparse.ArgumentParser()
 parser.add_argument('score_files', type=str, nargs='+')
 parser.add_argument("--anet_version", type=str, default='1.3', help='')
@@ -208,3 +211,14 @@ prediction = pd.DataFrame({'video-id': video_lst,
                             't-end': t_end_lst,
                             'score': score_lst})
 prediction.to_csv('val.csv')
+
+# prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
+ground_truth, cls_to_idx = grd_annots.grd_activity('/data1/matheguo/important/data/activitynet/activity_net.v1-3.min_save.json', subset='validation')
+del cls_to_idx['background']
+auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=100,
+                                                     tiou_thresholds=np.linspace(0.5, 0.95, 10))
+nr_proposals_lst = np.around(nr_proposals_lst)
+
+for j, nr_proposals in enumerate(nr_proposals_lst):
+    print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j]))
+print('AUC is {}'.format(auc))
