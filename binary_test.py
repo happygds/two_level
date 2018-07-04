@@ -98,13 +98,6 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         # output = output.reshape((-1, 1))
         # output = np.concatenate([1. - output, output], axis=1)
         print(output.shape)
-        # output = torch.zeros((frame_cnt, output_dim)).cuda()
-        # cnt = 0
-        # for frames in frames_gen:
-        #     rst, _ = net(input_var, None)
-        #     sc = rst.data.view(-1, output_dim)
-        #     output[cnt:cnt + sc.size(0), :, :] = sc
-        #     cnt += sc.size(0)
 
         result_queue.put((dataset.video_list[index].id.split('/')[-1], output))
         
