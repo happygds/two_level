@@ -158,6 +158,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         bg_accuracies.update(bg_acc[0].item(), binary_score.size(0) // 2)
 
         # compute gradient and do SGD step
+        optimizer.zero_grad()
         loss.backward()
 
         if i % args.iter_size == 0:
@@ -176,7 +177,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
             total_norm = 0
 
         optimizer.step()
-        optimizer.zero_grad()
 
         # measure elapsed time
         batch_time.update(time.time() - end)
