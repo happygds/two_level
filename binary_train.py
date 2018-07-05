@@ -151,8 +151,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             # scale down gradients when iter size is functioning
             if args.iter_size != 1:
                 for g in optimizer.param_groups:
-                    for p in g['par
-                    ams']:
+                    for p in g['params']:
                         p.grad /= args.iter_size
 
         if args.clip_gradient is not None:
