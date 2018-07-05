@@ -119,12 +119,13 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
     for i, (feature, pos_ind, sel_prop_inds, prop_type_target) in enumerate(train_loader):
         # measure data loading time
-        data_time.update(time.time() - end)          
+        data_time.update(time.time() - end)
+        feature_mask = feature.abs().mean(2).ne(0).float()
         feature = torch.autograd.Variable(feature, requires_grad=False).cuda()
+        feature_mask = torch.autograd.Variable(feature_mask, requires_grad=False).cuda()
         pos_ind = torch.autograd.Variable(pos_ind, requires_grad=False).cuda()
         sel_prop_inds = torch.autograd.Variable(sel_prop_inds, requires_grad=False).cuda()
         prop_type_target = torch.autograd.Variable(prop_type_target, requires_grad=False).cuda()
-        feature_mask = feature.abs().mean(2).ne(0).float()
 
         # compute output
         binary_score, prop_type_target = model(
@@ -194,11 +195,12 @@ def validate(val_loader, model, criterion, iter):
 
     for i, (feature, pos_ind, sel_prop_inds, prop_type_target) in enumerate(val_loader):
         with torch.no_grad():
+            feature_mask = feature.abs().mean(2).ne(0).float()
             feature = torch.autograd.Variable(feature).cuda()
+            feature_mask = torch.autograd.Variable(feature_mask).cuda()
             pos_ind = torch.autograd.Variable(pos_ind).cuda()
             sel_prop_inds = torch.autograd.Variable(sel_prop_inds).cuda()
             prop_type_target = torch.autograd.Variable(prop_type_target).cuda()
-            feature_mask = feature.abs().mean(2).ne(0).float()
             # compute output
             binary_score, prop_type_target = model(feature, pos_ind, sel_prop_ind=sel_prop_inds,
                                  feature_mask=feature_mask, target=prop_type_target)
