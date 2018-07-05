@@ -169,7 +169,7 @@ python binary_train.py activitynet1.3 -b 64 --lr_steps 4 8 --epochs 10
 ### Obtaining actionness score
 
 ```bash
-python binary_test.py activitynet1.3 validation /data1/matheguo/important/result/activitynet/ori_ssn/model_best.pth.tar  /data1/matheguo/important/result/activitynet/ori_ssn/val_actionness.pkl
+python binary_test.py activitynet1.3 validation /data1/matheguo/important/result/activitynet/self_att/model_best.pth.tar  /data1/matheguo/important/result/activitynet/self_att/val_actionness.pkl
 ```
 
 ### Generating TAG proposals
@@ -181,7 +181,7 @@ python gen_bottom_up_proposals.py ACTIONNESS_RESULT_PICKLE --dataset thumos14 --
 ActivityNet1.2
 ```bash
 python gen_bottom_up_proposals.py ACTIONNESS_RESULT_PICKLE --dataset activitynet --subset training  --write_proposals data/activitynet1.2_tag_train_proposal_list.txt  --frame_path FRAME_PATH
-python gen_bottom_up_proposals.py /data1/matheguo/important/result/activitynet/ori_ssn/val_actionness.pkl --dataset activitynet --subset validation  --write_proposals data/activitynet1.3_tag_val_proposal_list.txt  --frame_path /data1/matheguo/important/data/activitynet/activity_net_frames
+python gen_bottom_up_proposals.py /data1/matheguo/important/result/activitynet/self_att/val_actionness.pkl --dataset activitynet --subset validation  --write_proposals data/activitynet1.3_tag_val_proposal_list.txt  --frame_path /data1/matheguo/important/data/activitynet/activity_net_frames
 ```
 
 where `ACTIONNESS_RESULTS_PICKLE` can be multiple (e.g. actionness predicted from both streams)

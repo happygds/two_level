@@ -246,8 +246,9 @@ def validate(val_loader, model, criterion, iter):
     return losses.avg
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    filename = args.result_path + '_'.join((args.att_kernel_type, str(args.n_layers), filename))
+def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
+    args.result_path = os.path.join(args.result_path, '_'.join((args.att_kernel_type, str(args.n_layers)))
+    filename = args.result_path + filename
     torch.save(state, filename)
     if is_best:
         best_name = args.result_path + '/model_best.pth.tar'
