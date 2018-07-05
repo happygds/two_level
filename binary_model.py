@@ -64,7 +64,7 @@ class BinaryClassifier(torch.nn.Module):
 
 
 
-    def forward(self, feature, pos_ind, feature_mask=None, return_attns=False):
+    def forward(self, feature, pos_ind, sel_prop_ind=None, feature_mask=None, return_attns=False):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
@@ -88,7 +88,9 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output, slf_attn_mask=enc_slf_attn_mask)
             enc_slf_attns += [enc_slf_attn]
 
-        # enc_output = feature
+        if not self.test_mode:
+            assert sel_prop_ind is not None
+            enc_ouput = torch.gather(enc_output, 1, sel_prop_ind)
 
         enc_output = self.actionness(enc_output)
         

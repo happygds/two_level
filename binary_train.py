@@ -8,6 +8,7 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim
 from torch.nn.utils import clip_grad_norm
+
 from ssn_opts import parser
 from load_binary_score import BinaryDataSet
 from binary_model import BinaryClassifier
@@ -36,17 +37,19 @@ def main():
         args.feat_model, args.input_dim))
     # if reduce the dimension of input feature first
     if args.reduce_dim > 0:
-        assert args.reduce_dim % args.n_head == 0, "reduce_dim {} % n_head {} != 0".format(args.reduce_dim, args.n_head)
+        assert args.reduce_dim % args.n_head == 0, "reduce_dim {} % n_head {} != 0".format(
+            args.reduce_dim, args.n_head)
         args.d_k = int(args.reduce_dim // args.n_head)
         args.d_v = args.d_k
     else:
-        assert args.input_dim % args.n_head == 0, "input_dim {} % n_head {} != 0".format(args.input_dim, args.n_head)
+        assert args.input_dim % args.n_head == 0, "input_dim {} % n_head {} != 0".format(
+            args.input_dim, args.n_head)
         args.d_k = int(args.input_dim // args.n_head)
         args.d_v = args.d_k
     args.d_model = args.n_head * args.d_k
 
-
-    model = BinaryClassifier(num_class, args.num_body_segments, args.input_dim, dropout=args.dropout)
+    model = BinaryClassifier(
+        num_class, args.num_body_segments, args.input_dim, dropout=args.dropout)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()
 
     cudnn.benchmark = True
@@ -57,7 +60,7 @@ def main():
     val_prop_file = 'data/{}_proposal_list.txt'.format(
         dataset_configs['test_list'])
     train_loader = torch.utils.data.DataLoader(
-        BinaryDataSet(args.feat_root, args.feat_model, train_prop_file, 
+        BinaryDataSet(args.feat_root, args.feat_model, train_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.input_dim),
         batch_size=args.batch_size, shuffle=True,
@@ -65,7 +68,7 @@ def main():
         drop_last=True)
 
     val_loader = torch.utils.data.DataLoader(
-        BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, 
+        BinaryDataSet(args.feat_root, args.feat_model, val_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.input_dim,
                       fg_ratio=6, bg_ratio=6),
@@ -113,16 +116,17 @@ def train(train_loader, model, criterion, optimizer, epoch):
     end = time.time()
     optimizer.zero_grad()
 
-    for i, (out_frames, out_prop_type) in enumerate(train_loader):
+    for i, (feature, pos_ind, sel_prop_inds, prop_type_target) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)
+        feature_mask = feature.abs().mean(2).ne(0).float()
 
-        input_var = torch.autograd.Variable(out_frames)
-        prop_type_var = torch.autograd.Variable(out_prop_type)
+        # input_var = torch.autograd.Variable(out_frames)
+        # prop_type_var = torch.autograd.Variable(out_prop_type)
 
         # compute output
-
-        binary_score, prop_type_target = model(input_var, prop_type_var)
+        binary_score = model(
+            feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
 
         loss = criterion(binary_score, prop_type_target)
 
@@ -136,6 +140,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         bg_accuracies.update(bg_acc[0].data[0], binary_score.size(0) // 2)
 
         # compute gradient and do SGD step
+        optimizer.zero_grad()
         loss.backward()
 
         if i % args.iter_size == 0:
@@ -154,7 +159,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
             total_norm = 0
 
         optimizer.step()
-        optimizer.zero_grad()
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -183,12 +187,12 @@ def validate(val_loader, model, criterion, iter):
 
     end = time.time()
 
-    for i, (out_frames, out_prop_type) in enumerate(val_loader):
+    for i, (feature, pos_ind, sel_prop_inds, prop_type_target) in enumerate(val_loader):
         with torch.no_grad():
-            input_var = torch.autograd.Variable(out_frames)
-            prop_type_var = torch.autograd.Variable(out_prop_type)
+            feature_mask = feature.abs().mean(2).ne(0).float()
             # compute output
-            binary_score, prop_type_target = model(input_var, prop_type_var)
+            binary_score = model(feature, pos_ind, sel_prop_ind=sel_prop_inds,
+                                 feature_mask=feature_mask)
 
         loss = criterion(binary_score, prop_type_target)
         losses.update(loss.item(), out_frames.size(0))
