@@ -145,7 +145,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target = convert_categorical(prop_target.data.cpu().numpy(), n_classes=2)
         target = torch.autograd.Variable(torch.from_numpy(target), requires_grad=False).cuda()
         loss = criterion(binary_score, target)
-        # print(prop_target)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
@@ -248,7 +247,7 @@ def validate(val_loader, model, criterion, iter):
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    filename = args.result_path + '_'.join((args.att_kernel_type, args.n_layers, filename))
+    filename = args.result_path + '_'.join((args.att_kernel_type, str(args.n_layers), filename))
     torch.save(state, filename)
     if is_best:
         best_name = args.result_path + '/model_best.pth.tar'
