@@ -312,7 +312,7 @@ class BinaryDataSet(data.Dataset):
             (1, self.input_dim))).astype('int')
         sel_frame_inds = torch.from_numpy(sel_frame_inds).long()
 
-        out_prop_type = torch.from_numpy(np.array(out_prop_type)).long()
+        out_prop_type = torch.from_numpy(np.asarray(out_prop_type).clip(0., 1)).long()
         out_feats = torch.from_numpy(out_feats)
         # print(out_feats.size(), out_prop_type.size())
         return out_feats, pos_ind, sel_frame_inds, out_prop_type
