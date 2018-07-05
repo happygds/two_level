@@ -15,7 +15,19 @@ parser.add_argument('--feat_model', default='i3d_rgb_trained', type=str,
                     'i3d_rgb | i3d_rgb_trained | inception_resnet_v2 | inception_resnet_v2_trained)')
 parser.add_argument('--use_flow', action='store_true',
                     help='whether use i3d_flow feature')
-parser.set_defaults(use_flow=True)
+parser.set_defaults(use_flow=True)    # for self-attetion encoder
+parser.add_argument('--pos_enc', default=True, type=int,
+                    help='whether slice the original position indices of the input video sequence')
+parser.add_argument('--att_kernel_type', default='self_attn',
+                    type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot)')
+parser.add_argument('--n_layers', default=1,
+                    type=int, help='the number of encoder layers in the self_attention encoder')
+parser.add_argument('--reduce_dim', default=512,
+                    type=int, help='if -1, not rediced; if > 0, reduce the input feature dimension first')
+parser.add_argument('--n_head', default=8,
+                    type=int, help='the number of attention head used in one encoder layer')
+parser.add_argument('--d_inner_hid', default=1024, type=int,
+                    help='the layer dimension for positionwise fc layers')
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)

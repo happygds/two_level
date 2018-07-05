@@ -34,6 +34,17 @@ def main():
         args.input_dim += 1024
     print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
         args.feat_model, args.input_dim))
+    # if reduce the dimension of input feature first
+    if args.reduce_dim > 0:
+        assert args.reduce_dim % args.n_head == 0, "reduce_dim {} % n_head {} != 0".format(args.reduce_dim, args.n_head)
+        args.d_k = int(args.reduce_dim // args.n_head)
+        args.d_v = args.d_k
+    else:
+        assert args.input_dim % args.n_head == 0, "input_dim {} % n_head {} != 0".format(args.input_dim, args.n_head)
+        args.d_k = int(args.input_dim // args.n_head)
+        args.d_v = args.d_k
+    args.d_model = args.n_head * args.d_k
+
 
     model = BinaryClassifier(num_class, args.num_body_segments, args.input_dim, dropout=args.dropout)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()

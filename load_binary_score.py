@@ -95,12 +95,11 @@ class BinaryDataSet(data.Dataset):
                  test_mode=False, feat_stride=8, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
-                 bg_coverage_thresh=0.02,
+                 bg_coverage_thresh=0.02, sample_duration=8196,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True):
 
-        self.feat_stride=feat_stride
         self.prop_file=prop_file
         self.verbose=verbose
 
@@ -109,6 +108,8 @@ class BinaryDataSet(data.Dataset):
         self.exclude_empty=exclude_empty
         self.epoch_multiplier=epoch_multiplier
         self.input_dim = input_dim
+        self.feat_stride=feat_stride
+        self.sample_duration = sample_duration
 
         self.test_mode=test_mode
         self.test_interval=test_interval
@@ -230,7 +231,7 @@ class BinaryDataSet(data.Dataset):
         return frame_indice
         
 
-    def _load_prop_data(self, prop, feat, video_id):
+    def _load_prop_data(self, prop, video_id):
         # read frame count
         frame_cnt = self.video_dict[prop[0][0]].num_frames
         # frame_cnt = 1572 
@@ -284,7 +285,7 @@ class BinaryDataSet(data.Dataset):
          
         frames = []
         for idx, p in enumerate(props):
-            processed_frames, prop_type = self._load_prop_data(p, feat, video.id)
+            processed_frames, prop_type = self._load_prop_data(p, video.id)
             out_feats.append(processed_frames)
             out_prop_type.append(prop_type)
 
