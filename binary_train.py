@@ -138,7 +138,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             print(binary_score.size(), prop_type_target.size())
             loss = criterion(binary_score.transpose(1, 2), prop_type_target)
 
-            losses.update(loss.data[0], out_frames.size(0))
+            losses.update(loss.data[0], feature.size(0))
             fg_num_prop = args.prop_per_video//2*args.num_body_segments
             fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
                             prop_type_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
@@ -208,7 +208,7 @@ def validate(val_loader, model, criterion, iter):
                                  feature_mask=feature_mask)
 
         loss = criterion(binary_score, prop_type_target)
-        losses.update(loss.item(), out_frames.size(0))
+        losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2*args.num_body_segments
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
                           prop_type_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
