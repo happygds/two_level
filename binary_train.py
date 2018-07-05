@@ -144,8 +144,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
         # print(target, sel_prop_inds)
         target = convert_categorical(target.cpu().numpy(), n_classes=2)
         target = torch.autograd.Variable(torch.from_numpy(target), requires_grad=False).cuda()
-        print(target.size(), feature_mask.size(), feature.size())
-        target *= feature_mask.unsqueeze(2)
         loss = criterion(binary_score, target)
         print(loss)
         losses.update(loss.item(), feature.size(0))
@@ -219,7 +217,6 @@ def validate(val_loader, model, criterion, iter):
 
             target = convert_categorical(target.cpu().numpy(), n_classes=2)
             target = torch.autograd.Variable(torch.from_numpy(target)).cuda()
-            target *= feature_mask.unsqueeze(2)
             loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
