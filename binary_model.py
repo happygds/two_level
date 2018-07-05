@@ -93,8 +93,8 @@ class BinaryClassifier(torch.nn.Module):
             enc_output = torch.gather(enc_output, 1, sel_prop_ind)
             shp = enc_output.size()
             enc_output = enc_output.view((shp[0], shp[1] // self.num_segments, self.num_segments, shp[2])).mean(dim=2)
-            enc_output = self.binary_classifier(enc_output).view(-1, 2)
-            target = target.view(-1)
+            enc_output = self.binary_classifier(enc_output)
+            target = target
             return enc_output, target
         else:
             enc_output = self.softmax(self.binary_classifier(enc_output))

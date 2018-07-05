@@ -15,8 +15,18 @@ from binary_model import BinaryClassifier
 from transforms import *
 from ops.utils import get_actionness_configs
 from torch.utils import model_zoo
+from attention.Modules import CE_Criterion
 best_loss = 100
 
+def convert_categorical(x_in, n_classes=2):
+    shp = x_in.shape
+    x = (x_in.ravel().astype('int'))
+    x_mask = (x >= 0).reshape(-1, 1)
+    x = x.clip(0)
+    y = np.diag(np.ones((n_classes,)))
+    y = y[x] * x_mask
+    y = y.reshape(shp + (n_classes,)).astype('float32')
+    return y
 
 def main():
     global args, best_loss
@@ -76,7 +86,7 @@ def main():
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
-    binary_criterion = torch.nn.CrossEntropyLoss().cuda()
+    binary_criterion = CE_Criterion()
 
     optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
                                 args.lr,
@@ -132,6 +142,9 @@ def train(train_loader, model, criterion, optimizer, epoch):
             feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask, target=prop_type_target)
 
         # print(prop_type_target, sel_prop_inds)
+        target = convert_categorical(target.cpu().numpy(), n_classes=2)
+        target = Variable(torch.from_numpy(target), requires_grad=False).cuda()
+        target *= feature_mask.unsqueeze(2)
         loss = criterion(binary_score, prop_type_target)
         print(loss)
         losses.update(loss.item(), feature.size(0))
