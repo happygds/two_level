@@ -119,67 +119,66 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
     for i, (feature, pos_ind, sel_prop_inds, prop_type_target) in enumerate(train_loader):
         # measure data loading time
-        data_time.update(time.time() - end)
-        with torch.enable_grad():            
-            feature = torch.autograd.Variable(feature, requires_grad=False).cuda()
-            pos_ind = torch.autograd.Variable(pos_ind, requires_grad=False).cuda()
-            sel_prop_inds = torch.autograd.Variable(sel_prop_inds, requires_grad=False).cuda()
-            prop_type_target = torch.autograd.Variable(prop_type_target, requires_grad=False).cuda()
-            feature_mask = feature.abs().mean(2).ne(0).float()
+        data_time.update(time.time() - end)          
+        feature = torch.autograd.Variable(feature, requires_grad=False).cuda()
+        pos_ind = torch.autograd.Variable(pos_ind, requires_grad=False).cuda()
+        sel_prop_inds = torch.autograd.Variable(sel_prop_inds, requires_grad=False).cuda()
+        prop_type_target = torch.autograd.Variable(prop_type_target, requires_grad=False).cuda()
+        feature_mask = feature.abs().mean(2).ne(0).float()
 
-            # compute output
-            binary_score, *_ = model(
-                feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
+        # compute output
+        binary_score, *_ = model(
+            feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
 
-            # print(binary_score.size(), prop_type_target.size())
-            loss = criterion(binary_score.transpose(1, 2).view((-1, 2)), prop_type_target.view((-1,)))
+        # print(binary_score.size(), prop_type_target.size())
+        loss = criterion(binary_score.transpose(1, 2), prop_type_target)
 
-            losses.update(loss.item(), feature.size(0))
-            fg_num_prop = args.prop_per_video//2*args.num_body_segments
-            fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
-                            prop_type_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
-            bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
-                            prop_type_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
+        losses.update(loss.item(), feature.size(0))
+        fg_num_prop = args.prop_per_video//2*args.num_body_segments
+        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
+                        prop_type_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
+        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
+                        prop_type_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
 
-            fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)
-            bg_accuracies.update(bg_acc[0].item(), binary_score.size(0) // 2)
+        fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)
+        bg_accuracies.update(bg_acc[0].item(), binary_score.size(0) // 2)
 
-            # compute gradient and do SGD step
-            optimizer.zero_grad()
-            loss.backward()
+        # compute gradient and do SGD step
+        optimizer.zero_grad()
+        loss.backward()
 
-            if i % args.iter_size == 0:
-                # scale down gradients when iter size is functioning
-                if args.iter_size != 1:
-                    for g in optimizer.param_groups:
-                        for p in g['params']:
-                            p.grad /= args.iter_size
+        if i % args.iter_size == 0:
+            # scale down gradients when iter size is functioning
+            if args.iter_size != 1:
+                for g in optimizer.param_groups:
+                    for p in g['params']:
+                        p.grad /= args.iter_size
 
-            if args.clip_gradient is not None:
-                total_norm = clip_grad_norm(model.parameters(), args.clip_gradient)
-                if total_norm > args.clip_gradient:
-                    print('Clipping gradient: {} with coef {}'.format(
-                        total_norm, args.clip_gradient / total_norm))
-            else:
-                total_norm = 0
+        if args.clip_gradient is not None:
+            total_norm = clip_grad_norm(model.parameters(), args.clip_gradient)
+            if total_norm > args.clip_gradient:
+                print('Clipping gradient: {} with coef {}'.format(
+                    total_norm, args.clip_gradient / total_norm))
+        else:
+            total_norm = 0
 
-            optimizer.step()
+        optimizer.step()
 
-            # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
+        # measure elapsed time
+        batch_time.update(time.time() - end)
+        end = time.time()
 
-            if i % args.print_freq == 0:
-                print('Epoch: [{0}][{1}/{2}], lr: {lr:.5f}\t'
-                    'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                    'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                    'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                    '\n FG{fg_acc.val:.02f}({fg_acc.avg:.02f}) BG {bg_acc.val:.02f} ({bg_acc.avg:.02f})'
-                    .format(
-                        epoch, i, len(train_loader), batch_time=batch_time,
-                        data_time=data_time, loss=losses, lr=optimizer.param_groups[0]['lr'],
-                        fg_acc=fg_accuracies, bg_acc=bg_accuracies)
-                    )
+        if i % args.print_freq == 0:
+            print('Epoch: [{0}][{1}/{2}], lr: {lr:.5f}\t'
+                'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                '\n FG{fg_acc.val:.02f}({fg_acc.avg:.02f}) BG {bg_acc.val:.02f} ({bg_acc.avg:.02f})'
+                .format(
+                    epoch, i, len(train_loader), batch_time=batch_time,
+                    data_time=data_time, loss=losses, lr=optimizer.param_groups[0]['lr'],
+                    fg_acc=fg_accuracies, bg_acc=bg_accuracies)
+                )
 
 
 def validate(val_loader, model, criterion, iter):
