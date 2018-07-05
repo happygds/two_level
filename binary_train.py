@@ -135,14 +135,14 @@ def train(train_loader, model, criterion, optimizer, epoch):
         feature_mask = torch.autograd.Variable(feature_mask, requires_grad=False).cuda()
         pos_ind = torch.autograd.Variable(pos_ind, requires_grad=False).cuda()
         sel_prop_inds = torch.autograd.Variable(sel_prop_inds, requires_grad=False).cuda()
-        # target = torch.autograd.Variable(target, requires_grad=False).cuda()
+        prop_target = torch.autograd.Variable(prop_target, requires_grad=False).cuda()
 
         # compute output
         binary_score= model(
             feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
 
         # print(target, sel_prop_inds)
-        target = convert_categorical(prop_target.cpu().numpy(), n_classes=2)
+        target = convert_categorical(prop_target.data.cpu().numpy(), n_classes=2)
         target = torch.autograd.Variable(torch.from_numpy(target), requires_grad=False).cuda()
         loss = criterion(binary_score, target)
         print(loss)
@@ -211,11 +211,12 @@ def validate(val_loader, model, criterion, iter):
             feature_mask = torch.autograd.Variable(feature_mask).cuda()
             pos_ind = torch.autograd.Variable(pos_ind).cuda()
             sel_prop_inds = torch.autograd.Variable(sel_prop_inds).cuda()
+            prop_target = torch.autograd.Variable(prop_target).cuda()
             # compute output
             binary_score = model(feature, pos_ind, sel_prop_ind=sel_prop_inds,
                                  feature_mask=feature_mask)
 
-            target = convert_categorical(prop_target.cpu().numpy(), n_classes=2)
+            target = convert_categorical(prop_target.data.cpu().numpy(), n_classes=2)
             target = torch.autograd.Variable(torch.from_numpy(target)).cuda()
             loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
