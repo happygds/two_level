@@ -121,16 +121,18 @@ def train(train_loader, model, criterion, optimizer, epoch):
         # measure data loading time
         data_time.update(time.time() - end)
         with torch.enable_grad():
+            feature = torch.autograd.Variable(feature, requires_grad=True).cuda()
+            pos_ind = torch.autograd.Variable(pos_ind, requires_grad=True).cuda()
+            sel_prop_inds = torch.autograd.Variable(sel_prop_inds, requires_grad=True).cuda()
+            prop_type_target = torch.autograd.Variable(prop_type_target, requires_grad=True).cuda()
             feature_mask = feature.abs().mean(2).ne(0).float()
-
-            # input_var = torch.autograd.Variable(out_frames)
-            # prop_type_var = torch.autograd.Variable(out_prop_type)
 
             # compute output
             binary_score = model(
                 feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
 
-            loss = criterion(binary_score, prop_type_target)
+            print(binary_score.size(), prop_type_target.size())
+            loss = criterion(binary_score.transpose(1, 2), prop_type_target)
 
             losses.update(loss.data[0], out_frames.size(0))
             fg_num_prop = args.prop_per_video//2*args.num_body_segments
@@ -192,6 +194,10 @@ def validate(val_loader, model, criterion, iter):
 
     for i, (feature, pos_ind, sel_prop_inds, prop_type_target) in enumerate(val_loader):
         with torch.no_grad():
+            # feature = torch.autograd.Variable(feature, requires_grad=True).cuda()
+            # pos_ind = torch.autograd.Variable(pos_ind, requires_grad=True).cuda()
+            # sel_prop_inds = torch.autograd.Variable(sel_prop_inds, requires_grad=True).cuda()
+            # prop_type_target = torch.autograd.Variable(prop_type_target, requires_grad=True).cuda()
             feature_mask = feature.abs().mean(2).ne(0).float()
             # compute output
             binary_score = model(feature, pos_ind, sel_prop_ind=sel_prop_inds,
