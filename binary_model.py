@@ -91,6 +91,8 @@ class BinaryClassifier(torch.nn.Module):
         if not self.test_mode:
             assert sel_prop_ind is not None
             enc_ouput = torch.gather(enc_output, 1, sel_prop_ind)
+            # shp = enc_output.size()
+            # enc_output = enc_ouput.view((shp[0], shp[1] // self.num_segments, self.num_segments, shp[2])).mean(dim=2)
 
         enc_output = self.actionness(enc_output)
         

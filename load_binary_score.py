@@ -292,7 +292,7 @@ class BinaryDataSet(data.Dataset):
     def get_training_data(self, index):
 
         out_feats, begin_ind, end_ind = self._sample_feat(video.feat)
-        pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind+1), requires_grad=True).long()
+        pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind+1), requires_grad=True).long().cuda()
         video = self.video_list[index]
         props = self._video_centric_sampling(video, begin_ind=begin_ind * self.feat_stride, end_ind=end_ind * self.feat_stride)
 
@@ -309,10 +309,10 @@ class BinaryDataSet(data.Dataset):
             (-1, 1)) / self.feat_stride).clip(0., feat.shape[0] - 1)
         sel_frame_inds = np.dot(sel_frame_inds, np.ones(
             (1, self.d_model))).astype('int')
-        sel_frame_inds = torch.from_numpy(sel_frame_inds, requires_grad=True).long()
+        sel_frame_inds = torch.from_numpy(sel_frame_inds, requires_grad=True).long().cuda()
 
-        out_prop_type = torch.from_numpy(np.array(out_prop_type), requires_grad=True).long()
-        out_feats = torch.from_numpy(out_feats, requires_grad=True)
+        out_prop_type = torch.from_numpy(np.array(out_prop_type), requires_grad=True).long().cuda()
+        out_feats = torch.from_numpy(out_feats, requires_grad=True).cuda()
         # print(out_feats.size(), out_prop_type.size())
         return out_feats, pos_ind, sel_frame_inds, out_prop_type
 
@@ -325,7 +325,7 @@ class BinaryDataSet(data.Dataset):
         num_sampled_frames = len(frame_ticks)
 
         frame_ticks = np.arange(feat.shape[0]).astype('int32')
-        pos_ind = torch.from_numpy(frame_ticks).long
+        pos_ind = torch.from_numpy(frame_ticks).long().cuda()
 
         # avoid empty proposal list
         for i in frame_ticks:
@@ -362,7 +362,7 @@ class BinaryDataSet(data.Dataset):
 
         # return frame_gen(gen_batchsize), len(frame_ticks)
 
-        return torch.from_numpy(feat), pos_ind
+        return torch.from_numpy(feat).cuda(), pos_ind
 
     def __len__(self):
         return len(self.video_list) * self.epoch_multiplier

@@ -87,10 +87,11 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     net.cuda()
     while True:
         index = index_queue.get()
-        frames_gen, frame_cnt = dataset[index]
-        input_feat = Variable(frames_gen).cuda()
+        feature, pos_ind = dataset[index]
+        # feature = feature.cuda()
+        # pos_ind = pos_ind.cuda()
         with torch.no_grad():
-            output, _ = net(input_feat, None)
+            output = net(feature, pos_ind)
             output = output.cpu().numpy()
         # nframes = len(output) * args.frame_interval
         # output = np.interp(

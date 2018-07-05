@@ -62,7 +62,8 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, train_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
-                      input_dim=args.input_dim),
+                      input_dim=args.input_dim, prop_per_video=args.prop_per_video,
+                      fg_ratio=6, bg_ratio=6),
         batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=pin_memory,
         drop_last=True)
@@ -70,7 +71,7 @@ def main():
     val_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, val_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
-                      input_dim=args.input_dim, prop_per_video=12,
+                      input_dim=args.input_dim, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6),
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
@@ -131,10 +132,11 @@ def train(train_loader, model, criterion, optimizer, epoch):
         loss = criterion(binary_score, prop_type_target)
 
         losses.update(loss.data[0], out_frames.size(0))
-        fg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 0, :].contiguous(),
-                          prop_type_target.view(-1, 2)[:, 0].contiguous())
-        bg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 1, :].contiguous(),
-                          prop_type_target.view(-1, 2)[:, 1].contiguous())
+        fg_num_prop = args.prop_per_video//2*args.num_body_segments
+        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
+                          prop_type_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
+        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
+                          prop_type_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
 
         fg_accuracies.update(fg_acc[0].data[0], binary_score.size(0) // 2)
         bg_accuracies.update(bg_acc[0].data[0], binary_score.size(0) // 2)
@@ -196,10 +198,11 @@ def validate(val_loader, model, criterion, iter):
 
         loss = criterion(binary_score, prop_type_target)
         losses.update(loss.item(), out_frames.size(0))
-        fg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 0, :].contiguous(),
-                          prop_type_target.view(-1, 2)[:, 0].contiguous())
-        bg_acc = accuracy(binary_score.view(-1, 2, binary_score.size(1))[:, 1, :].contiguous(),
-                          prop_type_target.view(-1, 2)[:, 1].contiguous())
+        fg_num_prop = args.prop_per_video//2*args.num_body_segments
+        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
+                          prop_type_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
+        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
+                          prop_type_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
 
         fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)
         bg_accuracies.update(bg_acc[0].item(), binary_score.size(0) // 2)
@@ -223,8 +226,7 @@ def validate(val_loader, model, criterion, iter):
 
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-    filename = args.result_path + '/binaryclassifier' + \
-        '_'.join((args.dataset, args.model, filename))
+    filename = args.result_path + '_'.join((args.att_kernel_type, args.n_layers, filename))
     torch.save(state, filename)
     if is_best:
         best_name = args.result_path + '/model_best.pth.tar'
@@ -260,9 +262,11 @@ class AverageMeter(object):
 
 
 def accuracy(output, target, topk=(1,)):
+    target = target.view(-1)
     # computes the precision@k for the specific values of k
     maxk = max(topk)
     batch_size = target.size(0)
+    output = output.view(batch_size, -1)
 
     _, pred = output.topk(maxk, 1, True, True)
     pred = pred.t()
