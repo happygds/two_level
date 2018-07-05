@@ -302,7 +302,7 @@ class BinaryDataSet(data.Dataset):
 
         frames = []
         for idx, p in enumerate(props):
-            frame_selected, prop_type = self._load_prop_data(p, video.id, begin_ind=begin_ind)
+            frame_selected, prop_type = self._load_prop_data(p, video.id, begin_ind=begin_ind * self.feat_stride)
             sel_frame_inds.extend(frame_selected)
             out_prop_type.extend(prop_type)
 
