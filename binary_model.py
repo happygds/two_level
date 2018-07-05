@@ -64,7 +64,7 @@ class BinaryClassifier(torch.nn.Module):
 
 
 
-    def forward(self, feature, pos_ind, sel_prop_ind=None, feature_mask=None, target=None, return_attns=False):
+    def forward(self, feature, pos_ind, sel_prop_ind=None, feature_mask=None, return_attns=False):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
@@ -94,8 +94,7 @@ class BinaryClassifier(torch.nn.Module):
             shp = enc_output.size()
             enc_output = enc_output.view((shp[0], shp[1] // self.num_segments, self.num_segments, shp[2])).mean(dim=2)
             enc_output = self.binary_classifier(enc_output)
-            target = target
-            return enc_output, target
+            return enc_output
         else:
             enc_output = self.softmax(self.binary_classifier(enc_output))
             return enc_output
