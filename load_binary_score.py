@@ -291,8 +291,9 @@ class BinaryDataSet(data.Dataset):
 
     def get_training_data(self, index):
         video = self.video_list[index]
+        feat = video.feat
 
-        out_feats, begin_ind, end_ind = self._sample_feat(video.feat)
+        out_feats, begin_ind, end_ind = self._sample_feat(feat)
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind+1)).long()
         props = self._video_centric_sampling(video, begin_ind=begin_ind * self.feat_stride, end_ind=end_ind * self.feat_stride)
 
