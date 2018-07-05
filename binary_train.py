@@ -49,7 +49,7 @@ def main():
     args.d_model = args.n_head * args.d_k
 
     model = BinaryClassifier(
-        num_class, args.num_body_segments, args.input_dim, args, dropout=args.dropout)
+        num_class, args.num_body_segments, args, dropout=args.dropout)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()
 
     cudnn.benchmark = True
@@ -62,7 +62,7 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, train_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
-                      input_dim=args.input_dim, prop_per_video=args.prop_per_video,
+                      input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6),
         batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=pin_memory,
@@ -71,7 +71,7 @@ def main():
     val_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, val_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
-                      input_dim=args.input_dim, prop_per_video=args.prop_per_video,
+                      input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6),
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)

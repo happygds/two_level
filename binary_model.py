@@ -32,7 +32,7 @@ def get_attn_padding_mask(seq_q, seq_k):
 
 
 class BinaryClassifier(torch.nn.Module):
-    def __init__(self, num_class, course_segment, input_dim, args, dropout=0.8, test_mode=False):
+    def __init__(self, num_class, course_segment, args, dropout=0.8, test_mode=False):
 
         super(BinaryClassifier, self).__init__()
 
@@ -57,10 +57,9 @@ class BinaryClassifier(torch.nn.Module):
             for _ in range(args.n_layers)])
 
         self.num_segments = course_segment
-        self.course_segment = course_segment
         self.dropout = dropout
         self.test_mode = test_mode
-        self.binary_classifier = nn.Linear(input_dim, num_class)
+        self.binary_classifier = nn.Linear(args.d_model, num_class)
         self.softmax = nn.Softmax(dim=-1)
 
 
@@ -91,11 +90,12 @@ class BinaryClassifier(torch.nn.Module):
 
         if not self.test_mode:
             assert sel_prop_ind is not None
-            enc_ouput = torch.gather(enc_output, 1, sel_prop_ind)
+            enc_output = torch.gather(enc_output, 1, sel_prop_ind)
             # shp = enc_output.size()
-            # enc_output = enc_ouput.view((shp[0], shp[1] // self.num_segments, self.num_segments, shp[2])).mean(dim=2)
-
-        enc_output = self.actionness(enc_output)
+            # enc_output = enc_output.view((shp[0], shp[1] // self.num_segments, self.num_segments, shp[2])).mean(dim=2)
+            enc_output = self.binary_classifier(enc_output)
+        else:
+            enc_output = self.softmax(self.binary_classifier(enc_output))
         
         if return_attns:
             return enc_output, enc_slf_attns
