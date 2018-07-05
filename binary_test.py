@@ -100,8 +100,8 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     while True:
         index = index_queue.get()
         feature, pos_ind = dataset[index]
-        # feature = feature.cuda()
-        # pos_ind = pos_ind.cuda()
+        feature = torch.autograd.Variable(feature).cuda()
+        pos_ind = torch.autograd.Variable(pos_ind).cuda()
         with torch.no_grad():
             output = net(feature, pos_ind)
             output = output.cpu().numpy()
