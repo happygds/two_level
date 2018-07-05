@@ -74,12 +74,24 @@ if args.use_flow:
     args.input_dim += 1024
 print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
     args.feat_model, args.input_dim))
+# if reduce the dimension of input feature first
+if args.reduce_dim > 0:
+    assert args.reduce_dim % args.n_head == 0, "reduce_dim {} % n_head {} != 0".format(
+        args.reduce_dim, args.n_head)
+    args.d_k = int(args.reduce_dim // args.n_head)
+    args.d_v = args.d_k
+else:
+    assert args.input_dim % args.n_head == 0, "input_dim {} % n_head {} != 0".format(
+        args.input_dim, args.n_head)
+    args.d_k = int(args.input_dim // args.n_head)
+    args.d_v = args.d_k
+args.d_model = args.n_head * args.d_k
 
 gpu_list = args.gpus if args.gpus is not None else range(8)
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     torch.cuda.set_device(gpu_id)
-    net = BinaryClassifier(num_class, args.num_body_segments, args.input_dim, dropout=args.dropout, test_mode=True)
+    net = BinaryClassifier(num_class, args.num_body_segments, args.input_dim, args, dropout=args.dropout, test_mode=True)
     # net = torch.nn.DataParallel(net, device_ids=[gpu_id])
 
     net.load_state_dict(state_dict)

@@ -31,29 +31,29 @@ def get_attn_padding_mask(seq_q, seq_k):
 
 
 class BinaryClassifier(torch.nn.Module):
-    def __init__(self, num_class, course_segment, input_dim, dropout=0.8, test_mode=False):
+    def __init__(self, num_class, course_segment, input_dim, args, dropout=0.8, test_mode=False):
 
         super(BinaryClassifier, self).__init__()
 
-        self.pos_enc = opt.pos_enc
-        self.reduce = opt.reduce_dim > 0
+        self.pos_enc = args.pos_enc
+        self.reduce = args.reduce_dim > 0
         if self.reduce:
             self.reduce_layer = nn.Sequential(
-                nn.Linear(opt.input_dim, opt.reduce_dim), nn.SELU())
-        if opt.dropout > 0:
-            self.dropout = opt.dropout
+                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU())
+        if args.dropout > 0:
+            self.dropout = args.dropout
         else:
             self.dropout = 0.
 
-        n_position, d_word_vec = 1200, opt.d_model
+        n_position, d_word_vec = 1200, args.d_model
         self.position_enc = nn.Embedding(n_position, d_word_vec, padding_idx=0)
         self.position_enc.weight.data = position_encoding_init(
             n_position, d_word_vec)
 
         self.layer_stack = nn.ModuleList([
-            EncoderLayer(opt.d_model, opt.d_inner_hid, opt.n_head, opt.d_k,
-                         opt.d_v, dropout=0.1, kernel_type=opt.att_kernel_type)
-            for _ in range(opt.n_layers)])
+            EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+                         args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
+            for _ in range(args.n_layers)])
 
         self.num_segments = course_segment
         self.course_segment = course_segment

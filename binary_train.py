@@ -49,7 +49,7 @@ def main():
     args.d_model = args.n_head * args.d_k
 
     model = BinaryClassifier(
-        num_class, args.num_body_segments, args.input_dim, dropout=args.dropout)
+        num_class, args.num_body_segments, args.input_dim, args, dropout=args.dropout)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()
 
     cudnn.benchmark = True
