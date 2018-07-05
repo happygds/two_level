@@ -143,7 +143,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         # print(target, sel_prop_inds)
         target = convert_categorical(target.cpu().numpy(), n_classes=2)
-        target = Variable(torch.from_numpy(target), requires_grad=False).cuda()
+        target = torch.autograd.Variable(torch.from_numpy(target), requires_grad=False).cuda()
         target *= feature_mask.unsqueeze(2)
         loss = criterion(binary_score, target)
         print(loss)
@@ -158,7 +158,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
         bg_accuracies.update(bg_acc[0].item(), binary_score.size(0) // 2)
 
         # compute gradient and do SGD step
-        optimizer.zero_grad()
         loss.backward()
 
         if i % args.iter_size == 0:
@@ -177,6 +176,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             total_norm = 0
 
         optimizer.step()
+        optimizer.zero_grad()
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -217,7 +217,7 @@ def validate(val_loader, model, criterion, iter):
                                  feature_mask=feature_mask)
 
             target = convert_categorical(target.cpu().numpy(), n_classes=2)
-            target = Variable(torch.from_numpy(target)).cuda()
+            target = torch.autograd.Variable(torch.from_numpy(target)).cuda()
             target *= feature_mask.unsqueeze(2)
             loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
