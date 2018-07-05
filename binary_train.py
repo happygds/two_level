@@ -127,18 +127,18 @@ def train(train_loader, model, criterion, optimizer, epoch):
         feature_mask = feature.abs().mean(2).ne(0).float()
 
         # compute output
-        binary_score, *_ = model(
-            feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
+        binary_score, prop_type_target = model(
+            feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask, target=prop_type_target)
 
         # print(binary_score.size(), prop_type_target.size())
         print(prop_type_target.max(), prop_type_target.min())
-        loss = criterion(binary_score.transpose(1, 2), prop_type_target)
+        loss = criterion(binary_score, prop_type_target)
 
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2*args.num_body_segments
-        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
+        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 0, :, :].contiguous(),
                         prop_type_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
-        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
+        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 1, :, :].contiguous(),
                         prop_type_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
 
         fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)
@@ -200,15 +200,15 @@ def validate(val_loader, model, criterion, iter):
             prop_type_target = torch.autograd.Variable(prop_type_target).cuda()
             feature_mask = feature.abs().mean(2).ne(0).float()
             # compute output
-            binary_score = model(feature, pos_ind, sel_prop_ind=sel_prop_inds,
-                                 feature_mask=feature_mask)
+            binary_score, prop_type_target = model(feature, pos_ind, sel_prop_ind=sel_prop_inds,
+                                 feature_mask=feature_mask, target=prop_type_target)
 
         loss = criterion(binary_score, prop_type_target)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2*args.num_body_segments
-        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
+        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 0, :, :].contiguous(),
                           prop_type_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
-        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
+        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 1, :, :].contiguous(),
                           prop_type_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
 
         fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)
