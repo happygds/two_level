@@ -84,14 +84,14 @@ class BinaryVideoRecord:
             fg.extend(self.gt)
         if begin_ind > 0:
             assert end_ind >  begin_ind
-            fg = list(filter(lambda x: x.start_frame < end_ind and x.end_frame > begin_ind, fg))
+            fg = list(filter(lambda x: 0.5 * (x.start_frame + x.end_frame) <= end_ind and 0.5 * (x.start_frame + x.end_frame) >= begin_ind, fg))
         return fg
 
     def get_bg(self, bg_thresh, begin_ind=0, end_ind=0):
         bg = [p for p in self.proposals if p.iou < bg_thresh]
         if begin_ind > 0:
             assert end_ind >  begin_ind
-            bg = list(filter(lambda x: x.start_frame < end_ind and x.end_frame > begin_ind, bg))
+            bg = list(filter(lambda x: 0.5 * (x.start_frame + x.end_frame) <= end_ind and 0.5 * (x.start_frame + x.end_frame) >= begin_ind, bg))
         return bg
 
 
@@ -306,14 +306,16 @@ class BinaryDataSet(data.Dataset):
             sel_frame_inds.extend(frame_selected)
             out_prop_type.extend(prop_type)
         
-        inds_dict = {}
-        contracdict_inds = []
-        for i, (sel_ind, prop_type) in enumerate(zip(sel_frame_inds, out_prop_type)):
-            if sel_ind not in inds_dict.keys():
-                inds_dict[sel_ind] = prop_type
-            else:
-                if prop_type != inds_dict[sel_ind]:
-                    contracdict_inds.append(sel_ind)
+        print(sel_frame_inds)
+        
+        # inds_dict = {}
+        # contracdict_inds = []
+        # for i, (sel_ind, prop_type) in enumerate(zip(sel_frame_inds, out_prop_type)):
+        #     if sel_ind not in inds_dict.keys():
+        #         inds_dict[sel_ind] = prop_type
+        #     else:
+        #         if prop_type != inds_dict[sel_ind]:
+        #             contracdict_inds.append(sel_ind)
         # out_prop_type = [-100 if sel_frame_inds[i] in contracdict_inds else x for i, x in enumerate(out_prop_type)]
 
         sel_frame_inds = np.around(np.asarray(sel_frame_inds, dtype='float32').reshape(
