@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import numpy as np
 
 import torchvision.models
 from attention import EncoderLayer
