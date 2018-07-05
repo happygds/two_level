@@ -133,8 +133,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         # print(prop_type_target, sel_prop_inds)
         loss = criterion(binary_score, prop_type_target)
-        import pdb
-        pdb.set_trace()
+        print(loss)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 0, :, :].contiguous(),
@@ -152,7 +151,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
             # scale down gradients when iter size is functioning
             if args.iter_size != 1:
                 for g in optimizer.param_groups:
-                    for p in g['params']:
+                    for p in g['par
+                    ams']:
                         p.grad /= args.iter_size
 
         if args.clip_gradient is not None:
