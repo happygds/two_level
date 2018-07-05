@@ -145,7 +145,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target = convert_categorical(prop_target.data.cpu().numpy(), n_classes=2)
         target = torch.autograd.Variable(torch.from_numpy(target), requires_grad=False).cuda()
         loss = criterion(binary_score, target)
-        print(loss)
+        print(prop_target)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 0, :, :].contiguous(),
