@@ -134,15 +134,15 @@ def train(train_loader, model, criterion, optimizer, epoch):
             # print(binary_score.size(), prop_type_target.size())
             loss = criterion(binary_score.transpose(1, 2), prop_type_target)
 
-            losses.update(loss.data[0], feature.size(0))
+            losses.update(loss.item(), feature.size(0))
             fg_num_prop = args.prop_per_video//2*args.num_body_segments
             fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
                             prop_type_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
             bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
                             prop_type_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
 
-            fg_accuracies.update(fg_acc[0].data[0], binary_score.size(0) // 2)
-            bg_accuracies.update(bg_acc[0].data[0], binary_score.size(0) // 2)
+            fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)
+            bg_accuracies.update(bg_acc[0].item(), binary_score.size(0) // 2)
 
             # compute gradient and do SGD step
             optimizer.zero_grad()
