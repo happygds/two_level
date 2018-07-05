@@ -128,7 +128,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             feature_mask = feature.abs().mean(2).ne(0).float()
 
             # compute output
-            binary_score = model(
+            binary_score, *_ = model(
                 feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
 
             print(binary_score.size(), prop_type_target.size())
