@@ -249,7 +249,7 @@ class BinaryDataSet(data.Dataset):
         #     print(frame_selected, feat.shape[0], video_id)
         frame_selected = [max(min(x, frame_cnt) - 1 - begin_ind, 0) for x in frame_selected]
 
-        return frame_selected, [prop[1]] * len(frame_selected)
+        return frame_selected, [prop[1]]
 
     def _video_centric_sampling(self, video, begin_ind=0, end_ind=0):
 
@@ -314,7 +314,7 @@ class BinaryDataSet(data.Dataset):
             else:
                 if prop_type != inds_dict[sel_ind]:
                     contracdict_inds.append(sel_ind)
-        out_prop_type = [-100 if sel_frame_inds[i] in contracdict_inds else x for i, x in enumerate(out_prop_type)]
+        # out_prop_type = [-100 if sel_frame_inds[i] in contracdict_inds else x for i, x in enumerate(out_prop_type)]
 
         sel_frame_inds = np.around(np.asarray(sel_frame_inds, dtype='float32').reshape(
             (-1, 1)) / self.feat_stride).clip(0., feat.shape[0] - 1)
