@@ -107,21 +107,3 @@ class BinaryClassifier(torch.nn.Module):
         enc_freezed_param_ids = set(map(id, self.position_enc.parameters()))
         freezed_param_ids = enc_freezed_param_ids
         return (p for p in self.parameters() if id(p) not in freezed_param_ids)
-
-    # def forward(self, inputdata, target):
-    #     if not self.test_mode:
-    #         return self.train_forward(inputdata, target)
-    #     else:
-    #         return self.test_forward(inputdata)
-
-
-    # def train_forward(self, inputdata, target):
-        
-    #     course_ft = inputdata[:, :, :, :].mean(dim=2)
-    #     raw_course_ft = self.binary_classifier(course_ft).view((-1, 2))
-    #     return raw_course_ft, target.view(-1)
-                
-
-    # def test_forward(self, inputdata):
-    #     output = self.binary_classifier(inputdata)
-    #     return self.softmax(output), inputdata
