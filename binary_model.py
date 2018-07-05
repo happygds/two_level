@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 import torchvision.models
-from attention.Layers import EncoderLayer
+from attention import EncoderLayer
 
 
 def position_encoding_init(n_position, d_pos_vec):
