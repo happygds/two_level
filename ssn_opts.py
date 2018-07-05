@@ -28,6 +28,7 @@ parser.add_argument('--n_head', default=8,
                     type=int, help='the number of attention head used in one encoder layer')
 parser.add_argument('--d_inner_hid', default=1024, type=int,
                     help='the layer dimension for positionwise fc layers')
+parser.add_argument('--prop_per_video', type=int, default=16)
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)
@@ -37,11 +38,11 @@ parser.add_argument('--dropout', '--do', default=0.8, type=float,
                     metavar='DO', help='dropout ratio (default: 0.8)')
 
 # ========================= Learning Configs ==========================
-parser.add_argument('--epochs', default=7, type=int, metavar='N',
+parser.add_argument('--epochs', default=10, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--training_epoch_multiplier', '--tem', default=10, type=int,
                     help='replicate the training set by N times in one epoch')
-parser.add_argument('-b', '--batch-size', default=16, type=int,
+parser.add_argument('-b', '--batch-size', default=64, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
 parser.add_argument('-i', '--iter-size', default=1, type=int,
                     metavar='N', help='number of iterations before on update')
