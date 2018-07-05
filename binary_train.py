@@ -148,9 +148,9 @@ def train(train_loader, model, criterion, optimizer, epoch):
         print(prop_target)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
-        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 0, :, :].contiguous(),
+        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
                         prop_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
-        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 1, :, :].contiguous(),
+        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
                         prop_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
 
         fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)
@@ -221,9 +221,9 @@ def validate(val_loader, model, criterion, iter):
             loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
-        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 0, :, :].contiguous(),
+        fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
                           prop_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
-        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 1, :, :].contiguous(),
+        bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
                           prop_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
 
         fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)

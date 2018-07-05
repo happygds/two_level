@@ -99,7 +99,7 @@ class BinaryDataSet(data.Dataset):
 
     def __init__(self, feat_root, feat_model,
                  prop_file=None, body_seg=5, video_centric=True,
-                 test_mode=False, feat_stride=8, input_dim=1024,
+                 test_mode=False, feat_stride=16, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
                  bg_coverage_thresh=0.02, sample_duration=8196,
