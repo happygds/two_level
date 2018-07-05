@@ -120,7 +120,11 @@ def train(train_loader, model, criterion, optimizer, epoch):
     for i, (feature, pos_ind, sel_prop_inds, prop_type_target) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)
-        with torch.enable_grad():
+        with torch.enable_grad():            
+            feature = feature.cuda()
+            pos_ind = pos_ind.cuda()
+            sel_prop_inds = sel_prop_inds.cuda()
+            prop_type_target = prop_type_target.cuda()
             # feature = torch.autograd.Variable(feature, requires_grad=True).cuda()
             # pos_ind = torch.autograd.Variable(pos_ind, requires_grad=True).cuda()
             # sel_prop_inds = torch.autograd.Variable(sel_prop_inds, requires_grad=True).cuda()
