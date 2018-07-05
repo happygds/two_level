@@ -131,8 +131,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         binary_score, prop_type_target = model(
             feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask, target=prop_type_target)
 
-        # print(binary_score.size(), prop_type_target.size())
-        print(prop_type_target, sel_prop_inds)
+        # print(prop_type_target, sel_prop_inds)
         loss = criterion(binary_score, prop_type_target)
 
         losses.update(loss.item(), feature.size(0))
