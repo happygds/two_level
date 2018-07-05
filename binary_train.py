@@ -78,7 +78,7 @@ def main():
 
     binary_criterion = torch.nn.CrossEntropyLoss().cuda()
 
-    optimizer = torch.optim.SGD(model.get_trainable_parameters(),
+    optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
                                 args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
@@ -131,6 +131,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
 
         # print(binary_score.size(), prop_type_target.size())
+        print(prop_type_target.max(), prop_type_target.min())
         loss = criterion(binary_score.transpose(1, 2), prop_type_target)
 
         losses.update(loss.item(), feature.size(0))
@@ -155,7 +156,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                         p.grad /= args.iter_size
 
         if args.clip_gradient is not None:
-            total_norm = clip_grad_norm(model.get_trainable_parameters(), args.clip_gradient)
+            total_norm = clip_grad_norm(model.module.get_trainable_parameters(), args.clip_gradient)
             if total_norm > args.clip_gradient:
                 print('Clipping gradient: {} with coef {}'.format(
                     total_norm, args.clip_gradient / total_norm))
