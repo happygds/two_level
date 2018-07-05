@@ -305,6 +305,16 @@ class BinaryDataSet(data.Dataset):
             frame_selected, prop_type = self._load_prop_data(p, video.id, begin_ind=begin_ind * self.feat_stride)
             sel_frame_inds.extend(frame_selected)
             out_prop_type.extend(prop_type)
+        
+        inds_dict = {}
+        contracdict_inds = []
+        for i, (sel_ind, prop_type) in enumerate(zip(sel_frame_inds, out_prop_type)):
+            if sel_ind not in inds_dict.keys():
+                inds_dict[sel_ind] = prop_type
+            else:
+                if prop_type != inds_dict[sel_ind]:
+                    contracdict_inds.append(sel_ind)
+        out_prop_type = [-100 if sel_frame_inds[i] in contracdict_inds else x for i, x in enumerate(out_prop_type)]
 
         sel_frame_inds = np.around(np.asarray(sel_frame_inds, dtype='float32').reshape(
             (-1, 1)) / self.feat_stride).clip(0., feat.shape[0] - 1)
@@ -312,7 +322,7 @@ class BinaryDataSet(data.Dataset):
             (1, self.input_dim))).astype('int')
         sel_frame_inds = torch.from_numpy(sel_frame_inds).long()
 
-        out_prop_type = torch.from_numpy(np.asarray(out_prop_type).clip(0., 1)).long()
+        out_prop_type = torch.from_numpy(np.array(out_prop_type)).long()
         out_feats = torch.from_numpy(out_feats)
         # print(out_feats.size(), out_prop_type.size())
         return out_feats, pos_ind, sel_frame_inds, out_prop_type
