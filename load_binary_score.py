@@ -293,7 +293,7 @@ class BinaryDataSet(data.Dataset):
         video = self.video_list[index]
 
         out_feats, begin_ind, end_ind = self._sample_feat(video.feat)
-        pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind+1), requires_grad=True).long().cuda()
+        pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind+1)).long().cuda()
         props = self._video_centric_sampling(video, begin_ind=begin_ind * self.feat_stride, end_ind=end_ind * self.feat_stride)
 
         sel_frame_inds = []
@@ -309,10 +309,10 @@ class BinaryDataSet(data.Dataset):
             (-1, 1)) / self.feat_stride).clip(0., feat.shape[0] - 1)
         sel_frame_inds = np.dot(sel_frame_inds, np.ones(
             (1, self.d_model))).astype('int')
-        sel_frame_inds = torch.from_numpy(sel_frame_inds, requires_grad=True).long().cuda()
+        sel_frame_inds = torch.from_numpy(sel_frame_inds).long().cuda()
 
-        out_prop_type = torch.from_numpy(np.array(out_prop_type), requires_grad=True).long().cuda()
-        out_feats = torch.from_numpy(out_feats, requires_grad=True).cuda()
+        out_prop_type = torch.from_numpy(np.array(out_prop_type)).long().cuda()
+        out_feats = torch.from_numpy(out_feats).cuda()
         # print(out_feats.size(), out_prop_type.size())
         return out_feats, pos_ind, sel_frame_inds, out_prop_type
 
