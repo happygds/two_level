@@ -70,7 +70,7 @@ def main():
     val_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, val_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
-                      input_dim=args.input_dim,
+                      input_dim=args.input_dim, prop_per_video=12,
                       fg_ratio=6, bg_ratio=6),
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
