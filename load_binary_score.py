@@ -318,7 +318,6 @@ class BinaryDataSet(data.Dataset):
 
         sel_frame_inds = np.around(np.asarray(sel_frame_inds, dtype='float32').reshape(
             (-1, 1)) / self.feat_stride).clip(0., feat.shape[0] - 1)
-        print(sel_frame_inds)
         sel_frame_inds = np.dot(sel_frame_inds, np.ones(
             (1, self.input_dim))).astype('int')
         sel_frame_inds = torch.from_numpy(sel_frame_inds).long()

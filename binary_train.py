@@ -205,6 +205,8 @@ def validate(val_loader, model, criterion, iter):
                                  feature_mask=feature_mask, target=prop_type_target)
 
         loss = criterion(binary_score, prop_type_target)
+        import pdb
+        pdb.set_trace()
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(1))[:, 0, :, :].contiguous(),
