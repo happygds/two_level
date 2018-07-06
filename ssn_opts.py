@@ -6,7 +6,7 @@ parser.add_argument('--annotation_path', default='/data1/matheguo/important/data
                     type=str, help='Annotation file path')
 parser.add_argument('--feat_root', default='/data1/matheguo/important/data/activitynet',
                     type=str, help='Feature directory path')
-parser.add_argument('--result_path', default='/data1/matheguo/important/result/activitynet/self_att',
+parser.add_argument('--result_path', default='/data1/matheguo/important/result/activitynet',
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | TAG')

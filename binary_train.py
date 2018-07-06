@@ -247,11 +247,14 @@ def validate(val_loader, model, criterion, iter):
 
 
 def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
-    args.result_path = os.path.join(args.result_path, '_'.join((args.att_kernel_type, str(args.n_layers)))
-    filename = args.result_path + filename
+    if args.pos_enc:
+        save_path = os.path.join(args.result_path, '_'.join((args.att_kernel_type, 'N'+str(args.n_layers)))
+    else:
+        save_path = os.path.join(args.result_path, '_'.join((args.att_kernel_type, 'N'+str(args.n_layers))) + '_nopos'
+    filename = save_path + filename
     torch.save(state, filename)
     if is_best:
-        best_name = args.result_path + '/model_best.pth.tar'
+        best_name = save_path + '/model_best.pth.tar'
         shutil.copyfile(filename, best_name)
 
 
