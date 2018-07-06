@@ -146,7 +146,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target = torch.autograd.Variable(torch.from_numpy(target), requires_grad=False).cuda()
         loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
-        fg_num_prop = args.prop_per_video//2 * args.num_body_segments
+        fg_num_prop = args.prop_per_video//2
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
                         prop_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
         bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
@@ -219,7 +219,7 @@ def validate(val_loader, model, criterion, iter):
             target = torch.autograd.Variable(torch.from_numpy(target)).cuda()
             loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
-        fg_num_prop = args.prop_per_video//2 * args.num_body_segments
+        fg_num_prop = args.prop_per_video//2
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
                           prop_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
         bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),

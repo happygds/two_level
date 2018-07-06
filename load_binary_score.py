@@ -250,7 +250,7 @@ class BinaryDataSet(data.Dataset):
         #     print(frame_selected, feat.shape[0], video_id)
         frame_selected = [max(min(x, frame_cnt) - 1 - begin_ind, 0) for x in frame_selected]
 
-        return frame_selected, [prop[1]] * len(frame_selected)
+        return frame_selected, [prop[1]]
 
     def _video_centric_sampling(self, video, begin_ind=0, end_ind=0):
 
