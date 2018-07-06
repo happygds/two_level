@@ -334,13 +334,13 @@ class BinaryDataSet(data.Dataset):
         feat = video.feat
         # frame_cnt = video.num_frames
 
-        frame_ticks = np.arange(feat.shape[0]).astype('int32')
-        num_sampled_frames = len(frame_ticks)
+        frame_ticks = np.arange(feat.shape[0]).astype('int32').reshape((1, -1))
+        # num_sampled_frames = len(frame_ticks)
         pos_ind = torch.from_numpy(frame_ticks).long()
 
-        # avoid empty proposal list
-        for i in frame_ticks:
-            props.append(BinaryInstance(i, i+1, 1))
+        # # avoid empty proposal list
+        # for i in frame_ticks:
+        #     props.append(BinaryInstance(i, i+1, 1))
 
         # proposal_tick_list = []
 
@@ -373,7 +373,7 @@ class BinaryDataSet(data.Dataset):
 
         # return frame_gen(gen_batchsize), len(frame_ticks)
 
-        return torch.from_numpy(feat), pos_ind
+        return torch.from_numpy(np.expand_dims(feat, axis=0)), pos_ind
 
     def __len__(self):
         return len(self.video_list) * self.epoch_multiplier
