@@ -332,11 +332,10 @@ class BinaryDataSet(data.Dataset):
         props = []
         video_id = video.id
         feat = video.feat
-        frame_cnt = video.num_frames
-
-        num_sampled_frames = len(frame_ticks)
+        # frame_cnt = video.num_frames
 
         frame_ticks = np.arange(feat.shape[0]).astype('int32')
+        num_sampled_frames = len(frame_ticks)
         pos_ind = torch.from_numpy(frame_ticks).long()
 
         # avoid empty proposal list
