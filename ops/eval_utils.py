@@ -63,7 +63,7 @@ def area_under_curve(proposals, ground_truth, max_avg_nr_proposals=None,
         tiou_thresholds=tiou_thresholds)
 
     area_under_curve = np.trapz(avg_recall, proposals_per_video)
-    print(avg_recall, proposals_per_video)
+    # print(avg_recall, proposals_per_video)
 
     return area_under_curve, avg_recall, proposals_per_video
 
