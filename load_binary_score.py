@@ -217,7 +217,7 @@ class BinaryDataSet(data.Dataset):
     def __getitem__(self, index):
         real_index = index % len(self.video_list)
         if self.test_mode:
-            return self.get_test_data(self.video_list[real_index], self.test_interval)
+            return self.get_test_data(self.video_list[real_index])
         else:
             return self.get_training_data(real_index)
 
