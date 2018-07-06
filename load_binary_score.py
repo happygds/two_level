@@ -120,6 +120,7 @@ class BinaryDataSet(data.Dataset):
         self.sample_duration = sample_duration // feat_stride
 
         self.test_mode = test_mode
+        self.test_interval = test_interval
 
         self.fg_iou_thresh = fg_iou_thresh
         self.bg_iou_thresh = bg_iou_thresh
