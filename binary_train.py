@@ -251,6 +251,8 @@ def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
         save_path = os.path.join(args.result_path, '_'.join((args.att_kernel_type, 'N'+str(args.n_layers))))
     else:
         save_path = os.path.join(args.result_path, '_'.join((args.att_kernel_type, 'N'+str(args.n_layers)))) + '_nopos'
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
     filename = save_path + filename
     torch.save(state, filename)
     if is_best:
