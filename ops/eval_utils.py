@@ -102,6 +102,7 @@ def average_recall_vs_avg_nr_proposals(proposals, ground_truth,
         max_avg_nr_proposals = float(proposals.shape[0])/video_lst.shape[0]
 
     ratio = max_avg_nr_proposals*float(video_lst.shape[0])/proposals.shape[0]
+    print(ratio)
 
     # Adaptation to query faster
     ground_truth_gbvn = ground_truth.groupby('video-id')
