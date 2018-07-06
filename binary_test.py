@@ -43,6 +43,19 @@ parser.add_argument('--use_flow', action='store_true',
 parser.set_defaults(use_flow=True)
 parser.add_argument('--dropout', '--do', default=0.8, type=float,
                     metavar='DO', help='dropout ratio (default: 0.8)')
+parser.add_argument('--pos_enc', default=True, type=int,
+                    help='whether slice the original position indices of the input video sequence')
+parser.add_argument('--att_kernel_type', default='self_attn',
+                    type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot)')
+parser.add_argument('--n_layers', default=1,
+                    type=int, help='the number of encoder layers in the self_attention encoder')
+parser.add_argument('--reduce_dim', default=512,
+                    type=int, help='if -1, not rediced; if > 0, reduce the input feature dimension first')
+parser.add_argument('--n_head', default=8,
+                    type=int, help='the number of attention head used in one encoder layer')
+parser.add_argument('--d_inner_hid', default=1024, type=int,
+                    help='the layer dimension for positionwise fc layers')
+parser.add_argument('--prop_per_video', type=int, default=16)
 
 args = parser.parse_args()
 
