@@ -161,7 +161,6 @@ def average_recall_vs_avg_nr_proposals(proposals, ground_truth,
     # Computes average recall.
     pcn_lst = np.arange(1, 101) / 100.0 * (max_avg_nr_proposals *
                                            float(video_lst.shape[0])/total_nr_proposals)
-    print(pcn_lst)
     matches = np.empty((video_lst.shape[0], pcn_lst.shape[0]))
     positives = np.empty(video_lst.shape[0])
     recall = np.empty((tiou_thresholds.shape[0], pcn_lst.shape[0]))
