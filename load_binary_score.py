@@ -342,11 +342,11 @@ class BinaryDataSet(data.Dataset):
         for i in frame_ticks:
             props.append(BinaryInstance(i, i+1, 1))
 
-        proposal_tick_list = []
+        # proposal_tick_list = []
 
-        for proposal in props:
-            proposal_ticks = proposal.start_frame, proposal.end_frame
-            proposal_tick_list.append(proposal_ticks)
+        # for proposal in props:
+        #     proposal_ticks = proposal.start_frame, proposal.end_frame
+        #     proposal_tick_list.append(proposal_ticks)
 
         # load frames
         # Since there are many frames for each video during testing, instead of returning the read frames
