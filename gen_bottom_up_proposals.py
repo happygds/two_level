@@ -145,7 +145,7 @@ def gen_prop(v):
 
     # filter out too short proposals
     pr_box = list(filter(lambda b: b[1] - b[0] > args.minimum_len, pr_box))
-    return v.id, pr_box, [x[3] / float(x[1] - x[0]) for x in bboxes]
+    return v.id, pr_box, [x[3] for x in bboxes]
 
 
 def call_back(rst):
@@ -169,9 +169,6 @@ score_list = [score_dict[v.id] for v in video_list if v.id in pr_dict]
 duration_list = [v.duration for v in video_list if v.id in pr_dict]
 proposal_score_list = [pr_score_dict[v.id] for v in video_list if v.id in pr_dict]
 print('{} groundtruth boxes from'.format(sum(map(len, gt_spans))))
-
-import pdb
-pdb.set_trace()
 
 print('average # of proposals: {}'.format(np.mean(list(map(len, proposal_list)))))
 IOU_thresh = np.arange(0.5, 1.0, 0.05)
