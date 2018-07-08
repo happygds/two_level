@@ -32,7 +32,9 @@ class ScaledDotProductAttention(nn.Module):
         self.softmax = nn.Softmax(dim=2)
         self.kernel_type = kernel_type
         if self.kernel_type == 'concat':
-            self.fc = nn.Sequential(nn.Linear(2*d_k, 1), nn.ReLU())
+            self.fc1 = nn.Linear(d_k, 1)
+            self.fc2 = nn.Linear(d_k, 1)
+            self.relu = nn.ReLU()
         elif self.kernel_type == 'addition':
             self.fc = nn.Sequential(nn.Tanh(), nn.Linear(d_k, 1))
 
@@ -42,14 +44,12 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'dot':
             attn = torch.bmm(q, k.transpose(1, 2))
         elif self.kernel_type == 'concat':
-            len_q, len_k = q.size(1), k.size(1)
-            q = q.unsqueeze(2).repeat(1, 1, len_k, 1)
-            k = k.unsqueeze(1).repeat(1, len_q, 1, 1)
-            attn = self.fc(torch.cat((q, k), dim=3)).squeeze(3)
+            attn = self.fc1(q) + self.fc2(k).transpose(1, 2)
+            attn = self.relu(attn)
         elif self.kernel_type == 'addition':
             len_q, len_k = q.size(1), k.size(1)
-            q = q.unsqueeze(2).repeat(1, 1, len_k, 1)
-            k = k.unsqueeze(1).repeat(1, len_q, 1, 1)
+            q = q.unsqueeze(2)
+            k = k.unsqueeze(1)
             attn = self.fc(q + k).squeeze(3)
         else:
             raise NotImplementedError()

@@ -50,13 +50,13 @@ class MultiHeadAttention(nn.Module):
         k_s = torch.bmm(k_s, self.w_ks).view(-1, len_k, d_k)   # (n_head*mb_size) x len_k x d_k
         v_s = torch.bmm(v_s, self.w_vs).view(-1, len_v, d_v)   # (n_head*mb_size) x len_v x d_v
 
-        # perform attention, result size = (n_head * mb_size) x len_v x d_v
+        # perform attention, result size = (n_head * mb_size) x len_q x d_v
         if attn_mask is not None:
             attn_mask = attn_mask.repeat(n_head, 1, 1)
         outputs, attns = self.attention(q_s, k_s, v_s, attn_mask=attn_mask)
 
         # back to original mb_size batch, result size = mb_size x len_v x (n_head*d_v)
-        outputs = outputs - v_s
+        # outputs = outputs - v_s
         outputs = torch.cat(torch.split(outputs, mb_size, dim=0), dim=-1)
         # # (n_head*mb_size) x len_q x len_k -> (n_head*mb_size) x len_k -> mb_size x len_k x n_head
         # attns = torch.cat(torch.split(attns.mean(1), mb_size, dim=0), dim=-1).view(-1, len_k, n_head)
