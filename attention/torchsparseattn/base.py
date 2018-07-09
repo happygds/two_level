@@ -11,7 +11,7 @@ class _BaseBatchProjection(ta.Function):
             x = x.unsqueeze(0)
             requires_squeeze = True
 
-        n_samples, seq_len, max_dim = x.size()
+        n_samples, max_dim = x.size()
 
         has_lengths = True
         if lengths is None:
@@ -23,7 +23,7 @@ class _BaseBatchProjection(ta.Function):
         y_star.zero_()
 
         for i in range(n_samples):
-            y_star[i, :, :lengths[i]] = self.project(x[i, :, :lengths[i]])
+            y_star[i, :lengths[i]] = self.project(x[i, :lengths[i]])
 
         if requires_squeeze:
             y_star = y_star.squeeze()
@@ -57,7 +57,7 @@ class _BaseBatchProjection(ta.Function):
             dout = dout.unsqueeze(0)
             requires_squeeze = True
 
-        n_samples, seq_len, max_dim = y_star.size()
+        n_samples, max_dim = y_star.size()
         din = dout.new()
         din.resize_as_(y_star)
         din.zero_()
@@ -66,8 +66,8 @@ class _BaseBatchProjection(ta.Function):
             lengths = [max_dim] * n_samples
 
         for i in range(n_samples):
-            din[i, :, :lengths[i]] = self.project_jv(dout[i, :, :lengths[i]],
-                                                     y_star[i, :, :lengths[i]])
+            din[i, :lengths[i]] = self.project_jv(dout[i, :lengths[i]],
+                                                  y_star[i, :lengths[i]])
 
         if requires_squeeze:
             din = din.squeeze()
