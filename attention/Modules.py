@@ -33,7 +33,7 @@ class ScaledDotProductAttention(nn.Module):
         self.temper = np.power(d_model, 0.5)
         self.dropout = nn.Dropout(attn_dropout)
         # self.softmax = nn.Softmax(dim=2)
-        self.softmax = Sparsemax(2, 4096)
+        self.softmax = Sparsemax(1, 8192)
         self.kernel_type = kernel_type
         if self.kernel_type == 'concat':
             self.fc1 = nn.Linear(d_k, 1)
