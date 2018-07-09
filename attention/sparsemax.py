@@ -39,6 +39,7 @@ class Sparsemax(nn.Module):
         sum_zs = (torch.sum(zs_sparse, dim) - 1)
         taus = Variable(torch.zeros(k_max.size()),requires_grad=False).cuda()
         taus = torch.addcdiv(taus, (torch.sum(zs_sparse, dim) - 1), k_max)
+        print(taus.size(), input_reshape.size())
         taus_expanded = taus.expand_as(input_reshape)
         output = Variable(torch.zeros(input_reshape.size())).cuda()
         output = torch.max(output, input_shift - taus_expanded)
