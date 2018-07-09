@@ -64,7 +64,7 @@ class ScaledDotProductAttention(nn.Module):
                     'with Attention logit tensor shape ' \
                     '{}.'.format(attn_mask.size(), attn.size())
             if self.kernel_type in ['self_attn', 'addition']:
-                attn.data.masked_fill_(attn_mask, -1e+14)
+                attn.data.masked_fill_(attn_mask, -1e+32)
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
