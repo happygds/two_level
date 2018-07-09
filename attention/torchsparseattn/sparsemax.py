@@ -15,11 +15,11 @@ from .base import _BaseBatchProjection
 
 
 def project_simplex(v, z=1):
-    try:
-        v_sorted, _ = torch.sort(v, dim=0, descending=True)
-    except RuntimeError:
-        import pdb
-        pdb.set_trace()
+    # try:
+    v_sorted, _ = torch.sort(v, dim=0, descending=True)
+    # except RuntimeError:
+    #     import pdb
+    #     pdb.set_trace()
     cssv = torch.cumsum(v_sorted, dim=0) - z
     ind = torch.arange(1, 1 + len(v))
     cond = v_sorted - cssv / ind > 0
