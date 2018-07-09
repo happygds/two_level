@@ -61,5 +61,5 @@ class Sparsemax(nn.Module):
         sum_v = torch.addcdiv(sum_v, sum_mask_grad, l1_norm_non_zeros)
         self.gradInput = Variable(torch.zeros(grad_output.size()))
         self.gradInput = torch.addcmul(self.gradInput, non_zeros, grad_output - sum_v.expand_as(grad_output))
-        self.gradInput = self.gradInput.view(-1, self.num_clusters*self.num_neurons_per_cluster)
+        self.gradInput = self.gradInput.view(-1, self.num_clusters, self.num_neurons_per_cluster)
         return self.gradInput
