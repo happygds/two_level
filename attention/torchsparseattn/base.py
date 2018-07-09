@@ -22,6 +22,7 @@ class _BaseBatchProjection(ta.Function):
         y_star.resize_as_(x)
         y_star.zero_()
 
+        print(lengths)
         for i in range(n_samples):
             y_star[i, :lengths[i]] = self.project(x[i, :lengths[i]])
 
