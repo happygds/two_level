@@ -18,7 +18,7 @@ class CE_Criterion(nn.Module):
         self.use_weight = use_weight
 
     def forward(self, x, target, weight=None, mask=None, lambda_l=1.):
-        output = - target * torch.log(x)
+        output = - target * torch.log(x.clamp(1e-14))
         if self.use_weight:
             output *= weight.unsqueeze(0).unsqueeze(0)
             # output = torch.sum(output.mean(2) * mask, dim=1) / torch.sum(mask, dim=1)
