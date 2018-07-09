@@ -9,12 +9,13 @@ from torch.autograd import Variable
 class Sparsemax(nn.Module):
     def __init__(self, num_clusters, num_neurons_per_cluster):
         super(Sparsemax, self).__init__()
-        self.num_clusters = num_clusters
-        self.num_neurons_per_cluster = num_neurons_per_cluster
+        # self.num_clusters = num_clusters
+        # self.num_neurons_per_cluster = num_neurons_per_cluster
         
     def forward(self, input):
 
         input_reshape = torch.zeros(input.size())
+        self.num_clusters, self.num_neurons_per_cluster = input.size()[1:]
         input_reshape = input.view(-1, self.num_clusters, self.num_neurons_per_cluster)
         dim = 2
         #translate for numerical stability
@@ -39,11 +40,12 @@ class Sparsemax(nn.Module):
         sum_zs = (torch.sum(zs_sparse, dim) - 1)
         taus = Variable(torch.zeros(k_max.size()),requires_grad=False).cuda()
         taus = torch.addcdiv(taus, (torch.sum(zs_sparse, dim) - 1), k_max)
-        print(taus.size(), input_reshape.size())
+        # print(taus.size(), input_reshape.size())
         taus_expanded = taus.unsqueeze(2).expand_as(input_reshape)
         output = Variable(torch.zeros(input_reshape.size())).cuda()
         output = torch.max(output, input_shift - taus_expanded)
-        return output.view(-1, self.num_clusters*self.num_neurons_per_cluster), zs_sparse,taus, is_gt
+        # return output.view(-1, self.num_clusters*self.num_neurons_per_cluster), zs_sparse,taus, is_gt
+        return output.view(-1, self.num_clusters*self.num_neurons_per_cluster)
 		 
 
     def backward(self, grad_output):
