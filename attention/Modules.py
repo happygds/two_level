@@ -32,8 +32,8 @@ class ScaledDotProductAttention(nn.Module):
         super(ScaledDotProductAttention, self).__init__()
         self.temper = np.power(d_model, 0.5)
         self.dropout = nn.Dropout(attn_dropout)
-        # self.softmax = nn.Softmax(dim=2)
-        self.softmax = Sparsemax(1, 8192)
+        self.softmax = nn.Softmax(dim=2)
+        # self.softmax = Sparsemax(1, 8192)
         self.kernel_type = kernel_type
         if self.kernel_type == 'concat':
             self.fc1 = nn.Linear(d_k, 1)
@@ -72,7 +72,6 @@ class ScaledDotProductAttention(nn.Module):
 
         if self.kernel_type in ['self_attn', 'addition']:
             attn = self.softmax(attn)
-            print(attn)
             # shp = attn.size()
             # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
