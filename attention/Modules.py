@@ -72,6 +72,7 @@ class ScaledDotProductAttention(nn.Module):
             # attn = self.softmax(attn)
             shp = attn.size()
             lengths = (1. - attn_mask).sum(1).long().cuda()
+            print(lengths.size())
             attn = self.softmax(attn.view(-1, shp[2]).data.cpu(), lengths.data.cpu()).view(shp).cuda()
             import pdb
             pdb.set_trace()
