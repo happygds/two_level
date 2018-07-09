@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.init as init
 import numpy as np
 
+from torchsparseattn.fused import Fusedmax
+
 def to_contiguous(tensor):
     if tensor.is_contiguous():
         return tensor
@@ -29,7 +31,8 @@ class ScaledDotProductAttention(nn.Module):
         super(ScaledDotProductAttention, self).__init__()
         self.temper = np.power(d_model, 0.5)
         self.dropout = nn.Dropout(attn_dropout)
-        self.softmax = nn.Softmax(dim=2)
+        # self.softmax = nn.Softmax(dim=2)
+        self.softmax = Fusedmax()
         self.kernel_type = kernel_type
         if self.kernel_type == 'concat':
             self.fc1 = nn.Linear(d_k, 1)
@@ -66,7 +69,12 @@ class ScaledDotProductAttention(nn.Module):
                 attn.data.masked_fill_(attn_mask, 0)
 
         if self.kernel_type in ['self_attn', 'addition']:
-            attn = self.softmax(attn)
+            # attn = self.softmax(attn)
+            shp = attn.size()
+            # lengths = 1 + (torch.rand(shp[0]) * shp[2]).long().cuda()
+            attn = self.softmax(attn.view(-1, shp[2])).view(shp)
+            import pdb
+            pdb.set_trace()
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
