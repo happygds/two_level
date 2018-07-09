@@ -15,8 +15,8 @@ from torch import autograd as ta
 import warnings
 from lightning.impl.penalty import prox_tv1d
 
-from base import _BaseBatchProjection
-from sparsemax import SparsemaxFunction
+from .base import _BaseBatchProjection
+from .sparsemax import SparsemaxFunction
 
 
 def _inplace_fused_prox_jv_slow(y_hat, dout):
