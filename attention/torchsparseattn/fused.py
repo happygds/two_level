@@ -39,12 +39,12 @@ def _inplace_fused_prox_jv_slow(y_hat, dout):
     return dout
 
 
-try:
-    from ._fused_jv import _inplace_fused_prox_jv
-except ImportError:
-    warnings.warn("Could not import cython implementation of fused backward "
-                  "pass. Slow implementation used instead.")
-    _inplace_fused_prox_jv = _inplace_fused_prox_jv_slow
+# try:
+from ._fused_jv import _inplace_fused_prox_jv
+# except ImportError:
+#     warnings.warn("Could not import cython implementation of fused backward "
+#                   "pass. Slow implementation used instead.")
+#     _inplace_fused_prox_jv = _inplace_fused_prox_jv_slow
 
 
 def fused_prox_jv_slow(y_hat, dout):
