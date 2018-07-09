@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.init as init
 import numpy as np
 
-from torchsparseattn.fused import Fusedmax
+import torchsparseattn.fused.Fusedmax import Fusedmax
 
 def to_contiguous(tensor):
     if tensor.is_contiguous():

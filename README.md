@@ -163,7 +163,7 @@ python binary_train.py thumos14 MODALITY -b 16 --lr_steps 20 40 --epochs 45
 or
 
 ```bash
-python binary_train.py activitynet1.3 -b 64 --lr_steps 6 12 --epochs 15 --n_layers 3 --pos_enc 0 
+python binary_train.py activitynet1.3 -b 64 --lr_steps 10 15 --epochs 18 --n_layers 6 --pos_enc 0 
 ```
 
 ### Obtaining actionness score
