@@ -7,7 +7,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 class Sparsemax(nn.Module):
-    def __init__(self, num_clusters, num_neurons_per_cluster):
+    def __init__(self):
         super(Sparsemax, self).__init__()
         # self.num_clusters = num_clusters
         # self.num_neurons_per_cluster = num_neurons_per_cluster
@@ -45,10 +45,12 @@ class Sparsemax(nn.Module):
         output = Variable(torch.zeros(input_reshape.size())).cuda()
         output = torch.max(output, input_shift - taus_expanded)
         # return output.view(-1, self.num_clusters*self.num_neurons_per_cluster), zs_sparse,taus, is_gt
+        self.output = output
         return output.view(-1, self.num_clusters, self.num_neurons_per_cluster)
 		 
 
     def backward(self, grad_output):
+        self.num_clusters, self.num_neurons_per_cluster = grad_output.size()[1:]
         self.output = self.output.view(-1,self.num_clusters, self.num_neurons_per_cluster)
         grad_output = grad_output.view(-1,self.num_clusters, self.num_neurons_per_cluster)
         dim = 2
