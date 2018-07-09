@@ -71,8 +71,8 @@ class ScaledDotProductAttention(nn.Module):
         if self.kernel_type in ['self_attn', 'addition']:
             # attn = self.softmax(attn)
             shp = attn.size()
-            # lengths = 1 + (torch.rand(shp[0]) * shp[2]).long().cuda()
-            attn = self.softmax(attn.view(-1, shp[2])).view(shp)
+            lengths = (torch.ones(shp[0]*shp[1]) * shp[2]).long().cuda()
+            attn = self.softmax(attn.view(-1, shp[2]), lengths).view(shp)
             import pdb
             pdb.set_trace()
         else:
