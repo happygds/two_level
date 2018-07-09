@@ -45,7 +45,7 @@ class Sparsemax(nn.Module):
         output = Variable(torch.zeros(input_reshape.size())).cuda()
         output = torch.max(output, input_shift - taus_expanded)
         # return output.view(-1, self.num_clusters*self.num_neurons_per_cluster), zs_sparse,taus, is_gt
-        return output.view(-1, self.num_clusters*self.num_neurons_per_cluster)
+        return output.view(-1, self.num_clusters, self.num_neurons_per_cluster)
 		 
 
     def backward(self, grad_output):
