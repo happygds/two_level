@@ -19,6 +19,8 @@ def project_simplex(v, z=1):
     cssv = torch.cumsum(v_sorted, dim=0) - z
     ind = torch.arange(1, 1 + len(v))
     cond = v_sorted - cssv / ind > 0
+    import pdb
+    pdb.set_trace()
     rho = ind.masked_select(cond)[-1]
     tau = cssv.masked_select(cond)[-1] / rho
     w = torch.clamp(v - tau, min=0)
