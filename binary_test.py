@@ -118,6 +118,8 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         with torch.no_grad():
             output = net(feature, pos_ind)
             output = output[0].cpu().numpy()
+        import pdb
+        pdb.set_trace()
         # nframes = len(output) * args.frame_interval
         # output = np.interp(
         #     np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output[:, 1])
