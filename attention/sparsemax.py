@@ -28,7 +28,7 @@ class Sparsemax(nn.Module):
         range_values = torch.arange(1, input_size+1).cuda()
         range_values = range_values.expand_as(z_sorted)
         if self.mask_value is not None:
-            z_mask = torch.ne(z_sorted, self.mask_value)
+            z_mask = torch.ne(z_sorted, self.mask_value).float()
 
         #Determine sparsity of projection
         bound = torch.zeros(z_sorted.size()).cuda()
