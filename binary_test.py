@@ -124,7 +124,6 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         # output = output.reshape((-1, 1))
         # output = np.concatenate([1. - output, output], axis=1)
         print(output.shape)
-        time.sleep(10)
 
         result_queue.put((dataset.video_list[index].id.split('/')[-1], output))
         
