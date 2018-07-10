@@ -78,8 +78,6 @@ class ScaledDotProductAttention(nn.Module):
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         print(attn)
-        import pdb
-        pdb.set_trace()
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
 
