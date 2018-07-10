@@ -169,7 +169,7 @@ python binary_train.py activitynet1.3 -b 64 --lr_steps 10 15 --epochs 18 --n_lay
 ### Obtaining actionness score
 
 ```bash
-python binary_test.py activitynet1.3 validation /data1/matheguo/important/result/activitynet/ori_ssn/model_best.pth.tar  /data1/matheguo/important/result/activitynet/ori_ssn/val_actionness.pkl
+python binary_test.py activitynet1.3 validation /data1/matheguo/important/result/activitynet/ori_ssn/model_best.pth.tar  /data1/matheguo/important/result/activitynet/ori_ssn/val_actionness.pkl --n_layers6 --pos_enc 0
 ```
 
 ### Generating TAG proposals

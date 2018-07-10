@@ -12,7 +12,7 @@ class Sparsemax(nn.Module):
         # self.num_clusters = num_clusters
         # self.num_neurons_per_cluster = num_neurons_per_cluster
         
-    def forward(self, input):
+    def forward(self, input, mask_value=None):
 
         input_reshape = torch.zeros(input.size())
         self.num_clusters, self.num_neurons_per_cluster = input.size()[1:]
@@ -24,21 +24,25 @@ class Sparsemax(nn.Module):
         #sorting input in descending order
         z_sorted = torch.sort(input_shift, dim=dim, descending=True)[0]
         input_size = input_shift.size()[dim]	
-        range_values = Variable(torch.arange(1, input_size+1), requires_grad=False).cuda()
+        range_values = torch.arange(1, input_size+1).cuda()
         range_values = range_values.expand_as(z_sorted)
+        if mask_value is not None:
+            z_mask = torch.ne(z_sorted, z_mask)
 
         #Determine sparsity of projection
-        bound = Variable(torch.zeros(z_sorted.size()),requires_grad=False).cuda()
+        bound = torch.zeros(z_sorted.size()).cuda()
         bound = 1 + torch.addcmul(bound, range_values, z_sorted)
         cumsum_zs = torch.cumsum(z_sorted, dim)
         is_gt = torch.gt(bound, cumsum_zs).type(torch.FloatTensor).cuda()
-        valid = Variable(torch.zeros(range_values.size()),requires_grad=False).cuda()
+        if mask_value is not None:
+            is_gt = is_gt * z_mask
+        valid = torch.zeros(range_values.size()).cuda()
         valid = torch.addcmul(valid, range_values, is_gt)
         k_max = torch.max(valid, dim)[0]
-        zs_sparse = Variable(torch.zeros(z_sorted.size()),requires_grad=False).cuda()
+        zs_sparse = torch.zeros(z_sorted.size()).cuda()
         zs_sparse = torch.addcmul(zs_sparse, is_gt, z_sorted)
         sum_zs = (torch.sum(zs_sparse, dim) - 1)
-        taus = Variable(torch.zeros(k_max.size()),requires_grad=False).cuda()
+        taus = torch.zeros(k_max.size()).cuda()
         taus = torch.addcdiv(taus, (torch.sum(zs_sparse, dim) - 1), k_max)
         # print(taus.size(), input_reshape.size())
         taus_expanded = taus.unsqueeze(2).expand_as(input_reshape)
@@ -54,12 +58,12 @@ class Sparsemax(nn.Module):
         self.output = self.output.view(-1,self.num_clusters, self.num_neurons_per_cluster)
         grad_output = grad_output.view(-1,self.num_clusters, self.num_neurons_per_cluster)
         dim = 2
-        non_zeros = Variable(torch.ne(self.output, 0).type(torch.FloatTensor), requires_grad=False).cuda()
-        mask_grad = Variable(torch.zeros(self.output.size()), requires_grad=False).cuda()
+        non_zeros = torch.ne(self.output, 0).type(torch.FloatTensor).cuda()
+        mask_grad = torch.zeros(self.output.size()).cuda()
         mask_grad = torch.addcmul(mask_grad, non_zeros, grad_output)
         sum_mask_grad = torch.sum(mask_grad, dim)
         l1_norm_non_zeros = torch.sum(non_zeros, dim)
-        sum_v = Variable(torch.zeros(sum_mask_grad.size()), requires_grad=False).cuda()
+        sum_v = torch.zeros(sum_mask_grad.size()).cuda()
         sum_v = torch.addcdiv(sum_v, sum_mask_grad, l1_norm_non_zeros)
         self.gradInput = Variable(torch.zeros(grad_output.size()))
         self.gradInput = torch.addcmul(self.gradInput, non_zeros, grad_output - sum_v.expand_as(grad_output))
