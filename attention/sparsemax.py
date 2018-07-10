@@ -7,12 +7,13 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 class Sparsemax(nn.Module):
-    def __init__(self):
+    def __init__(self, mask_value=None):
         super(Sparsemax, self).__init__()
+        self.mask_value = mask_value
         # self.num_clusters = num_clusters
         # self.num_neurons_per_cluster = num_neurons_per_cluster
         
-    def forward(self, input, mask_value=None):
+    def forward(self, input):
 
         input_reshape = torch.zeros(input.size())
         self.num_clusters, self.num_neurons_per_cluster = input.size()[1:]
@@ -26,15 +27,15 @@ class Sparsemax(nn.Module):
         input_size = input_shift.size()[dim]	
         range_values = torch.arange(1, input_size+1).cuda()
         range_values = range_values.expand_as(z_sorted)
-        if mask_value is not None:
-            z_mask = torch.ne(z_sorted, z_mask)
+        if self.mask_value is not None:
+            z_mask = torch.ne(z_sorted, self.mask_value)
 
         #Determine sparsity of projection
         bound = torch.zeros(z_sorted.size()).cuda()
         bound = 1 + torch.addcmul(bound, range_values, z_sorted)
         cumsum_zs = torch.cumsum(z_sorted, dim)
         is_gt = torch.gt(bound, cumsum_zs).type(torch.FloatTensor).cuda()
-        if mask_value is not None:
+        if self.mask_value is not None:
             is_gt = is_gt * z_mask
         valid = torch.zeros(range_values.size()).cuda()
         valid = torch.addcmul(valid, range_values, is_gt)
