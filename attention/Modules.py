@@ -18,7 +18,7 @@ class CE_Criterion(nn.Module):
 
     def forward(self, x, target, enc_outputs):
         output = - target * torch.log(x.clamp(1e-14))
-        return torch.mean(output) + 0.1 * torch.mean(enc_outputs.abs())
+        return torch.mean(output) + 0.5 * torch.mean(enc_outputs.abs())
 
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
