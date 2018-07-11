@@ -64,14 +64,18 @@ class ScaledDotProductAttention(nn.Module):
             if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
                 attn.data.masked_fill_(attn_mask, -float('inf'))
                 # attn.data.masked_fill_(attn_mask, -1e+32)
+            elif self.kernel_type == 'inner_prod':
+                attn.data.masked_fill_(attn_mask, 0)
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
-        if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
+        if self.kernel_type in ['self_attn', 'addition']:
             attn = self.softmax(attn)
             # shp = attn.size()
             # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
+        elif self.kernel_type == 'inner_prod':
+            attn = attn / torch.sum(attn, dim=2, keepdim=True)
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
