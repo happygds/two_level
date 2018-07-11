@@ -50,6 +50,9 @@ class ScaledDotProductAttention(nn.Module):
             q = q.unsqueeze(2)
             k = k.unsqueeze(1)
             attn = self.fc(q + k).squeeze(3)
+        elif self.kernel_type == 'inner_prod':
+            attn_qk = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            attn_q = (q * q).sum(2) / self.temper
         else:
             raise NotImplementedError()
 
@@ -65,14 +68,19 @@ class ScaledDotProductAttention(nn.Module):
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
-        if self.kernel_type in ['self_attn', 'addition']:
-            attn = self.softmax(attn)
-            # shp = attn.size()
-            # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
-            # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
+        if self.kernel_type == 'inner_prod':
+            attn = self.softmax(attn_qk)
+            output = attn_qk.unsqueeze(3) * v.unsqueeze(1) - attn_q.unsqueeze(1).unsqueeze(3) * v.unsqueeze(2)
+            output = (self.dropout(attn).unsqueeze(3) * output).sum(2)
         else:
-            attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
-        attn = self.dropout(attn)
-        output = torch.bmm(attn, v)
+            if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
+                attn = self.softmax(attn)
+                # shp = attn.size()
+                # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
+                # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
+            else:
+                attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
+            attn = self.dropout(attn)
+            output = torch.bmm(attn, v)
 
         return output, attn
