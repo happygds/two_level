@@ -51,7 +51,7 @@ class ScaledDotProductAttention(nn.Module):
             k = k.unsqueeze(1)
             attn = self.fc(q + k).squeeze(3)
         elif self.kernel_type == 'inner_prod':
-            attn_qk = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             attn_q = (q * q).sum(2) / self.temper
         else:
             raise NotImplementedError()
@@ -62,16 +62,15 @@ class ScaledDotProductAttention(nn.Module):
                     'Attention mask shape {} mismatch ' \
                     'with Attention logit tensor shape ' \
                     '{}.'.format(attn_mask.size(), attn.size())
-            if self.kernel_type in ['self_attn', 'addition']:
+            if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
                 attn.data.masked_fill_(attn_mask, -float('inf'))
                 # attn.data.masked_fill_(attn_mask, -1e+32)
-            elif self.kernel_type == 'inner_prod':
-                attn_qk.data.masked_fill_(attn_mask, -float('inf'))
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
         if self.kernel_type == 'inner_prod':
-            attn = self.softmax(attn_qk)
+            attn_qk = attn
+            attn = self.softmax(attn)
             output = attn_qk.unsqueeze(3) * v.unsqueeze(1) - attn_q.unsqueeze(1).unsqueeze(3) * v.unsqueeze(2)
             output = (self.dropout(attn).unsqueeze(3) * output).sum(2)
         else:
