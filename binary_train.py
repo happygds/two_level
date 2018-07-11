@@ -138,13 +138,13 @@ def train(train_loader, model, criterion, optimizer, epoch):
         prop_target = torch.autograd.Variable(prop_target, requires_grad=False).cuda()
 
         # compute output
-        binary_score, enc_outputs = model(
+        binary_score = model(
             feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
 
         # print(target, sel_prop_inds)
         target = convert_categorical(prop_target.data.cpu().numpy(), n_classes=2)
         target = torch.autograd.Variable(torch.from_numpy(target), requires_grad=False).cuda()
-        loss = criterion(binary_score, target, enc_outputs)
+        loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
@@ -212,12 +212,12 @@ def validate(val_loader, model, criterion, iter):
             sel_prop_inds = torch.autograd.Variable(sel_prop_inds).cuda()
             prop_target = torch.autograd.Variable(prop_target).cuda()
             # compute output
-            binary_score, enc_outputs = model(feature, pos_ind, sel_prop_ind=sel_prop_inds,
+            binary_score = model(feature, pos_ind, sel_prop_ind=sel_prop_inds,
                                  feature_mask=feature_mask)
 
             target = convert_categorical(prop_target.data.cpu().numpy(), n_classes=2)
             target = torch.autograd.Variable(torch.from_numpy(target)).cuda()
-            loss = criterion(binary_score, target, enc_outputs)
+            loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),

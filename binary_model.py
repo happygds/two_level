@@ -96,7 +96,7 @@ class BinaryClassifier(torch.nn.Module):
             enc_output = enc_outputs.mean(dim=2)
             enc_output = self.softmax(self.binary_classifier(enc_output))
 
-            return enc_output, (enc_outputs[:, :, 1:, :] - enc_outputs[:, :, :-1, :]).abs()
+            return enc_output
         else:
             enc_output = self.softmax(self.binary_classifier(enc_output))
             return enc_output
