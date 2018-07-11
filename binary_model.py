@@ -92,10 +92,14 @@ class BinaryClassifier(torch.nn.Module):
             assert sel_prop_ind is not None
             enc_output = torch.gather(enc_output, 1, sel_prop_ind)
             shp = enc_output.size()
-            enc_output = enc_output.view((shp[0], shp[1] // self.num_segments, self.num_segments, shp[2])).mean(dim=2)
+            enc_outputs = enc_output.view((shp[0], shp[1] // self.num_segments, self.num_segments, shp[2]))
+            enc_output = enc_outputs.mean(dim=2)
+            enc_output = self.softmax(self.binary_classifier(enc_output))
 
-        enc_output = self.softmax(self.binary_classifier(enc_output))
-        return enc_output
+            return enc_output, (enc_outputs[:, :, 1:, :] - enc_outputs[:, :, :-1, :]).abs()
+        else:
+            enc_output = self.softmax(self.binary_classifier(enc_output))
+            return enc_output
 
     def get_trainable_parameters(self):
         # ''' Avoid updating the position encoding '''

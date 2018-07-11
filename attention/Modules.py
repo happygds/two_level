@@ -13,17 +13,12 @@ def to_contiguous(tensor):
         return tensor.contiguous()
 
 class CE_Criterion(nn.Module):
-    def __init__(self, use_weight=False):
+    def __init__(self):
         super(CE_Criterion, self).__init__()
-        self.use_weight = use_weight
 
-    def forward(self, x, target, weight=None, mask=None, lambda_l=1.):
+    def forward(self, x, target, enc_outputs):
         output = - target * torch.log(x.clamp(1e-14))
-        if self.use_weight:
-            output *= weight.unsqueeze(0).unsqueeze(0)
-            # output = torch.sum(output.mean(2) * mask, dim=1) / torch.sum(mask, dim=1)
-            output = torch.sum(output.mean(2) * mask) / torch.sum(mask)
-        return torch.mean(output)
+        return torch.mean(output) + 0.1 * torch.mean(enc_outputs.abs())
 
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
@@ -32,8 +27,8 @@ class ScaledDotProductAttention(nn.Module):
         super(ScaledDotProductAttention, self).__init__()
         self.temper = np.power(d_model, 0.5)
         self.dropout = nn.Dropout(attn_dropout)
-        # self.softmax = nn.Softmax(dim=2)
-        self.softmax = Sparsemax(mask_value=-1e+32)
+        self.softmax = nn.Softmax(dim=2)
+        # self.softmax = Sparsemax(mask_value=-1e+32)
         self.kernel_type = kernel_type
         if self.kernel_type == 'concat':
             self.fc1 = nn.Linear(d_k, 1)
@@ -65,8 +60,8 @@ class ScaledDotProductAttention(nn.Module):
                     'with Attention logit tensor shape ' \
                     '{}.'.format(attn_mask.size(), attn.size())
             if self.kernel_type in ['self_attn', 'addition']:
-                # attn.data.masked_fill_(attn_mask, -float('inf'))
-                attn.data.masked_fill_(attn_mask, -1e+32)
+                attn.data.masked_fill_(attn_mask, -float('inf'))
+                # attn.data.masked_fill_(attn_mask, -1e+32)
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
@@ -77,7 +72,6 @@ class ScaledDotProductAttention(nn.Module):
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
-        print(attn)
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
 
