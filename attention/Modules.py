@@ -65,6 +65,8 @@ class ScaledDotProductAttention(nn.Module):
             if self.kernel_type in ['self_attn', 'addition']:
                 attn.data.masked_fill_(attn_mask, -float('inf'))
                 # attn.data.masked_fill_(attn_mask, -1e+32)
+            elif self.kernel_type == 'inner_prod':
+                attn_qk.data.masked_fill_(attn_mask, -float('inf'))
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
