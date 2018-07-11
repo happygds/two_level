@@ -71,8 +71,9 @@ class ScaledDotProductAttention(nn.Module):
         if self.kernel_type == 'inner_prod':
             attn_qk = attn
             attn = self.softmax(attn)
-            output = attn_qk.unsqueeze(3) * v.unsqueeze(1) - attn_q.unsqueeze(1).unsqueeze(3) * v.unsqueeze(2)
-            output = (self.dropout(attn).unsqueeze(3) * output).sum(2)
+            attn = self.dropout(attn)
+            attn_q = attn_q.unsqueeze(1) / attn_qk * attn
+            output = torch.bmm(attn, v) - v * attn_q.sum(2, keepdim=True)
         else:
             if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
                 attn = self.softmax(attn)
