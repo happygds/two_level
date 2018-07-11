@@ -75,7 +75,7 @@ class ScaledDotProductAttention(nn.Module):
             # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         elif self.kernel_type == 'inner_prod':
-            attn = attn / torch.sum(attn, dim=2, keepdim=True)
+            attn = attn / torch.sum((1. - attn_mask).float(), dim=2, keepdim=True)
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
