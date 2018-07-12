@@ -73,7 +73,8 @@ class MultiHeadAttention(nn.Module):
         outputs = self.proj(outputs)
         outputs = self.dropout(outputs)
 
-        return self.layer_norm(outputs + residual), attns
+        # return self.layer_norm(outputs + residual), attns
+        return outputs + residual, attns
 
 
 class PositionwiseFeedForward(nn.Module):
