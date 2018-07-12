@@ -53,11 +53,11 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     # first count frame numbers
     try:
         video_name = video_info.id
-        print(video_name)
         files = glob.glob(os.path.join(frame_path, video_name, name_pattern))
         frame_cnt = len(files)
     except:
-        raise NotImplementedError()
+        print("video {} not exist frame images".format(video_info.id))
+        frame_cnt = int(round(video_info.duration * 24))
     video_info.frame_cnt = frame_cnt
     video_info.frame_interval = args.frame_interval
     return video_info
