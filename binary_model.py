@@ -30,6 +30,7 @@ def get_attn_padding_mask(seq_q, seq_k):
     pad_attn_mask = pad_attn_mask.expand(mb_size, len_q, len_k)  # bxsqxsk
     return pad_attn_mask
 
+
 def get_attn_local_mask(attn_mask, num_local=9):
     ''' Get an attention mask to avoid using the local info.'''
     if num_local % 2 == 1:
@@ -44,6 +45,7 @@ def get_attn_local_mask(attn_mask, num_local=9):
         local_mask = local_mask.cuda()
     local_mask = torch.gt(attn_mask + local_mask, 0)
     return local_mask
+
 
 class BinaryClassifier(torch.nn.Module):
     def __init__(self, num_class, course_segment, args, dropout=0.8, test_mode=False):
@@ -67,7 +69,7 @@ class BinaryClassifier(torch.nn.Module):
 
         self.layer_stack = nn.ModuleList([
             Local_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                         args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
+                               args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
             for _ in range(args.n_layers)])
 
         self.num_segments = course_segment
@@ -76,7 +78,6 @@ class BinaryClassifier(torch.nn.Module):
         self.binary_classifier = nn.Linear(args.d_model, num_class)
         self.softmax = nn.Softmax(dim=-1)
         self.num_local = args.num_local
-
 
     def forward(self, feature, pos_ind, sel_prop_ind=None, feature_mask=None, return_attns=False):
         # Word embedding look up
@@ -95,7 +96,8 @@ class BinaryClassifier(torch.nn.Module):
             mb_size, len_k = enc_input.size()[:2]
             enc_slf_attn_mask = (
                 1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
-            local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
+            local_attn_mask = get_attn_local_mask(
+                enc_slf_attn_mask, num_local=self.num_local)
         else:
             enc_slf_attn_mask = None
             local_attn_mask = None
@@ -108,7 +110,8 @@ class BinaryClassifier(torch.nn.Module):
             assert sel_prop_ind is not None
             enc_output = torch.gather(enc_output, 1, sel_prop_ind)
             shp = enc_output.size()
-            enc_outputs = enc_output.view((shp[0], shp[1] // self.num_segments, self.num_segments, shp[2]))
+            enc_outputs = enc_output.view(
+                (shp[0], shp[1] // self.num_segments, self.num_segments, shp[2]))
             enc_output = enc_outputs.mean(dim=2)
 
         enc_output = self.softmax(self.binary_classifier(enc_output))

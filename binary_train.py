@@ -57,7 +57,6 @@ def main():
         args.d_k = int(args.input_dim // args.n_head)
         args.d_v = args.d_k
     args.d_model = args.n_head * args.d_k
-    print(args.num_local)
 
     model = BinaryClassifier(
         num_class, args.num_body_segments, args, dropout=args.dropout)
