@@ -131,10 +131,6 @@ class Local_EncoderLayer(nn.Module):
             d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
-        shp = enc_input.size()
-        assert shp[1] % self.num_local == 0, "{} % {} != 0".format(
-            shp[1], self.num_local)
-
         local_output, enc_local_attn = self.local_attn(
             enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
         local_output = self.local_pos_ffn(local_output)
