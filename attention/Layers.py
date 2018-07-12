@@ -159,5 +159,5 @@ class Local_EncoderLayer(nn.Module):
         enc_output, enc_slf_attn = self.slf_attn(
             local_output, local_output, local_output, attn_mask=slf_attn_mask)
         enc_output = self.pos_ffn(enc_output).view(
-            shp[0], self.num_local, shp[1] // self.num_local, shp[2]).transpose(1, 2).view(shp)
+            shp[0], self.num_local, shp[1] // self.num_local, shp[2]).transpose(1, 2).contiguous().view(shp)
         return enc_output, enc_slf_attn
