@@ -92,7 +92,8 @@ class PositionwiseFeedForward(nn.Module):
         output = self.relu(self.w_1(x))
         output = self.w_2(output)
         output = self.dropout(output)
-        return self.layer_norm(output + residual)
+        # return self.layer_norm(output + residual)
+        return output_residual
 
 
 class EncoderLayer(nn.Module):
@@ -153,7 +154,7 @@ class Local_EncoderLayer(nn.Module):
 
         local_output, enc_local_attn = self.local_attn(
             enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
-        # local_output = self.local_pos_ffn(local_output)
+        local_output = self.local_pos_ffn(local_output)
         local_output = local_output.view(shp[0], shp[1] // self.num_local, self.num_local, shp[2]
                                          ).transpose(1, 2).contiguous().view(-1, shp[1] // self.num_local, shp[2])
 
