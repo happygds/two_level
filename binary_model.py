@@ -75,7 +75,7 @@ class BinaryClassifier(torch.nn.Module):
         self.test_mode = test_mode
         self.binary_classifier = nn.Linear(args.d_model, num_class)
         self.softmax = nn.Softmax(dim=-1)
-        self.num_local = num_local
+        self.num_local = args.num_local
 
 
     def forward(self, feature, pos_ind, sel_prop_ind=None, feature_mask=None, return_attns=False):
