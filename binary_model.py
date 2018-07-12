@@ -38,7 +38,7 @@ def get_attn_local_mask(attn_mask, num_local=9):
         triu_k, tril_k = num_local // 2, num_local // 2 + 1
     attn_shape = attn_mask.size()
     local_mask = np.triu(np.ones(attn_shape), k=triu_k).astype('uint8')
-    local_mask += np.tril(np.ones(attn_shape), k=-triu_l).astype('uint8')
+    local_mask += np.tril(np.ones(attn_shape), k=-tril_k).astype('uint8')
     local_mask = torch.from_numpy(local_mask)
     if seq.is_cuda:
         local_mask = local_mask.cuda()
