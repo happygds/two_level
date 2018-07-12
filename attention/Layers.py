@@ -130,7 +130,7 @@ class Local_EncoderLayer(nn.Module):
         #     n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
         # self.local_pos_ffn = PositionwiseFeedForward(
         #     d_model, d_inner_hid, dropout=dropout)
-        self.local_attn = nn.AvgPool1d(num_local - 1, 1, 3)
+        self.local_attn = nn.MaxPool1d(num_local - 1, 1, 3)
 
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
