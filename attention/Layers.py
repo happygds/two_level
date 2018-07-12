@@ -93,7 +93,7 @@ class PositionwiseFeedForward(nn.Module):
         output = self.w_2(output)
         output = self.dropout(output)
         # return self.layer_norm(output + residual)
-        return output_residual
+        return output + residual
 
 
 class EncoderLayer(nn.Module):
