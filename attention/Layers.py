@@ -123,7 +123,7 @@ class Local_EncoderLayer(nn.Module):
 
     def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, num_local=8, dropout=0.1, kernel_type='self_attn'):
         super(Local_EncoderLayer, self).__init__()
-        self.num_local = self.num_local
+        self.num_local = num_local
         self.local_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
         self.local_pos_ffn = PositionwiseFeedForward(
