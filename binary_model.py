@@ -68,7 +68,7 @@ class BinaryClassifier(torch.nn.Module):
             n_position, d_word_vec)
 
         self.layer_stack = nn.ModuleList([
-            Local_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+            EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
                                args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
             for _ in range(args.n_layers)])
 
