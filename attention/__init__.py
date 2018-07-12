@@ -1,1 +1,1 @@
-from .Layers import EncoderLayer
+from .Layers import EncoderLayer, Local_EncoderLayer
