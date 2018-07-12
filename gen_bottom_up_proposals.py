@@ -52,6 +52,7 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     # first count frame numbers
     try:
         video_name = video_info.path.split('/')[-1].split('.')[0]
+        print(video_name)
         files = glob.glob(os.path.join(frame_path, video_name, name_pattern))
         frame_cnt = len(files)
     except:
