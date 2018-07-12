@@ -57,6 +57,7 @@ def main():
         args.d_k = int(args.input_dim // args.n_head)
         args.d_v = args.d_k
     args.d_model = args.n_head * args.d_k
+    print(args.num_local)
 
     model = BinaryClassifier(
         num_class, args.num_body_segments, args, dropout=args.dropout)
@@ -73,10 +74,10 @@ def main():
         BinaryDataSet(args.feat_root, args.feat_model, train_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
-                      fg_ratio=6, bg_ratio=6),
+                      fg_ratio=6, bg_ratio=6, num_local=args.num_local),
         batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=pin_memory,
-        drop_last=True, num_local=args.num_local)
+        drop_last=True)
 
     val_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, val_prop_file,
