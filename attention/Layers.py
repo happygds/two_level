@@ -73,8 +73,8 @@ class MultiHeadAttention(nn.Module):
         outputs = self.proj(outputs)
         outputs = self.dropout(outputs)
 
-        # return self.layer_norm(outputs + residual), attns
-        return outputs + residual, attns
+        return self.layer_norm(outputs + residual), attns
+        # return outputs + residual, attns
 
 
 class PositionwiseFeedForward(nn.Module):
@@ -93,8 +93,8 @@ class PositionwiseFeedForward(nn.Module):
         output = self.relu(self.w_1(x))
         output = self.w_2(output)
         output = self.dropout(output)
-        # return self.layer_norm(output + residual)
-        return output + residual
+        return self.layer_norm(output + residual)
+        # return output + residual
 
 
 class EncoderLayer(nn.Module):
@@ -126,10 +126,11 @@ class Local_EncoderLayer(nn.Module):
     def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, num_local=8, dropout=0.1, kernel_type='self_attn'):
         super(Local_EncoderLayer, self).__init__()
         self.num_local = num_local
-        self.local_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        self.local_pos_ffn = PositionwiseFeedForward(
-            d_model, d_inner_hid, dropout=dropout)
+        # self.local_attn = MultiHeadAttention(
+        #     n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
+        # self.local_pos_ffn = PositionwiseFeedForward(
+        #     d_model, d_inner_hid, dropout=dropout)
+        self.local_attn = nn.AvgPool1d(num_local - 1, 1, 3)
 
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
@@ -153,9 +154,10 @@ class Local_EncoderLayer(nn.Module):
             local_attn_mask = None
             slf_attn_mask = None
 
-        local_output, enc_local_attn = self.local_attn(
-            enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
-        local_output = self.local_pos_ffn(local_output)
+        # local_output, enc_local_attn = self.local_attn(
+        #     enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
+        # local_output = self.local_pos_ffn(local_output)
+        local_output = self.local_attn(enc_input)
         local_output = local_output.view(shp[0], shp[1] // self.num_local, self.num_local, shp[2]
                                          ).transpose(1, 2).contiguous().view(-1, shp[1] // self.num_local, shp[2])
 
