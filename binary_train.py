@@ -76,13 +76,13 @@ def main():
                       fg_ratio=6, bg_ratio=6),
         batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=pin_memory,
-        drop_last=True)
+        drop_last=True, num_local=args.num_local)
 
     val_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, val_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
-                      fg_ratio=6, bg_ratio=6),
+                      fg_ratio=6, bg_ratio=6, num_local=args.num_local),
         batch_size=128, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 

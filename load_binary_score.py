@@ -105,10 +105,11 @@ class BinaryDataSet(data.Dataset):
                  bg_coverage_thresh=0.02, sample_duration=8196,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
-                 use_flow=True):
+                 use_flow=True, num_local=8):
 
         self.prop_file = prop_file
         self.verbose = verbose
+        self.num_local = num_local
 
         self.body_seg = body_seg
         self.video_centric = video_centric
@@ -332,11 +333,15 @@ class BinaryDataSet(data.Dataset):
         props = []
         video_id = video.id
         feat = video.feat
-        # frame_cnt = video.num_frames
 
         frame_ticks = np.arange(feat.shape[0]).astype('int32').reshape((1, -1))
         # num_sampled_frames = len(frame_ticks)
         pos_ind = torch.from_numpy(frame_ticks).long()
+
+        num_feat = feat.shape[0]
+        if num_feat % self.num_local != 0:
+            tmp = 8 - num_feat % self.num_local
+            feat = np.concatenate((feat, np.zeros((tmp, feat.shape[1]), dtype='float32')), dim=1)
 
         # # avoid empty proposal list
         # for i in frame_ticks:

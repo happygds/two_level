@@ -53,7 +53,7 @@ class BinaryClassifier(torch.nn.Module):
 
         self.layer_stack = nn.ModuleList([
             EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                         args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
+                         args.d_v, num_local=args.num_local, dropout=0.1, kernel_type=args.att_kernel_type)
             for _ in range(args.n_layers)])
 
         self.num_segments = course_segment
@@ -61,7 +61,6 @@ class BinaryClassifier(torch.nn.Module):
         self.test_mode = test_mode
         self.binary_classifier = nn.Linear(args.d_model, num_class)
         self.softmax = nn.Softmax(dim=-1)
-
 
 
     def forward(self, feature, pos_ind, sel_prop_ind=None, feature_mask=None, return_attns=False):
@@ -77,15 +76,9 @@ class BinaryClassifier(torch.nn.Module):
         enc_slf_attns = []
 
         enc_output = enc_input
-        if feature_mask is not None:
-            mb_size, len_k = enc_input.size()[:2]
-            enc_slf_attn_mask = (
-                1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
-        else:
-            enc_slf_attn_mask = None
         for i, enc_layer in enumerate(self.layer_stack):
             enc_output, enc_slf_attn = enc_layer(
-                enc_output, slf_attn_mask=enc_slf_attn_mask)
+                enc_output, input_mask=feature_mask)
             enc_slf_attns += [enc_slf_attn]
 
         if not self.test_mode:

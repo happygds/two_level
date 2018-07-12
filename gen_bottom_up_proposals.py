@@ -30,6 +30,7 @@ parser.add_argument("--write_proposals", type=str, default=None, help='')
 parser.add_argument("--minimum_len", type=float, default=0, help='minimum length of a proposal, in second')
 parser.add_argument("--reg_score_files", type=str, nargs='+', default=None)
 parser.add_argument("--frame_path", type=str, default='/mnt/SSD/ActivityNet/anet_v1.2_extracted_340/')
+parser.add_argument('--frame_interval', type=int, default=16)
 
 args = parser.parse_args()
 
@@ -47,9 +48,25 @@ elif args.dataset == 'thumos14':
 else:
     raise ValueError("unknown dataset {}".format(args.dataset))
 
+def compute_frame_count(video_info, frame_path, name_pattern):    
+    # first count frame numbers
+    try:
+        video_name = video_info.path.split('/')[-1].split('.')[0]
+        files = glob.glob(os.path.join(frame_path, video_name, name_pattern))
+        frame_cnt = len(files)
+    except:
+        raise NotImplementedError()
+    video_info.frame_cnt = frame_cnt
+    video_info.frame_interval = args.frame_interval
+    return video_info
+    
+
 video_list = db.get_subset_videos(args.subset)
 video_list = [v for v in video_list if v.instances != []]
 print("video list size: {}".format(len(video_list)))
+video_list = [compute_frame_count(v, args.frame_path, 'frame*.jpg') for v in video_list]
+
+
 # load scores
 print('loading scores...')
 score_list = []
@@ -126,6 +143,8 @@ def gen_prop(v):
         vid = v.path.split('/')[-1].split('.')[0]
     scores = score_dict[vid]
     frm_duration = len(scores)
+    frm_interval = v.frame_interval
+    frm_cnt = v.frame_cnt
     topk_cls = [0]
     topk_labels = label_frame_by_threshold(scores, topk_cls, bw=3, thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95, ], multicrop=False)
 
@@ -141,7 +160,8 @@ def gen_prop(v):
     # print len(bboxes)
     bboxes = temporal_nms(bboxes, 0.9)
 
-    pr_box = [(x[0] / float(frm_duration) * v.duration, x[1] / float(frm_duration) * v.duration) for x in bboxes]
+    # pr_box = [(x[0] * / float(frm_duration) * v.duration, x[1] / float(frm_duration) * v.duration) for x in bboxes]
+    pr_box = [(x[0] * frm_interval / float(frm_cnt) * v.duration, x[1] * frm_interval / float(frm_cnt) * v.duration) for x in bboxes]
 
     # filter out too short proposals
     pr_box = list(filter(lambda b: b[1] - b[0] > args.minimum_len, pr_box))

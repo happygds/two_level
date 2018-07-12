@@ -56,6 +56,7 @@ parser.add_argument('--n_head', default=8,
 parser.add_argument('--d_inner_hid', default=1024, type=int,
                     help='the layer dimension for positionwise fc layers')
 parser.add_argument('--prop_per_video', type=int, default=16)
+parser.add_argument('--num_local', type=int, default=8)
 
 args = parser.parse_args()
 
@@ -141,11 +142,11 @@ if __name__ == '__main__':
     dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, 
                             exclude_empty=True, body_seg=args.num_body_segments,
                             input_dim=args.input_dim, test_mode=True, 
-                            test_interval=args.frame_interval, verbose=False)
+                            test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
 
     index_queue = ctx.Queue()
     result_queue = ctx.Queue()
-    workers = [ctx.Process(target=runner_func, args=(dataset,base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue))
+    workers = [ctx.Process(target=runner_func, args=(dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue))
                for i in range(args.workers)]
 
     del net
