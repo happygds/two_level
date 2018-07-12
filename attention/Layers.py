@@ -1,9 +1,9 @@
 ''' Define the Layers '''
-
 import torch
 import torch.nn as nn
 import torch.nn.init as init
 from .Modules import ScaledDotProductAttention
+
 
 
 class MultiHeadAttention(nn.Module):
@@ -107,13 +107,7 @@ class EncoderLayer(nn.Module):
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
 
-    def forward(self, enc_input, input_mask=None):
-        if input_mask is not None:
-            mb_size, len_k = enc_input.size()[:2]
-            slf_attn_mask = (
-                1. - input_mask).unsqueeze(1).expand(-1, len_k, -1).byte()
-        else:
-            slf_attn_mask = None
+    def forward(self, enc_input, slf_attn_mask=None):
         enc_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
         enc_output = self.pos_ffn(enc_output)
@@ -123,15 +117,12 @@ class EncoderLayer(nn.Module):
 class Local_EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
-    def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, num_local=8, dropout=0.1, kernel_type='self_attn'):
+    def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, dropout=0.1, kernel_type='self_attn'):
         super(Local_EncoderLayer, self).__init__()
-        self.num_local = num_local
-        # self.local_attn = MultiHeadAttention(
-        #     n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        # self.local_pos_ffn = PositionwiseFeedForward(
-        #     d_model, d_inner_hid, dropout=dropout)
-        self.local_attn = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=1), nn.ReLU(),
-                                        nn.Conv1d(d_model, d_model, 3, dilation=2, padding=2))
+        self.local_attn = MultiHeadAttention(
+            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
+        self.local_pos_ffn = PositionwiseFeedForward(
+            d_model, d_inner_hid, dropout=dropout)
 
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
@@ -139,31 +130,16 @@ class Local_EncoderLayer(nn.Module):
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
 
-    def forward(self, enc_input, input_mask=None):
+    def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
         shp = enc_input.size()
         assert shp[1] % self.num_local == 0, "{} % {} != 0".format(
             shp[1], self.num_local)
-        enc_input = enc_input.view(-1, self.num_local, shp[2])
-        if input_mask is not None:
-            input_mask = input_mask.view(
-                -1, shp[1] // self.num_local, self.num_local)
-            local_attn_mask = (1. - input_mask).view(
-                -1, self.num_local).unsqueeze(1).expand(-1, self.num_local, self.num_local).byte()
-            slf_attn_mask = (1. - input_mask.transpose(1, 2)).view(
-                -1, shp[1] // self.num_local).unsqueeze(1).expand(-1, shp[1] // self.num_local, -1).byte()
-        else:
-            local_attn_mask = None
-            slf_attn_mask = None
 
-        # local_output, enc_local_attn = self.local_attn(
-        #     enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
-        # local_output = self.local_pos_ffn(local_output)
-        local_output = self.local_attn(enc_input)
-        local_output = local_output.view(shp[0], shp[1] // self.num_local, self.num_local, shp[2]
-                                         ).transpose(1, 2).contiguous().view(-1, shp[1] // self.num_local, shp[2])
+        local_output, enc_local_attn = self.local_attn(
+            enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
+        local_output = self.local_pos_ffn(local_output)
 
         enc_output, enc_slf_attn = self.slf_attn(
             local_output, local_output, local_output, attn_mask=slf_attn_mask)
-        enc_output = self.pos_ffn(enc_output).view(
-            shp[0], self.num_local, shp[1] // self.num_local, shp[2]).transpose(1, 2).contiguous().view(shp)
+        enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn

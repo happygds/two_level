@@ -3,7 +3,7 @@ from torch import nn
 import numpy as np
 
 import torchvision.models
-from attention import EncoderLayer, Local_EncoderLayer
+from attention import EncoderLayer
 
 
 def position_encoding_init(n_position, d_pos_vec):
@@ -30,6 +30,20 @@ def get_attn_padding_mask(seq_q, seq_k):
     pad_attn_mask = pad_attn_mask.expand(mb_size, len_q, len_k)  # bxsqxsk
     return pad_attn_mask
 
+def get_attn_local_mask(attn_mask, num_local=9):
+    ''' Get an attention mask to avoid using the local info.'''
+    if num_local % 2 == 1:
+        triu_k, tril_k = num_local // 2 + 1, num_local // 2 + 1
+    else:
+        triu_k, tril_k = num_local // 2, num_local // 2 + 1
+    attn_shape = attn_mask.size()
+    local_mask = np.triu(np.ones(attn_shape), k=triu_k).astype('uint8')
+    local_mask += np.tril(np.ones(attn_shape), k=-triu_l).astype('uint8')
+    local_mask = torch.from_numpy(local_mask)
+    if seq.is_cuda:
+        local_mask = local_mask.cuda()
+    local_mask = torch.gt(attn_mask + local_mask, 0)
+    return local_mask
 
 class BinaryClassifier(torch.nn.Module):
     def __init__(self, num_class, course_segment, args, dropout=0.8, test_mode=False):
@@ -52,8 +66,8 @@ class BinaryClassifier(torch.nn.Module):
             n_position, d_word_vec)
 
         self.layer_stack = nn.ModuleList([
-            Local_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                         args.d_v, num_local=args.num_local, dropout=0.1, kernel_type=args.att_kernel_type)
+            EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+                         args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
             for _ in range(args.n_layers)])
 
         self.num_segments = course_segment
@@ -61,6 +75,7 @@ class BinaryClassifier(torch.nn.Module):
         self.test_mode = test_mode
         self.binary_classifier = nn.Linear(args.d_model, num_class)
         self.softmax = nn.Softmax(dim=-1)
+        self.num_local = num_local
 
 
     def forward(self, feature, pos_ind, sel_prop_ind=None, feature_mask=None, return_attns=False):
@@ -76,9 +91,17 @@ class BinaryClassifier(torch.nn.Module):
         enc_slf_attns = []
 
         enc_output = enc_input
+        if feature_mask is not None:
+            mb_size, len_k = enc_input.size()[:2]
+            enc_slf_attn_mask = (
+                1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
+            local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
+        else:
+            enc_slf_attn_mask = None
+            local_attn_mask = None
         for i, enc_layer in enumerate(self.layer_stack):
             enc_output, enc_slf_attn = enc_layer(
-                enc_output, input_mask=feature_mask)
+                enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
             enc_slf_attns += [enc_slf_attn]
 
         if not self.test_mode:
@@ -87,12 +110,9 @@ class BinaryClassifier(torch.nn.Module):
             shp = enc_output.size()
             enc_outputs = enc_output.view((shp[0], shp[1] // self.num_segments, self.num_segments, shp[2]))
             enc_output = enc_outputs.mean(dim=2)
-            enc_output = self.softmax(self.binary_classifier(enc_output))
 
-            return enc_output
-        else:
-            enc_output = self.softmax(self.binary_classifier(enc_output))
-            return enc_output
+        enc_output = self.softmax(self.binary_classifier(enc_output))
+        return enc_output
 
     def get_trainable_parameters(self):
         # ''' Avoid updating the position encoding '''

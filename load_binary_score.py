@@ -338,45 +338,10 @@ class BinaryDataSet(data.Dataset):
         # num_sampled_frames = len(frame_ticks)
         pos_ind = torch.from_numpy(frame_ticks).long()
 
-        num_feat = feat.shape[0]
-        if num_feat % self.num_local != 0:
-            tmp = 8 - num_feat % self.num_local
-            feat = np.concatenate((feat, np.zeros((tmp, feat.shape[1]), dtype='float32')), dim=1)
-
-        # # avoid empty proposal list
-        # for i in frame_ticks:
-        #     props.append(BinaryInstance(i, i+1, 1))
-
-        # proposal_tick_list = []
-
-        # for proposal in props:
-        #     proposal_ticks = proposal.start_frame, proposal.end_frame
-        #     proposal_tick_list.append(proposal_ticks)
-
-        # load frames
-        # Since there are many frames for each video during testing, instead of returning the read frames
-        # we return a generator which gives the frames in samll batches, this lower the momeory burden
-        # runtime overhead. Usually stting batchsize=4 would fit most cases.
-
-        # def frame_gen(batchsize):
-        #     frames= []
-        #     cnt = 0
-        #     for idx, seg_ind in enumerate(frame_ticks):
-        #         p = int(seg_ind)
-        #         for x in range(self.new_length):
-        #             frames.extend(self._load_image(video_id, min(frame_cnt, p+x)))
-        #         cnt += 1
-
-        #         if cnt % batchsize == 0:
-        #             frames = self.transform(frames)
-        #             yield frames
-        #             frames = []
-
-        #     if len(frames):
-        #         frames = self.transform(frames)
-        #         yield frames
-
-        # return frame_gen(gen_batchsize), len(frame_ticks)
+        # num_feat = feat.shape[0]
+        # if num_feat % self.num_local != 0:
+        #     tmp = 8 - num_feat % self.num_local
+        #     feat = np.concatenate((feat, np.zeros((tmp, feat.shape[1]), dtype='float32')), dim=1)
 
         return torch.from_numpy(np.expand_dims(feat, axis=0)), pos_ind
 
