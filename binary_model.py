@@ -94,13 +94,14 @@ class BinaryClassifier(torch.nn.Module):
         enc_slf_attns = []
 
         enc_output = enc_input
+        mb_size, len_k = enc_input.size()[:2]
         if feature_mask is not None:
-            mb_size, len_k = enc_input.size()[:2]
             enc_slf_attn_mask = (
                 1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
             local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
         else:
-            enc_slf_attn_mask = None
+            enc_slf_attn_mask = torch.ones((mb_size, len_k, len_k)).byte().cuda()
+            local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
         for i, enc_layer in enumerate(self.layer_stack):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
