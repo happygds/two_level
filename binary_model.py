@@ -71,10 +71,10 @@ class BinaryClassifier(torch.nn.Module):
             EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
                          args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
             for _ in range(args.n_layers)])
-        self.local_layer = nn.ModuleList([
-            EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                         args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
-            for _ in range(args.n_layers)])
+        # self.local_layer = nn.ModuleList([
+        #     EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+        #                  args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
+        #     for _ in range(args.n_layers)])
 
         self.num_segments = course_segment
         self.dropout = dropout
@@ -108,10 +108,10 @@ class BinaryClassifier(torch.nn.Module):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, slf_attn_mask=enc_slf_attn_mask)
             enc_slf_attns += [enc_slf_attn]
-        for i, enc_layer in enumerate(self.layer_stack):
-            enc_output, enc_slf_attn = enc_layer(
-                enc_output, slf_attn_mask=local_attn_mask)
-            enc_slf_attns += [enc_slf_attn]
+        # for i, enc_layer in enumerate(self.layer_stack):
+        #     enc_output, enc_slf_attn = enc_layer(
+        #         enc_output, slf_attn_mask=local_attn_mask)
+        #     enc_slf_attns += [enc_slf_attn]
 
         if not self.test_mode:
             assert sel_prop_ind is not None

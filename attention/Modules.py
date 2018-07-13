@@ -27,8 +27,8 @@ class ScaledDotProductAttention(nn.Module):
         super(ScaledDotProductAttention, self).__init__()
         self.temper = np.power(d_model, 0.5)
         self.dropout = nn.Dropout(attn_dropout)
-        self.softmax = nn.Softmax(dim=2)
-        # self.softmax = Sparsemax(mask_value=-1e+32)
+        # self.softmax = nn.Softmax(dim=2)
+        self.softmax = Sparsemax(mask_value=-1e+32)
         self.kernel_type = kernel_type
         if self.kernel_type == 'concat':
             self.fc1 = nn.Linear(d_k, 1)
@@ -62,14 +62,14 @@ class ScaledDotProductAttention(nn.Module):
                     'with Attention logit tensor shape ' \
                     '{}.'.format(attn_mask.size(), attn.size())
             if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
-                attn.data.masked_fill_(attn_mask, -float('inf'))
-                # attn.data.masked_fill_(attn_mask, -1e+32)
+                # attn.data.masked_fill_(attn_mask, -float('inf'))
+                attn.data.masked_fill_(attn_mask, -1e+32)
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
 
         if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
-            attn = self.softmax(attn)
+            attn = self.softmax(attn / 0.1)
             # shp = attn.size()
             # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
