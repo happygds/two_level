@@ -29,7 +29,7 @@ parser.add_argument('--n_head', default=8,
 parser.add_argument('--d_inner_hid', default=1024, type=int,
                     help='the layer dimension for positionwise fc layers')
 parser.add_argument('--prop_per_video', type=int, default=16)
-parser.add_argument('--num_local', type=int, default=5)
+parser.add_argument('--num_local', type=int, default=7)
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)
