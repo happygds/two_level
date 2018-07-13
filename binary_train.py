@@ -18,6 +18,7 @@ from torch.utils import model_zoo
 from attention.Modules import CE_Criterion
 best_loss = 100
 
+
 def convert_categorical(x_in, n_classes=2):
     shp = x_in.shape
     x = (x_in.ravel().astype('int'))
@@ -27,6 +28,7 @@ def convert_categorical(x_in, n_classes=2):
     y = y[x] * x_mask
     y = y.reshape(shp + (n_classes,)).astype('float32')
     return y
+
 
 def main():
     global args, best_loss
@@ -88,10 +90,12 @@ def main():
 
     binary_criterion = CE_Criterion()
 
-    optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
-                                args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay, nesterov=False)
+    optimizer = torch.optim.Adam(model.module.get_trainable_parameters(),
+                                 lr=args.lr, weight_decay=args.weight_decay)
+    # optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
+    #                             args.lr,
+    #                             momentum=args.momentum,
+    #                             weight_decay=args.weight_decay, nesterov=False)
 
     for epoch in range(args.start_epoch, args.epochs):
         adjust_learning_rate(optimizer, epoch, args.lr_steps)
@@ -132,25 +136,30 @@ def train(train_loader, model, criterion, optimizer, epoch):
         data_time.update(time.time() - end)
         feature_mask = feature.abs().mean(2).ne(0).float()
         feature = torch.autograd.Variable(feature, requires_grad=False).cuda()
-        feature_mask = torch.autograd.Variable(feature_mask, requires_grad=False).cuda()
+        feature_mask = torch.autograd.Variable(
+            feature_mask, requires_grad=False).cuda()
         pos_ind = torch.autograd.Variable(pos_ind, requires_grad=False).cuda()
-        sel_prop_inds = torch.autograd.Variable(sel_prop_inds, requires_grad=False).cuda()
-        prop_target = torch.autograd.Variable(prop_target, requires_grad=False).cuda()
+        sel_prop_inds = torch.autograd.Variable(
+            sel_prop_inds, requires_grad=False).cuda()
+        prop_target = torch.autograd.Variable(
+            prop_target, requires_grad=False).cuda()
 
         # compute output
         binary_score = model(
             feature, pos_ind, sel_prop_ind=sel_prop_inds, feature_mask=feature_mask)
 
         # print(target, sel_prop_inds)
-        target = convert_categorical(prop_target.data.cpu().numpy(), n_classes=2)
-        target = torch.autograd.Variable(torch.from_numpy(target), requires_grad=False).cuda()
+        target = convert_categorical(
+            prop_target.data.cpu().numpy(), n_classes=2)
+        target = torch.autograd.Variable(
+            torch.from_numpy(target), requires_grad=False).cuda()
         loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
         fg_num_prop = args.prop_per_video//2
         fg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 0, :, :].contiguous(),
-                        prop_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
+                          prop_target.view(-1, 2, fg_num_prop)[:, 0, :].contiguous())
         bg_acc = accuracy(binary_score.view(-1, 2, fg_num_prop, binary_score.size(2))[:, 1, :, :].contiguous(),
-                        prop_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
+                          prop_target.view(-1, 2, fg_num_prop)[:, 1, :].contiguous())
 
         fg_accuracies.update(fg_acc[0].item(), binary_score.size(0) // 2)
         bg_accuracies.update(bg_acc[0].item(), binary_score.size(0) // 2)
@@ -166,7 +175,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
                         p.grad /= args.iter_size
 
         if args.clip_gradient is not None:
-            total_norm = clip_grad_norm(model.module.get_trainable_parameters(), args.clip_gradient)
+            total_norm = clip_grad_norm(
+                model.module.get_trainable_parameters(), args.clip_gradient)
             if total_norm > args.clip_gradient:
                 print('Clipping gradient: {} with coef {}'.format(
                     total_norm, args.clip_gradient / total_norm))
@@ -182,15 +192,15 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         if i % args.print_freq == 0:
             print('Epoch: [{0}][{1}/{2}], lr: {lr:.5f}\t'
-                'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                '\n FG{fg_acc.val:.02f}({fg_acc.avg:.02f}) BG {bg_acc.val:.02f} ({bg_acc.avg:.02f})'
-                .format(
-                    epoch, i, len(train_loader), batch_time=batch_time,
-                    data_time=data_time, loss=losses, lr=optimizer.param_groups[0]['lr'],
-                    fg_acc=fg_accuracies, bg_acc=bg_accuracies)
-                )
+                  'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                  'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                  '\n FG{fg_acc.val:.02f}({fg_acc.avg:.02f}) BG {bg_acc.val:.02f} ({bg_acc.avg:.02f})'
+                  .format(
+                      epoch, i, len(train_loader), batch_time=batch_time,
+                      data_time=data_time, loss=losses, lr=optimizer.param_groups[0]['lr'],
+                      fg_acc=fg_accuracies, bg_acc=bg_accuracies)
+                  )
 
 
 def validate(val_loader, model, criterion, iter):
@@ -215,7 +225,8 @@ def validate(val_loader, model, criterion, iter):
             binary_score = model(feature, pos_ind, sel_prop_ind=sel_prop_inds,
                                  feature_mask=feature_mask)
 
-            target = convert_categorical(prop_target.data.cpu().numpy(), n_classes=2)
+            target = convert_categorical(
+                prop_target.data.cpu().numpy(), n_classes=2)
             target = torch.autograd.Variable(torch.from_numpy(target)).cuda()
             loss = criterion(binary_score, target)
         losses.update(loss.item(), feature.size(0))
@@ -248,9 +259,11 @@ def validate(val_loader, model, criterion, iter):
 
 def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
     if args.pos_enc:
-        save_path = os.path.join(args.result_path, '_'.join((args.att_kernel_type, 'N'+str(args.n_layers))))
+        save_path = os.path.join(args.result_path, '_'.join(
+            (args.att_kernel_type, 'N'+str(args.n_layers))))
     else:
-        save_path = os.path.join(args.result_path, '_'.join((args.att_kernel_type, 'N'+str(args.n_layers)))) + '_nopos'
+        save_path = os.path.join(args.result_path, '_'.join(
+            (args.att_kernel_type, 'N'+str(args.n_layers)))) + '_nopos'
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     filename = save_path + filename
