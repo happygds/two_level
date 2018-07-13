@@ -74,7 +74,6 @@ class MultiHeadAttention(nn.Module):
         outputs = self.dropout(outputs)
 
         return self.layer_norm(outputs + residual), attns
-        # return outputs + residual, attns
 
 
 class PositionwiseFeedForward(nn.Module):
@@ -94,7 +93,6 @@ class PositionwiseFeedForward(nn.Module):
         output = self.w_2(output)
         output = self.dropout(output)
         return self.layer_norm(output + residual)
-        # return output + residual
 
 
 class EncoderLayer(nn.Module):
@@ -129,7 +127,7 @@ class Local_EncoderLayer(nn.Module):
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
 
-        enc_output = self.local_attn(enc_input.transpose(1, 2)).transpose(1, 2)
+        enc_output = self.local_attn(enc_input.transpose(1, 2)).transpose(1, 2) + enc_input
 
         enc_ouput, enc_slf_attn = self.slf_attn(
             enc_output, enc_input, enc_input, attn_mask=slf_attn_mask)
