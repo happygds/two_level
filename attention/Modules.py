@@ -68,7 +68,8 @@ class ScaledDotProductAttention(nn.Module):
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
-
+        import pdb
+        pdb.set_trace()
         if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
             attn = self.softmax(attn)
             # shp = attn.size()
