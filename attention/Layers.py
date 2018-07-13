@@ -119,10 +119,7 @@ class Local_EncoderLayer(nn.Module):
 
     def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, dropout=0.1, kernel_type='self_attn'):
         super(Local_EncoderLayer, self).__init__()
-        self.local_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        self.local_pos_ffn = PositionwiseFeedForward(
-            d_model, d_inner_hid, dropout=dropout)
+        self.local_attn = nn.Conv1d(d_model, d_model, 3, padding=1)
 
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
@@ -132,9 +129,7 @@ class Local_EncoderLayer(nn.Module):
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
 
-        enc_output, enc_slf_attn = self.local_attn(
-            enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
-        # enc_output = self.local_pos_ffn(enc_output)
+        enc_output = self.local_attn(enc_input.transpose(1, 2)).transpose(1, 2)
 
         enc_ouput, enc_slf_attn = self.slf_attn(
             enc_output, enc_input, enc_input, attn_mask=slf_attn_mask)
