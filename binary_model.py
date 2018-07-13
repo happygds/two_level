@@ -43,7 +43,7 @@ def get_attn_local_mask(attn_mask, num_local=9):
     local_mask = torch.from_numpy(local_mask)
     if attn_mask.is_cuda:
         local_mask = local_mask.cuda()
-    local_mask = torch.gt(attn_mask + local_mask, 0)
+    local_mask = torch.gt(attn_mask + local_mask, 0).requires_grad_(False)
     return local_mask
 
 
