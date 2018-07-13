@@ -55,6 +55,7 @@ class ScaledDotProductAttention(nn.Module):
         else:
             raise NotImplementedError()
 
+        attn /= 0.1
         if attn_mask is not None:
 
             assert attn_mask.size() == attn.size(), \
@@ -69,7 +70,7 @@ class ScaledDotProductAttention(nn.Module):
 
 
         if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
-            attn = self.softmax(attn / 0.1)
+            attn = self.softmax(attn)
             # shp = attn.size()
             # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
