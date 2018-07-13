@@ -133,6 +133,8 @@ class Local_EncoderLayer(nn.Module):
         enc_output, enc_slf_attn = self.local_attn(
             enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
         enc_output = self.local_pos_ffn(enc_output)
+        import pdb
+        pdb.set_trace()
 
         enc_ouput, enc_slf_attn = self.slf_attn(
             enc_output, enc_output, enc_output, attn_mask=slf_attn_mask)
