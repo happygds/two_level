@@ -91,7 +91,6 @@ class BinaryClassifier(torch.nn.Module):
         # Position Encoding addition
         if self.pos_enc:
             enc_input = enc_input + self.position_enc(pos_ind)
-        enc_input = self.local_layer(enc_input.transpose(1, 2)).transpose(1, 2)
         enc_slf_attns = []
 
         enc_output = enc_input
@@ -105,6 +104,7 @@ class BinaryClassifier(torch.nn.Module):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, slf_attn_mask=enc_slf_attn_mask)
             enc_slf_attns += [enc_slf_attn]
+        enc_output = self.local_layer(enc_output.transpose(1, 2)).transpose(1, 2)
 
         if not self.test_mode:
             assert sel_prop_ind is not None
