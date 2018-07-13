@@ -70,7 +70,7 @@ class BinaryClassifier(torch.nn.Module):
         # self.local_layer = nn.Sequential(nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.ReLU(),
         #                                  nn.Conv1d(args.d_model, args.d_model, 3, dilation=2, padding=2))
         self.layer_stack = nn.ModuleList([
-            Local_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+            EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
                          args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
             for _ in range(args.n_layers)])
 
@@ -104,7 +104,7 @@ class BinaryClassifier(torch.nn.Module):
             local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
         for i, enc_layer in enumerate(self.layer_stack):
             enc_output, enc_slf_attn = enc_layer(
-                enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
+                enc_output, slf_attn_mask=enc_slf_attn_mask)
             enc_slf_attns += [enc_slf_attn]
         # enc_output = self.local_layer(enc_output.transpose(1, 2)).transpose(1, 2)
 
