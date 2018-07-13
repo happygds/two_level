@@ -100,7 +100,7 @@ class BinaryClassifier(torch.nn.Module):
                 1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
             local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
         else:
-            enc_slf_attn_mask = torch.ones((mb_size, len_k, len_k)).byte().cuda()
+            enc_slf_attn_mask = torch.zeros((mb_size, len_k, len_k)).byte().cuda()
             local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
         for i, enc_layer in enumerate(self.layer_stack):
             enc_output, enc_slf_attn = enc_layer(
