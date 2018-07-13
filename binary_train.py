@@ -91,7 +91,7 @@ def main():
     optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
                                 args.lr,
                                 momentum=args.momentum,
-                                weight_decay=args.weight_decay)
+                                weight_decay=args.weight_decay, nesterov=False)
 
     for epoch in range(args.start_epoch, args.epochs):
         adjust_learning_rate(optimizer, epoch, args.lr_steps)
