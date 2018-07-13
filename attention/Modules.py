@@ -76,8 +76,6 @@ class ScaledDotProductAttention(nn.Module):
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
-        import pdb
-        pdb.set_trace()
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
 

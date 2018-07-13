@@ -62,8 +62,6 @@ class MultiHeadAttention(nn.Module):
         if attn_mask is not None:
             attn_mask = attn_mask.repeat(n_head, 1, 1)
         outputs, attns = self.attention(q_s, k_s, v_s, attn_mask=attn_mask)
-        import pdb
-        pdb.set_trace()
 
         # back to original mb_size batch, result size = mb_size x len_v x (n_head*d_v)
         # outputs = outputs - v_s
