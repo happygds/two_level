@@ -7,7 +7,7 @@ import torchvision
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim
-from torch.nn.utils import clip_grad_norm
+from torch.nn.utils import clip_grad_norm_
 
 from ssn_opts import parser
 from load_binary_score import BinaryDataSet
@@ -175,7 +175,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                         p.grad /= args.iter_size
 
         if args.clip_gradient is not None:
-            total_norm = clip_grad_norm(
+            total_norm = clip_grad_norm_(
                 model.module.get_trainable_parameters(), args.clip_gradient)
             if total_norm > args.clip_gradient:
                 print('Clipping gradient: {} with coef {}'.format(
