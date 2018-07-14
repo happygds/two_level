@@ -115,7 +115,7 @@ class EncoderLayer(nn.Module):
 class Local_EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
-    def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, dropout=0.1, kernel_type='self_attn', local_type='qkv'):
+    def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, dropout=0.1, kernel_type='self_attn', local_type=None):
         super(Local_EncoderLayer, self).__init__()
         self.local_type = local_type
         self.local_attn = MultiHeadAttention(
