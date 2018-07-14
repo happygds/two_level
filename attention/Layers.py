@@ -128,10 +128,11 @@ class Local_EncoderLayer(nn.Module):
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
 
-        local_output, local_attn = self.local_attn(
-            enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
 
         enc_output, enc_slf_attn = self.slf_attn(
-            local_output, enc_input, enc_input, attn_mask=slf_attn_mask)
-        enc_output = self.pos_ffn(enc_output + local_output)
-        return enc_output, enc_slf_attn
+            enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
+        enc_output = self.pos_ffn(enc_output)
+
+        local_output, local_attn = self.local_attn(
+            enc_output, enc_output, enc_output, attn_mask=local_attn_mask)
+        return local_output, enc_slf_attn
