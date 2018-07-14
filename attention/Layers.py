@@ -36,7 +36,7 @@ class MultiHeadAttention(nn.Module):
         d_k, d_v = self.d_k, self.d_v
         n_head = self.n_head
 
-        residual = v
+        residual = q
 
         mb_size, len_q, d_model = q.size()
         mb_size, len_k, d_model = k.size()
@@ -130,6 +130,6 @@ class Local_EncoderLayer(nn.Module):
         local_output, local_attn = self.local_attn(
             enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
         enc_output, enc_slf_attn = self.slf_attn(
-            local_output, enc_input, enc_input, attn_mask=slf_attn_mask)
+            enc_input, local_output, local_output, attn_mask=slf_attn_mask)
         enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn
