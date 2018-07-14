@@ -132,6 +132,6 @@ class Local_EncoderLayer(nn.Module):
             enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
 
         enc_ouput, enc_slf_attn = self.slf_attn(
-            enc_input, enc_output, enc_output, attn_mask=slf_attn_mask)
+            enc_output, enc_output, enc_output, attn_mask=slf_attn_mask)
         enc_ouput = self.pos_ffn(enc_ouput)
         return enc_output, enc_slf_attn
