@@ -118,7 +118,7 @@ class Local_EncoderLayer(nn.Module):
     def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, dropout=0.1, kernel_type='self_attn'):
         super(Local_EncoderLayer, self).__init__()
         self.local_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
+            n_head//4, d_model, d_k*4, d_v*4, dropout=dropout, kernel_type=kernel_type)
 
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
@@ -132,6 +132,6 @@ class Local_EncoderLayer(nn.Module):
             enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
 
         enc_ouput, enc_slf_attn = self.slf_attn(
-            enc_output, enc_output, enc_output, attn_mask=slf_attn_mask)
+            enc_output, enc_input, enc_input, attn_mask=slf_attn_mask)
         enc_ouput = self.pos_ffn(enc_ouput)
         return enc_output, enc_slf_attn
