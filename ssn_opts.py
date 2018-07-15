@@ -31,6 +31,7 @@ parser.add_argument('--d_inner_hid', default=1024, type=int,
 parser.add_argument('--prop_per_video', type=int, default=16)
 parser.add_argument('--num_local', type=int, default=7)
 parser.add_argument('--local_type', type=str, default='qkv')
+parser.add_argument('--dilated_mask', type=int, default=True)
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)

@@ -83,6 +83,7 @@ class BinaryClassifier(torch.nn.Module):
         self.binary_classifier = nn.Linear(args.d_model, num_class)
         self.softmax = nn.Softmax(dim=-1)
         self.num_local = args.num_local
+        self.dilated_mask = args.dilated_mask
         # self.layer_norm = nn.LayerNorm(args.d_model)
 
     def forward(self, feature, pos_ind, sel_prop_ind=None, feature_mask=None, return_attns=False):
@@ -106,7 +107,8 @@ class BinaryClassifier(torch.nn.Module):
         else:
             enc_slf_attn_mask = torch.zeros((mb_size, len_k, len_k)).byte().cuda()
         local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
-        enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
+        if self.dilated_mask:
+            enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
         for i, enc_layer in enumerate(self.layer_stack):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)

@@ -266,6 +266,8 @@ def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
             (args.att_kernel_type, 'N'+str(args.n_layers)))) + '_nopos'
     if args.num_local > 0:
         save_path = save_path + '_loc' + str(args.num_local) + args.local_type
+    if args.dilated_mask:
+        save_path += '_dilated'
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     filename = save_path + filename
