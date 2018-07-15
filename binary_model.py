@@ -20,19 +20,20 @@ def position_encoding_init(n_position, d_pos_vec):
     return torch.from_numpy(position_enc).type(torch.FloatTensor)
 
 
-def get_attn_padding_mask(seq_q, seq_k):
-    ''' Indicate the padding-related part to mask '''
-    assert seq_q.dim() == 2 and seq_k.dim() == 2, \
-        "seq_q.size() is {} and seq_k.size() is {}".format(seq_q.size(), seq_k.size())
-    mb_size, len_q = seq_q.size()
-    mb_size, len_k = seq_k.size()
-    pad_attn_mask = seq_k.data.eq(0).unsqueeze(1)   # bx1xsk
-    pad_attn_mask = pad_attn_mask.expand(mb_size, len_q, len_k)  # bxsqxsk
-    return pad_attn_mask
+def get_attn_dilated_mask(attn_mask, num_local=9):
+    ''' get the dilated mask to utilize the global information '''
+    attn_shape = attn_mask.size()
+    xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
+    dilated_mask = (np.abs(xx - yy) % num_local == 0).astype('uint8')
+    dilated_mask = torch.from_numpy(dilated_mask).unsqueeze(0).expand(attn_shape)
+    if attn_mask.is_cuda:
+        dilated_mask = dilated_mask.cuda()
+    dilated_mask = torch.gt(attn_mask + dilated_mask, 0).requires_grad_(False)
+    return dilated_mask
 
 
 def get_attn_local_mask(attn_mask, num_local=9):
-    ''' Get an attention mask to avoid using the local info.'''
+    ''' Get an attention mask for using only the local info.'''
     if num_local % 2 == 1:
         triu_k, tril_k = num_local // 2 + 1, num_local // 2 + 1
     else:
@@ -102,10 +103,10 @@ class BinaryClassifier(torch.nn.Module):
         if feature_mask is not None:
             enc_slf_attn_mask = (
                 1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
-            local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
         else:
             enc_slf_attn_mask = torch.zeros((mb_size, len_k, len_k)).byte().cuda()
-            local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
+        local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
+        enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
         for i, enc_layer in enumerate(self.layer_stack):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
