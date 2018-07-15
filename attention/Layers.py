@@ -140,6 +140,15 @@ class Local_EncoderLayer(nn.Module):
         elif self.local_type == 'v':
             enc_output, enc_slf_attn = self.slf_attn(
                 enc_input, enc_input, local_output, attn_mask=slf_attn_mask)
+        elif self.local_type == 'qv':
+            enc_output, enc_slf_attn = self.slf_attn(
+                local_output, enc_input, local_output, attn_mask=slf_attn_mask)
+        elif self.local_type == 'qk':
+            enc_output, enc_slf_attn = self.slf_attn(
+                local_output, local_output, enc_input, attn_mask=slf_attn_mask)
+        elif self.local_type == 'q':
+            enc_output, enc_slf_attn = self.slf_attn(
+                local_output, enc_input, enc_input, attn_mask=slf_attn_mask)
         else:
             raise NotImplementedError()
             
