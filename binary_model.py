@@ -24,7 +24,7 @@ def get_attn_dilated_mask(attn_mask, num_local=9):
     ''' get the dilated mask to utilize the global information '''
     attn_shape = attn_mask.size()
     xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
-    dilated_mask = (np.abs(xx - yy) % num_local == 0).astype('uint8')
+    dilated_mask = (np.abs(xx - yy) % num_local != 0).astype('uint8')
     dilated_mask = torch.from_numpy(dilated_mask).unsqueeze(0).expand(attn_shape)
     if attn_mask.is_cuda:
         dilated_mask = dilated_mask.cuda()
