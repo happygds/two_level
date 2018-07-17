@@ -174,7 +174,7 @@ def call_back(rst):
     pr_dict[rst[0]] = rst[1]
     pr_score_dict[rst[0]] = rst[2]
     import sys
-    print(rst[0], len(pr_dict), len(rst[1]))
+    # print(rst[0], len(pr_dict), len(rst[1]))
     sys.stdout.flush()
 
 pool = mp.Pool(processes = 32)
