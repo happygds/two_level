@@ -43,7 +43,7 @@ parser.add_argument('--use_flow', action='store_true',
 parser.set_defaults(use_flow=True)
 parser.add_argument('--dropout', '--do', default=0.8, type=float,
                     metavar='DO', help='dropout ratio (default: 0.8)')
-parser.add_argument('--pos_enc', default=True, type=int,
+parser.add_argument('--pos_enc', default=False, type=int,
                     help='whether slice the original position indices of the input video sequence')
 parser.add_argument('--att_kernel_type', default='self_attn',
                     type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot)')
