@@ -20,7 +20,7 @@ def position_encoding_init(n_position, d_pos_vec):
     return torch.from_numpy(position_enc).type(torch.FloatTensor)
 
 
-def get_attn_dilated_mask(attn_mask, num_local=9):
+def get_attn_dilated_mask(attn_mask, num_local=16):
     ''' get the dilated mask to utilize the global information '''
     attn_shape = attn_mask.size()
     xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
@@ -32,7 +32,7 @@ def get_attn_dilated_mask(attn_mask, num_local=9):
     return dilated_mask
 
 
-def get_attn_local_mask(attn_mask, num_local=9):
+def get_attn_local_mask(attn_mask, num_local=16):
     ''' Get an attention mask for using only the local info.'''
     if num_local % 2 == 1:
         triu_k, tril_k = num_local // 2 + 1, num_local // 2 + 1
