@@ -126,7 +126,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         #     np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output[:, 1])
         # output = output.reshape((-1, 1))
         # output = np.concatenate([1. - output, output], axis=1)
-        print(output.shape)
+        # print(output.shape)
 
         result_queue.put((dataset.video_list[index].id.split('/')[-1], output))
         
