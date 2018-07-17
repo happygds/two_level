@@ -171,9 +171,9 @@ if __name__ == '__main__':
         rst = result_queue.get()
         out_dict[rst[0]] = rst[1] 
         cnt_time = time.time() - proc_start_time
-        print('video {} done, total {}/{}, average {:.04f} sec/video'.format(i, i + 1,
-                                                                        max_num,
-                                                                        float(cnt_time) / (i+1)))
+        # print('video {} done, total {}/{}, average {:.04f} sec/video'.format(i, i + 1,
+        #                                                                 max_num,
+        #                                                                 float(cnt_time) / (i+1)))
     if args.save_scores is not None:
         save_dict = {k: v for k,v in out_dict.items()}
         import pickle
