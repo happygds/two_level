@@ -32,7 +32,7 @@ def get_attn_dilated_mask(attn_mask, num_local=16):
     dilated_ind = torch.from_numpy(dilated_ind)
     if attn_mask.is_cuda:
         dilated_mask = dilated_mask.cuda()
-        dilated_ind = dilated_ind.cuda().long()
+        # dilated_ind = dilated_ind.cuda().long()
     dilated_mask = torch.gt(attn_mask + dilated_mask, 0).requires_grad_(False)
     return dilated_mask
 
@@ -52,7 +52,7 @@ def get_attn_local_mask(attn_mask, num_local=16):
     local_ind = torch.from_numpy(local_ind)
     if attn_mask.is_cuda:
         local_mask = local_mask.cuda()
-        local_ind = local_ind.cuda().long()
+        # local_ind = local_ind.cuda().long()
     local_mask = torch.gt(attn_mask + local_mask, 0).requires_grad_(False)
     return local_mask
 
