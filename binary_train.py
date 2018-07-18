@@ -258,6 +258,8 @@ def validate(val_loader, model, criterion, iter):
 
 
 def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
+    if not os.path.exists(args.result_path):
+        os.mkdir(args.result_path)
     if args.pos_enc:
         save_path = os.path.join(args.result_path, '_'.join(
             (args.att_kernel_type, 'N'+str(args.n_layers))))
