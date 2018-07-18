@@ -25,9 +25,14 @@ def get_attn_dilated_mask(attn_mask, num_local=16):
     attn_shape = attn_mask.size()
     xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
     dilated_mask = (np.abs(xx - yy) % num_local != 0).astype('uint8')
-    dilated_mask = torch.from_numpy(dilated_mask).unsqueeze(0).expand(attn_shape)
+    dilated_ind = ((yy - xx) // num_local) * (1. - dilated_mask)
+    dilated_ind = (dilated_ind + 512 // num_local) * (1. - dilated_mask)
+    dilated_mask = torch.from_numpy(
+        dilated_mask).unsqueeze(0).expand(attn_shape)
+    dilated_ind = torch.from_numpy(dilated_ind)
     if attn_mask.is_cuda:
         dilated_mask = dilated_mask.cuda()
+        dilated_ind = dilated_ind.cuda().long()
     dilated_mask = torch.gt(attn_mask + dilated_mask, 0).requires_grad_(False)
     return dilated_mask
 
@@ -39,11 +44,15 @@ def get_attn_local_mask(attn_mask, num_local=16):
     else:
         triu_k, tril_k = num_local // 2, num_local // 2 + 1
     attn_shape = attn_mask.size()
-    local_mask = np.triu(np.ones(attn_shape), k=triu_k).astype('uint8')
-    local_mask += np.tril(np.ones(attn_shape), k=-tril_k).astype('uint8')
-    local_mask = torch.from_numpy(local_mask)
+    xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
+    local_mask = np.bitwise_or(
+        xx - yy >= triu_k, yy - xx >= tril_k).astype('uint8')
+    local_ind = ((yy - xx) + num_local // 2) * (1. - local_mask)
+    local_mask = torch.from_numpy(local_mask).unsqueeze(0).expand(attn_shape)
+    local_ind = torch.from_numpy(local_ind)
     if attn_mask.is_cuda:
         local_mask = local_mask.cuda()
+        local_ind = local_ind.cuda().long()
     local_mask = torch.gt(attn_mask + local_mask, 0).requires_grad_(False)
     return local_mask
 
