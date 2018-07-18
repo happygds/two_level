@@ -152,7 +152,8 @@ class Local_EncoderLayer(nn.Module):
                 local_output, enc_input, enc_input, attn_mask=slf_attn_mask)
         else:
             raise NotImplementedError()
-            
+
+        enc_output = self.concat(torch.cat((local_output, enc_output), dim=2))            
         enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn
 
@@ -197,7 +198,6 @@ class Cluster_EncoderLayer(nn.Module):
         else:
             raise NotImplementedError()
         
-        enc_output = self.concat(torch.cat((local_output, enc_output), dim=2))
         enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn
 
