@@ -45,8 +45,7 @@ def get_attn_local_mask(attn_mask, num_local=16):
         triu_k, tril_k = num_local // 2, num_local // 2 + 1
     attn_shape = attn_mask.size()
     xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
-    local_mask = np.bitwise_or(
-        xx - yy >= triu_k, yy - xx >= tril_k).astype('uint8')
+    local_mask = np.bitwise_or(xx - yy >= tril_k, yy - xx >= triu_k).astype('uint8')
     local_ind = ((yy - xx) + num_local // 2) * (1. - local_mask)
     local_mask = torch.from_numpy(local_mask).unsqueeze(0).expand(attn_shape)
     local_ind = torch.from_numpy(local_ind)
