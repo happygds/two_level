@@ -64,7 +64,7 @@ class MultiHeadAttention(nn.Module):
         outputs, attns = self.attention(q_s, k_s, v_s, attn_mask=attn_mask)
 
         # back to original mb_size batch, result size = mb_size x len_v x (n_head*d_v)
-        outputs = outputs - v_s
+        # outputs = outputs - v_s
         outputs = torch.cat(torch.split(outputs, mb_size, dim=0), dim=-1)
         # # (n_head*mb_size) x len_q x len_k -> (n_head*mb_size) x len_k -> mb_size x len_k x n_head
         # attns = torch.cat(torch.split(attns.mean(1), mb_size, dim=0), dim=-1).view(-1, len_k, n_head)
@@ -124,6 +124,7 @@ class Local_EncoderLayer(nn.Module):
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
+        self.concat = nn.Linear(2 * d_model, d_model)
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
 
@@ -195,7 +196,8 @@ class Cluster_EncoderLayer(nn.Module):
                 local_output, enc_input, enc_input, attn_mask=slf_attn_mask)
         else:
             raise NotImplementedError()
-            
+        
+        enc_output = self.concat(torch.cat((local_output, enc_output), dim=2))
         enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn
 
