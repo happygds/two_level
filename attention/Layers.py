@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.init as init
+from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
 
 
@@ -79,7 +80,8 @@ class Cluster_EncoderLayer(nn.Module):
 
         self.assign_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, d_out=n_cluster, dropout=dropout, kernel_type=kernel_type)
-        self.assign_softmax = nn.Softmax(dim=1)
+        # self.assign_softmax = nn.Softmax(dim=2)
+        self.assign_softmax = Sparsemax(mask_value=-1e+32)
 
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
@@ -105,8 +107,8 @@ class Cluster_EncoderLayer(nn.Module):
         assign_mat, _ = self.assign_attn(
             local_output, local_output, local_output, attn_mask=slf_attn_mask)
         assign_mask = slf_attn_mask[:, 0].unsqueeze(2).expand(assign_mat.size()).byte()
-        assign_mat.data.masked_fill_(assign_mask, -float('inf'))
-        assign_mat = self.assign_softmax(assign_mat)   # mb_size * len_q * n_cluster
+        assign_mat.data.masked_fill_(assign_mask, -1e+32)
+        assign_mat = self.assign_softmax(assign_mat.transpose(1, 2)).transpose(1, 2)   # mb_size * len_q * n_cluster
         cluster_input = torch.bmm(assign_mat.transpose(1, 2), local_output)
 
         cluster_output, _ = self.slf_attn(
