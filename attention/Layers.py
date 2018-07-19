@@ -94,7 +94,6 @@ class Cluster_EncoderLayer(nn.Module):
         self.pos_ffn_cluster = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
         
-        self.layer_norm = nn.LayerNorm(d_model)
         self.reduce = nn.Sequential(nn.Linear(2 * d_model, 1), nn.Sigmoid())
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
@@ -114,8 +113,8 @@ class Cluster_EncoderLayer(nn.Module):
 
         cluster_output, _ = self.slf_attn(
             cluster_input, cluster_input, cluster_input)
+        cluster_output = torch.bmm(assign_mat, cluster_output) + local_output
         cluster_output = self.pos_ffn_cluster(cluster_output)
-        cluster_output = self.layer_norm(torch.bmm(assign_mat, cluster_output) + local_output)
         
         enc_gate = self.reduce(torch.cat((cluster_output, enc_slf_output), dim=2))
         enc_output = enc_gate * enc_slf_output + (1. - enc_gate) * cluster_output
