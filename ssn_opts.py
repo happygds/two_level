@@ -29,7 +29,8 @@ parser.add_argument('--n_head', default=8,
 parser.add_argument('--d_inner_hid', default=1024, type=int,
                     help='the layer dimension for positionwise fc layers')
 parser.add_argument('--prop_per_video', type=int, default=16)
-parser.add_argument('--num_local', type=int, default=7)
+parser.add_argument('--num_local', type=int, default=0)
+parser.add_argument('--n_cluster', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
 

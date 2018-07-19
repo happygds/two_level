@@ -3,7 +3,7 @@ from torch import nn
 import numpy as np
 
 import torchvision.models
-from attention import EncoderLayer, Local_EncoderLayer
+from attention import EncoderLayer, Local_EncoderLayer, Cluster_EncoderLayer
 
 
 def position_encoding_init(n_position, d_pos_vec):
@@ -75,15 +75,22 @@ class BinaryClassifier(torch.nn.Module):
         self.position_enc = nn.Embedding(n_position, d_word_vec, padding_idx=0)
         self.position_enc.weight.data = position_encoding_init(
             n_position, d_word_vec)
-
-        self.layer_stack = nn.ModuleList([
-            Local_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                         args.d_v, dropout=0.1, kernel_type=args.att_kernel_type, local_type=args.local_type)
-            for _ in range(args.n_layers)])
-        # self.local_layer = nn.ModuleList([
-        #     EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-        #                  args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
-        #     for _ in range(args.n_layers)])
+        if args.num_local > 0:
+            self.layer_stack = nn.ModuleList([
+                Local_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+                            args.d_v, dropout=0.1, kernel_type=args.att_kernel_type, local_type=args.local_type)
+                for _ in range(args.n_layers)])
+        elif args.n_cluster > 0:
+            self.layer_stack = nn.ModuleList([
+                Cluster_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+                                     args.d_v, dropout=0.1, kernel_type=args.att_kernel_type, 
+                                     n_cluster=args.n_cluster, local_type=args.local_type)
+                for _ in range(args.n_layers)])
+        else:
+            self.local_layer = nn.ModuleList([
+                EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+                            args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
+                for _ in range(args.n_layers)])
 
         self.num_segments = course_segment
         self.dropout = dropout
