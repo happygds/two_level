@@ -78,7 +78,7 @@ class Cluster_EncoderLayer(nn.Module):
         #     n_head//4, d_model, d_k*4, d_v*4, dropout=dropout, kernel_type=kernel_type)
 
         self.assign_attn = MultiHeadAttention(
-            n_head//4, d_model, d_k*4, d_v*4, d_out=n_cluster, dropout=dropout, kernel_type=kernel_type)
+            n_head, d_model, d_k, d_v, d_out=n_cluster, dropout=dropout, kernel_type=kernel_type)
         self.assign_softmax = nn.Softmax(dim=1)
 
         # for non-local operation
@@ -95,15 +95,15 @@ class Cluster_EncoderLayer(nn.Module):
         self.concat = nn.Linear(2 * d_model, d_model)
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
-        assign_mat, _ = self.assign_attn(
-            enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
-        assign_mask = slf_attn_mask[:, 0].unsqueeze(2).expand(assign_mat.size()).byte()
-        assign_mat.data.masked_fill_(assign_mask, -float('inf'))
-        assign_mat = self.assign_softmax(assign_mat)   # mb_size * len_q * n_cluster
-
         enc_slf_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
         enc_slf_output = self.pos_ffn_slf(enc_slf_output)
+
+        assign_mat, _ = self.assign_attn(
+            enc_slf_output, enc_slf_output, enc_slf_output, attn_mask=slf_attn_mask)
+        assign_mask = slf_attn_mask[:, 0].unsqueeze(2).expand(assign_mat.size()).byte()
+        assign_mat.data.masked_fill_(assign_mask, -float('inf'))
+        assign_mat = self.assign_softmax(assign_mat)   # mb_size * len_q * n_cluster
         cluster_input = torch.bmm(assign_mat.transpose(1, 2), enc_slf_output)
 
         cluster_output, _ = self.slf_attn(
