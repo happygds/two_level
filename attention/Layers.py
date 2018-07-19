@@ -94,7 +94,7 @@ class Cluster_EncoderLayer(nn.Module):
         self.pos_ffn_cluster = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
         
-        self.reduce = nn.Sequential(nn.Linear(2 * d_model, d_model), nn.Sigmoid())
+        self.reduce = nn.Sequential(nn.Linear(2 * d_model, 1), nn.Sigmoid())
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
         local_output, local_attn = self.local_attn(
