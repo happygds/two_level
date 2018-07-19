@@ -72,7 +72,7 @@ class Cluster_EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
     def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, dropout=0.1, kernel_type='self_attn', n_cluster=64, local_type=None):
-        super(Local_EncoderLayer, self).__init__()
+        super(Cluster_EncoderLayer, self).__init__()
         # self.local_type = local_type
         # self.local_attn = MultiHeadAttention(
         #     n_head//4, d_model, d_k*4, d_v*4, dropout=dropout, kernel_type=kernel_type)
