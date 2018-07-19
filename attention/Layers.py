@@ -78,7 +78,7 @@ class Cluster_EncoderLayer(nn.Module):
         #     n_head//4, d_model, d_k*4, d_v*4, dropout=dropout, kernel_type=kernel_type)
 
         self.assign_attn = MultiHeadAttention(
-            n_head//2, d_model, d_k, d_v, d_out=n_cluster, dropout=dropout, kernel_type=kernel_type)
+            n_head//4, d_model, d_k*4, d_v*4, d_out=n_cluster, dropout=dropout, kernel_type=kernel_type)
         self.assign_softmax = nn.Softmax(dim=1)
 
         # for non-local operation
