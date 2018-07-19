@@ -102,7 +102,7 @@ class Cluster_EncoderLayer(nn.Module):
         cluster_input = torch.bmm(assign_mat.transpose(1, 2), enc_slf_output)
 
         cluster_output, _ = self.slf_attn(
-            cluster_input, cluster_input, cluster_input, attn_mask=slf_attn_mask)
+            cluster_input, cluster_input, cluster_input)
         cluster_output = torch.bmm(assign_mat, cluster_output)
         
         enc_output = self.pos_ffn(enc_output + cluster_output)
