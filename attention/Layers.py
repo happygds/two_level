@@ -100,6 +100,8 @@ class Cluster_EncoderLayer(nn.Module):
         assign_mask = (1. - slf_attn_mask[:, 0].float()).unsqueeze(2).expand(assign_mat.size()).byte()
         assign_mat.data.masked_fill_(assign_mask, -float('inf'))
         assign_mat = self.assign_softmax(assign_mat)   # mb_size * len_q * n_cluster
+        import pdb
+        pdb.set_trace()
 
         enc_slf_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
