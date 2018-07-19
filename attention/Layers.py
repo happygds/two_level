@@ -109,11 +109,11 @@ class Cluster_EncoderLayer(nn.Module):
         assign_mask = slf_attn_mask[:, 0].unsqueeze(2).expand(assign_mat.size()).byte()
         assign_mat.data.masked_fill_(assign_mask, -float('inf'))
         assign_mat = self.assign_softmax(assign_mat.transpose(1, 2)).transpose(1, 2)   # mb_size * len_q * n_cluster
-        cluster_input = torch.bmm(assign_mat.transpose(1, 2), local_output)
+        cluster_input = torch.bmm(assign_mat.transpose(1, 2), enc_slf_output)
 
         cluster_output, _ = self.slf_attn(
             cluster_input, cluster_input, cluster_input)
-        cluster_output = torch.bmm(assign_mat, cluster_output) + local_output
+        cluster_output = torch.bmm(assign_mat, cluster_output) + enc_slf_output
         cluster_output = self.pos_ffn_cluster(cluster_output)
         
         enc_gate = self.reduce(torch.cat((cluster_output, enc_slf_output), dim=2))
