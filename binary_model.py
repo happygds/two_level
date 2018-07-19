@@ -121,9 +121,11 @@ class BinaryClassifier(torch.nn.Module):
                 1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
         else:
             enc_slf_attn_mask = torch.zeros((mb_size, len_k, len_k)).byte().cuda()
-        local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
-        if self.dilated_mask:
-            enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
+        local_attn_mask = None
+        if self.num_local > 0:
+            local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
+            if self.dilated_mask:
+                enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
         for i, enc_layer in enumerate(self.layer_stack):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
