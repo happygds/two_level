@@ -84,7 +84,7 @@ class Cluster_EncoderLayer(nn.Module):
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        self.pos_ffn = PositionwiseFeedForward(
+        self.pos_ffn_slf = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
         # for non-local operation
         self.slf_attn_cluster = MultiHeadAttention(
@@ -99,12 +99,14 @@ class Cluster_EncoderLayer(nn.Module):
 
         enc_slf_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
+        enc_slf_output = self.pos_ffn_slf(enc_slf_output)
         cluster_input = torch.bmm(assign_mat.transpose(1, 2), enc_slf_output)
 
         cluster_output, _ = self.slf_attn(
             cluster_input, cluster_input, cluster_input)
+        cluster_output = self.pos_ffn_cluster(cluster_output)
         cluster_output = torch.bmm(assign_mat, cluster_output)
         
-        enc_output = self.pos_ffn(enc_slf_output + cluster_output)
+        enc_output = enc_slf_output + cluster_output
         return enc_output, enc_slf_attn
 
