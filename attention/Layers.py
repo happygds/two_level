@@ -91,6 +91,8 @@ class Cluster_EncoderLayer(nn.Module):
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
         self.pos_ffn_cluster = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
+        
+        self.concat = nn.Linear(2 * d_model, d_model)
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
         assign_mat, _ = self.assign_attn(
@@ -107,6 +109,8 @@ class Cluster_EncoderLayer(nn.Module):
         cluster_output = self.pos_ffn_cluster(cluster_output)
         cluster_output = torch.bmm(assign_mat, cluster_output)
         
-        enc_output = enc_slf_output + cluster_output
+
+        enc_output = self.concat(torch.cat((cluster_output, enc_slf_output), dim=2))            
+        # enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn
 
