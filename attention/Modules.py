@@ -86,10 +86,8 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_model, d_k, d_v, d_out=None, dropout=0.1, kernel_type='self_attn'):
+    def __init__(self, n_head, d_model, d_k, d_v, dropout=0.1, kernel_type='self_attn'):
         super(MultiHeadAttention, self).__init__()
-        if d_out is None:
-            d_out = d_model
         self.n_head = n_head
         self.d_k = d_k
         self.d_v = d_v
@@ -101,7 +99,7 @@ class MultiHeadAttention(nn.Module):
         self.attention = ScaledDotProductAttention(
             d_model, d_k, attn_dropout=dropout, kernel_type=kernel_type)
         self.layer_norm = nn.LayerNorm(d_model)
-        self.proj = nn.Linear(n_head*d_v, d_out)
+        self.proj = nn.Linear(n_head*d_v, d_model)
 
         self.dropout = nn.Dropout(dropout)
 
