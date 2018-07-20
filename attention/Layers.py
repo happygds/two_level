@@ -31,16 +31,21 @@ class Local_EncoderLayer(nn.Module):
         self.local_type = local_type
         self.local_attn = MultiHeadAttention(
             n_head//4, d_model, d_k*4, d_v*4, dropout=dropout, kernel_type=kernel_type)
+        self.pos_ffn_local = PositionwiseFeedForward(
+            d_model, d_inner_hid, dropout=dropout)
 
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
+        self.pos_ffn_slf = PositionwiseFeedForward(
+            d_model, d_inner_hid, dropout=dropout)
 
         self.reduce = nn.Sequential(nn.Linear(2 * d_model, 1), nn.Sigmoid())
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
         local_output, local_attn = self.local_attn(
             enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
+        local_output = self.pos_ffn_local(local_output)
 
         if self.local_type == 'qkv':
             enc_output, enc_slf_attn = self.slf_attn(
@@ -62,6 +67,7 @@ class Local_EncoderLayer(nn.Module):
                 local_output, enc_input, enc_input, attn_mask=slf_attn_mask)
         else:
             raise NotImplementedError()
+        enc_output = self.pos_ffn_slf(enc_output)
 
         enc_gate = self.reduce(torch.cat((local_output, enc_output), dim=2))
         enc_output = enc_gate * enc_output + (1. - enc_gate) * local_output
