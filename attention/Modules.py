@@ -155,7 +155,7 @@ class MultiHeadAttention(nn.Module):
         if self.d_out is None:
             return self.layer_norm(outputs + residual), attns
         else:
-            return outputs, attns
+            return self.layer_norm(outputs), attns
 
 
 

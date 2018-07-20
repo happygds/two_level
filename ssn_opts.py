@@ -10,7 +10,7 @@ parser.add_argument('--result_path', default='/data1/matheguo/important/result/a
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | cluster')
-parser.add_argument('--feat_model', default='i3d_rgb_trained', type=str,
+parser.add_argument('--feat_model', default='i3d_rgb', type=str,
                     help='the model for extracting pretrained features ('
                     'i3d_rgb | i3d_rgb_trained | inception_resnet_v2 | inception_resnet_v2_trained)')
 parser.add_argument('--use_flow', action='store_true',
@@ -33,6 +33,7 @@ parser.add_argument('--num_local', type=int, default=0)
 parser.add_argument('--n_cluster', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
+parser.add_argument('--seed', type=int, default=0)
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)

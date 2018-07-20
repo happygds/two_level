@@ -37,6 +37,7 @@ def main():
     sampling_configs = dataset_configs['sampling']
     num_class = dataset_configs['num_class']
     args.dropout = 0.8
+    torch.manual_seed(args.seed)
 
     # set the directory for the rgb features
     if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
