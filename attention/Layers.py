@@ -85,13 +85,13 @@ class Cluster_EncoderLayer(nn.Module):
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        # self.pos_ffn_slf = PositionwiseFeedForward(
-        #     d_model, d_inner_hid, dropout=dropout)
+        self.pos_ffn_slf = PositionwiseFeedForward(
+            d_model, d_inner_hid, dropout=dropout)
         # for non-local operation
         self.cluster_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        # self.pos_ffn_cluster = PositionwiseFeedForward(
-        #     d_model, d_inner_hid, dropout=dropout)
+        self.pos_ffn_cluster = PositionwiseFeedForward(
+            d_model, d_inner_hid, dropout=dropout)
         
         self.reduce = nn.Sequential(nn.Linear(2 * d_model, 1), nn.Sigmoid())
 
@@ -101,7 +101,7 @@ class Cluster_EncoderLayer(nn.Module):
 
         enc_slf_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
-        # enc_slf_output = self.pos_ffn_slf(enc_slf_output)
+        enc_slf_output = self.pos_ffn_slf(enc_slf_output)
 
         assign_mat, _ = self.assign_attn(
             local_output, local_output, local_output, attn_mask=slf_attn_mask)
@@ -113,7 +113,7 @@ class Cluster_EncoderLayer(nn.Module):
         cluster_output, _ = self.cluster_attn(
             cluster_input, cluster_input, cluster_input)
         cluster_output = torch.bmm(assign_mat, cluster_output)
-        # cluster_output = self.pos_ffn_cluster(cluster_output)
+        cluster_output = self.pos_ffn_cluster(cluster_output)
         
         enc_gate = self.reduce(torch.cat((cluster_output, enc_slf_output), dim=2))
         enc_output = enc_gate * enc_slf_output + (1. - enc_gate) * cluster_output
