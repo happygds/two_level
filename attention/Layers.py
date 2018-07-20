@@ -35,9 +35,8 @@ class Local_EncoderLayer(nn.Module):
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        self.concat = nn.Linear(2 * d_model, d_model)
-        self.pos_ffn = PositionwiseFeedForward(
-            d_model, d_inner_hid, dropout=dropout)
+
+        self.reduce = nn.Sequential(nn.Linear(2 * d_model, 1), nn.Sigmoid())
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
         local_output, local_attn = self.local_attn(
@@ -64,8 +63,8 @@ class Local_EncoderLayer(nn.Module):
         else:
             raise NotImplementedError()
 
-        enc_output = self.concat(torch.cat((local_output, enc_output), dim=2))            
-        enc_output = self.pos_ffn(enc_output)
+        enc_gate = self.reduce(torch.cat((local_output, enc_output), dim=2))
+        enc_output = enc_gate * enc_output + (1. - enc_gate) * local_output
         return enc_output, enc_slf_attn
 
 
