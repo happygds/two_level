@@ -106,7 +106,7 @@ class Cluster_EncoderLayer(nn.Module):
             enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
 
         enc_slf_output, enc_slf_attn = self.slf_attn(
-            enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
+            local_output, local_output, local_output, attn_mask=slf_attn_mask)
         enc_slf_output = self.pos_ffn_slf(enc_slf_output)
 
         assign_mat, _ = self.assign_attn(
