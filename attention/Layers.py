@@ -119,5 +119,5 @@ class Cluster_EncoderLayer(nn.Module):
         enc_gate = self.reduce(torch.cat((cluster_output, enc_slf_output), dim=2))
         enc_output = enc_gate * enc_slf_output + (1. - enc_gate) * cluster_output
         # enc_output = self.pos_ffn(enc_output)
-        return cluster_output, enc_slf_attn
+        return enc_output, enc_slf_attn
 
