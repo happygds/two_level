@@ -261,7 +261,8 @@ class BinaryDataSet(data.Dataset):
         def sample_video_proposals(proposal_type, video_id, video_pool, requested_num, dataset_pool):
             if len(video_pool) == 0:
                 # if there is noting in the video pool, go fetch from the dataset pool
-                return [(dataset_pool[x], proposal_type) for x in np.random.choice(len(dataset_pool), requested_num, replace=False)]
+                return [(dataset_pool[x], 0) for x in np.random.choice(len(dataset_pool), requested_num, replace=False)]
+                # return [(dataset_pool[x], proposal_type) for x in np.random.choice(len(dataset_pool), requested_num, replace=False)]
             else:
                 replicate = len(video_pool) < requested_num
                 idx = np.random.choice(
