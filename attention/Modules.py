@@ -149,7 +149,7 @@ class MultiHeadAttention(nn.Module):
         # attns = torch.cat(torch.split(attns.mean(1), mb_size, dim=0), dim=-1).view(-1, len_k, n_head)
 
         # project back to residual size
-        if not self.d_out:
+        if self.d_out is not None:
             cluster_outputs = self.dropout(self.proj_cluster(outputs))
         outputs = self.proj(outputs)
         outputs = self.dropout(outputs)
