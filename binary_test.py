@@ -40,7 +40,7 @@ parser.add_argument('--feat_model', default='i3d_rgb', type=str,
                     'i3d_rgb | i3d_rgb_trained | inception_resnet_v2 | inception_resnet_v2_trained)')
 parser.add_argument('--use_flow', action='store_true',
                     help='whether use i3d_flow feature')
-parser.set_defaults(use_flow=True)
+parser.set_defaults(use_flow=False)
 parser.add_argument('--dropout', '--do', default=0.8, type=float,
                     metavar='DO', help='dropout ratio (default: 0.8)')
 parser.add_argument('--pos_enc', default=False, type=int,
