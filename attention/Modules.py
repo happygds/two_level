@@ -99,7 +99,7 @@ class MultiHeadAttention(nn.Module):
 
         self.attention = ScaledDotProductAttention(
             d_model, d_k, attn_dropout=dropout, kernel_type=kernel_type)
-        self.layer_norm = nn.LayerNorm(d_out)
+        self.layer_norm = nn.LayerNorm(d_model)
         self.proj = nn.Linear(n_head*d_v, d_model)
         if self.d_out is not None:
             self.proj_cluster = nn.Linear(n_head*d_v, d_out)
