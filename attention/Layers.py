@@ -90,8 +90,6 @@ class Cluster_EncoderLayer(nn.Module):
         # for non-local operation
         self.cluster_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        self.slf_attn_2 = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
         
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner_hid, d_in=d_model, dropout=dropout)
