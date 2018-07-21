@@ -89,8 +89,6 @@ class MultiHeadAttention(nn.Module):
     def __init__(self, n_head, d_model, d_k, d_v, d_out=None, dropout=0.1, kernel_type='self_attn'):
         super(MultiHeadAttention, self).__init__()
         self.d_out = d_out
-        if d_out is None:
-            d_out = d_model
         self.n_head = n_head
         self.d_k = d_k
         self.d_v = d_v
@@ -102,7 +100,9 @@ class MultiHeadAttention(nn.Module):
         self.attention = ScaledDotProductAttention(
             d_model, d_k, attn_dropout=dropout, kernel_type=kernel_type)
         self.layer_norm = nn.LayerNorm(d_out)
-        self.proj = nn.Linear(n_head*d_v, d_out)
+        self.proj = nn.Linear(n_head*d_v, d_model)
+        if self.d_out is not None:
+            self.proj_cluster = nn.Linear(n_head*d_v, d_out)
 
         self.dropout = nn.Dropout(dropout)
 
@@ -149,13 +149,15 @@ class MultiHeadAttention(nn.Module):
         # attns = torch.cat(torch.split(attns.mean(1), mb_size, dim=0), dim=-1).view(-1, len_k, n_head)
 
         # project back to residual size
+        if not self.d_out:
+            cluster_outputs = self.dropout(self.proj_cluster(outputs))
         outputs = self.proj(outputs)
         outputs = self.dropout(outputs)
 
         if self.d_out is None:
             return self.layer_norm(outputs + residual), attns
         else:
-            return self.layer_norm(outputs), attns
+            return self.layer_norm(outputs), cluster_outputs
 
 
 
