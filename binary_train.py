@@ -76,7 +76,7 @@ def main():
         BinaryDataSet(args.feat_root, args.feat_model, train_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
-                      fg_ratio=6, bg_ratio=6, num_local=args.num_local),
+                      fg_ratio=6, bg_ratio=6, num_local=args.num_local, use_flow=args.use_flow),
         batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=pin_memory,
         drop_last=True)
@@ -85,7 +85,7 @@ def main():
         BinaryDataSet(args.feat_root, args.feat_model, val_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
-                      fg_ratio=6, bg_ratio=6, num_local=args.num_local),
+                      fg_ratio=6, bg_ratio=6, num_local=args.num_local, use_flow=args.use_flow),
         batch_size=args.batch_size * 3 // 2, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
