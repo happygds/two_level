@@ -162,9 +162,11 @@ class MultiHeadAttention(nn.Module):
 class PositionwiseFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''
 
-    def __init__(self, d_hid, d_inner_hid, dropout=0.1):
+    def __init__(self, d_hid, d_inner_hid, d_in=None, dropout=0.1):
         super(PositionwiseFeedForward, self).__init__()
-        self.w_1 = nn.Linear(d_hid, d_inner_hid)  # position-wise
+        if d_in is None:
+            d_in = d_hid
+        self.w_1 = nn.Linear(d_in, d_inner_hid)  # position-wise
         self.w_2 = nn.Linear(d_inner_hid, d_hid)  # position-wise
         self.layer_norm = nn.LayerNorm(d_hid)
         self.dropout = nn.Dropout(dropout)

@@ -35,11 +35,8 @@ class Local_EncoderLayer(nn.Module):
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        # self.pos_ffn_slf = PositionwiseFeedForward(
-        #     d_model, d_inner_hid, dropout=dropout)
-
-        self.pos_ffn = nn.Sequential(nn.Linear(2 * d_model, d_inner_hid), nn.ReLU(),
-                                    nn.Linear(d_inner_hid, d_model))
+        self.pos_ffn = PositionwiseFeedForward(
+            d_model, d_inner_hid, d_in=d_model*2, dropout=dropout)
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
         local_output, local_attn = self.local_attn(
@@ -96,8 +93,8 @@ class Cluster_EncoderLayer(nn.Module):
         # self.pos_ffn_cluster = PositionwiseFeedForward(
         #     d_model, d_inner_hid, dropout=dropout)
         
-        self.pos_ffn = nn.Sequential(nn.Linear(3 * d_model, d_inner_hid), nn.ReLU(),
-                                     nn.Linear(d_inner_hid, d_model))
+        self.pos_ffn = PositionwiseFeedForward(
+            d_model, d_inner_hid, d_in=d_model*3, dropout=dropout)
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
         local_output, local_attn = self.local_attn(
