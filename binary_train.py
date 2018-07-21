@@ -260,7 +260,7 @@ def validate(val_loader, model, criterion, iter):
 
 def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
     if not os.path.exists(args.result_path):
-        os.mkdir(args.result_path)
+        os.makedirs(args.result_path)
     if args.pos_enc:
         save_path = os.path.join(args.result_path, '_'.join(
             (args.att_kernel_type, 'N'+str(args.n_layers))))
@@ -275,7 +275,7 @@ def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
         save_path = save_path + '_C' + str(args.n_cluster)
         
     if not os.path.exists(save_path):
-        os.mkdir(save_path)
+        os.makedirs(save_path)
     filename = save_path + filename
     torch.save(state, filename)
     if is_best:
