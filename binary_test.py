@@ -55,7 +55,7 @@ parser.add_argument('--n_head', default=8,
                     type=int, help='the number of attention head used in one encoder layer')
 parser.add_argument('--d_inner_hid', default=2048, type=int,
                     help='the layer dimension for positionwise fc layers')
-parser.add_argument('--prop_per_video', type=int, default=16)
+parser.add_argument('--prop_per_video', type=int, default=12)
 parser.add_argument('--num_local', type=int, default=0)
 parser.add_argument('--n_cluster', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
