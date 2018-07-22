@@ -93,11 +93,11 @@ class Cluster_EncoderLayer(nn.Module):
             d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, enc_input, local_attn_mask=None, slf_attn_mask=None):
-        # local_output, local_attn = self.local_attn(
-        #     enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
+        local_output, local_attn = self.local_attn(
+            enc_input, enc_input, enc_input, attn_mask=local_attn_mask)
 
         enc_slf_output, assign_mat = self.assign_attn(
-            enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
+            local_output, local_output, local_output, attn_mask=slf_attn_mask)
         assign_mask = slf_attn_mask[:, 0].unsqueeze(2).expand(assign_mat.size()).byte()
         assign_mat.data.masked_fill_(assign_mask, -float('inf'))
         assign_mat = self.assign_softmax(assign_mat)  # mb_size * len_q * n_cluster
