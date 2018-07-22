@@ -79,7 +79,7 @@ class Cluster_EncoderLayer(nn.Module):
 
         self.assign_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, d_out=n_cluster, dropout=dropout, kernel_type=kernel_type)
-        self.assign_softmax = nn.Softmax(dim=2)
+        self.assign_softmax = nn.Softmax(dim=1)
         # self.assign_softmax = Sparsemax(mask_value=-1e+32)
 
         # for non-local operation
