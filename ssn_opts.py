@@ -59,7 +59,7 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float,
                     metavar='W', help='weight decay (default: 5e-4)')
-parser.add_argument('--clip-gradient', '--gd', default=0.1, type=float,
+parser.add_argument('--clip-gradient', '--gd', default=None, type=float,
                     metavar='W', help='gradient norm clipping (default: disabled)')
 parser.add_argument('--comp_loss_weight', '--lw', default=0.1, type=float,
                     metavar='LW', help='the weight for the completeness loss')
