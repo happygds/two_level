@@ -40,8 +40,8 @@ class BinaryVideoRecord:
         files = glob.glob(os.path.join(frame_path, video_name, 'frame*.jpg'))
         frame_cnt = len(files)
 
-        # import pdb
-        # pdb.set_trace()
+        import pdb
+        pdb.set_trace()
         with h5py.File(rgb_h5_path, 'r') as f:
             rgb_feat = f[vid_name][rgb_feat_key][:][::int(feat_stride // 8)]
         if use_flow:
@@ -74,7 +74,8 @@ class BinaryDataSet(data.Dataset):
                  bg_coverage_thresh=0.02, sample_duration=8196,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
-                 use_flow=True, num_local=8, frame_path=None):
+                 use_flow=True, num_local=8, 
+                 frame_path='/data1/matheguo/important/data/activitynet/activity_net_frames'):
 
         self.subset_videos = subset_videos
         self.verbose = verbose

@@ -145,8 +145,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         cls_weight = 1. / target.mean(0).mean(0)
 
         # compute output
-        binary_score = model(
-            feature, pos_ind, target=target, feature_mask=feature_mask)
+        binary_score = model(feature, pos_ind, feature_mask=feature_mask)
 
         loss = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
         losses.update(loss.item(), feature.size(0))
@@ -197,7 +196,7 @@ def validate(val_loader, model, criterion, iter):
 
     end = time.time()
 
-    for i, (feature, pos_ind, sel_prop_inds, prop_target) in enumerate(val_loader):
+    for i, (feature, target, pos_ind) in enumerate(val_loader):
         with torch.no_grad():
             feature_mask = feature.abs().mean(2).ne(0).float()
             feature = feature.cuda().requires_grad_(False)
@@ -210,8 +209,7 @@ def validate(val_loader, model, criterion, iter):
             cls_weight = 1. / target.mean(0).mean(0)
 
             # compute output
-            binary_score = model(
-                feature, pos_ind, target=target, feature_mask=feature_mask)
+            binary_score = model(feature, pos_ind, feature_mask=feature_mask)
 
             loss = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
         losses.update(loss.item(), feature.size(0))
