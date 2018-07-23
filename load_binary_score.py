@@ -74,7 +74,6 @@ class BinaryDataSet(data.Dataset):
                  use_flow=True, num_local=8, 
                  frame_path='/data1/matheguo/important/data/activitynet/activity_net_frames'):
 
-        self.subset_videos = subset_videos
         self.verbose = verbose
         self.num_local = num_local
 
@@ -130,7 +129,7 @@ class BinaryDataSet(data.Dataset):
         print("using rgb feature from {}".format(rgb_h5_path))
 
         self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
-                                             use_flow=use_flow, feat_stride=feat_stride) for x in self.subset_videos]
+                                             use_flow=use_flow, feat_stride=feat_stride) for x in subset_videos]
 
 
     def __getitem__(self, index):
