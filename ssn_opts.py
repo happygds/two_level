@@ -34,7 +34,7 @@ parser.add_argument('--n_cluster', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
 parser.add_argument('--seed', type=int, default=0)
-parser.add_argument('-n_warmup_steps', type=int, default=100)
+parser.add_argument('-n_warmup_steps', type=int, default=400)
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)
