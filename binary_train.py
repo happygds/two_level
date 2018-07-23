@@ -188,6 +188,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             total_norm = 0
 
         optimizer.step()
+        optimizer.update_learning_rate()
         optimizer.zero_grad()
 
         # measure elapsed time
