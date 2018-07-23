@@ -10,6 +10,7 @@ from transforms import *
 from torch import multiprocessing
 from torch.utils import model_zoo
 from torch.autograd import Variable
+from ops.anet_db import ANetDB
 from ops.utils import get_actionness_configs, get_reference_model_url
 
 global args
@@ -142,7 +143,9 @@ if __name__ == '__main__':
 
     print("model epoch {} loss: {}".format(checkpoint['epoch'], checkpoint['best_loss']))
     base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint['state_dict'].items())}
-    dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, 
+    db = ANetDB.get_db("1.3")
+    val_videos = db.get_subset_videos('validation')
+    dataset = BinaryDataSet(args.feat_root, args.feat_model, val_videos, 
                             exclude_empty=True, body_seg=args.num_body_segments,
                             input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow, 
                             test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
