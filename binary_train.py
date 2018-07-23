@@ -102,7 +102,7 @@ def main():
     #                             weight_decay=args.weight_decay, nesterov=False)
 
     for epoch in range(args.start_epoch, args.epochs):
-        adjust_learning_rate(optimizer, epoch, args.lr_steps)
+        # adjust_learning_rate(optimizer, epoch, args.lr_steps)
         # train for one epoch
         train(train_loader, model, binary_criterion, optimizer, epoch)
 
