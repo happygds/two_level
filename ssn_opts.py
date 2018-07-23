@@ -34,7 +34,6 @@ parser.add_argument('--n_cluster', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
 parser.add_argument('--seed', type=int, default=0)
-parser.add_argument('-n_warmup_steps', type=int, default=400)
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)
@@ -60,7 +59,7 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
 parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float,
                     metavar='W', help='weight decay (default: 5e-4)')
-parser.add_argument('--clip-gradient', '--gd', default=5.0, type=float,
+parser.add_argument('--clip-gradient', '--gd', default=None, type=float,
                     metavar='W', help='gradient norm clipping (default: disabled)')
 parser.add_argument('--comp_loss_weight', '--lw', default=0.1, type=float,
                     metavar='LW', help='the weight for the completeness loss')
