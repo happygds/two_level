@@ -35,12 +35,10 @@ class BinaryVideoRecord:
                  flow_feat_key, rgb_feat_key, use_flow=True, feat_stride=8):
         self._data = video_record
         self.id = self._data.id
-        video_name = 'v_{}'.format(self.id)
-        files = glob.glob(os.path.join(frame_path, video_name, 'frame*.jpg'))
+        files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
         frame_cnt = len(files)
+        vid_name = 'v_{}'.format(self.id)
 
-        import pdb
-        pdb.set_trace()
         with h5py.File(rgb_h5_path, 'r') as f:
             rgb_feat = f[vid_name][rgb_feat_key][:][::int(feat_stride // 8)]
         if use_flow:
@@ -61,6 +59,8 @@ class BinaryVideoRecord:
             begin_ind, end_ind = gt.convering_ratio
             begin_ind, end_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
             self.label[begin_ind:end_ind+1] = 1.
+            import pdb
+            pdb.set_trace()
 
 
 class BinaryDataSet(data.Dataset):
