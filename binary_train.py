@@ -223,7 +223,7 @@ def validate(val_loader, model, criterion, iter):
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                       i, len(val_loader), batch_time=batch_time, loss=losses))
 
-    print('Testing Results: Loss {loss.avg:.5f} \t
+    print('Testing Results: Loss {loss.avg:.5f} \t'
           .format(loss=losses))
 
     return losses.avg
