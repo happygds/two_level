@@ -91,11 +91,9 @@ def main():
 
     binary_criterion = CE_Criterion()
 
-    optimizer = ScheduledOptim(
-        torch.optim.Adam(
+    optimizer = torch.optim.Adam(
             model.module.get_trainable_parameters(),
-            betas=(0.9, 0.98), eps=1e-09),
-        args.d_model, args.n_warmup_steps)
+            args.lr, weight_decay=args.weight_decay)
     # optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
     #                             args.lr,
     #                             momentum=args.momentum,
@@ -188,7 +186,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
             total_norm = 0
 
         optimizer.step()
-        optimizer.update_learning_rate()
+        # optimizer.update_learning_rate()
         optimizer.zero_grad()
 
         # measure elapsed time
