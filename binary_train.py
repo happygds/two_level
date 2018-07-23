@@ -140,7 +140,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         pos_ind = pos_ind.cuda().requires_grad_(False)
 
         target = convert_categorical(target.cpu().numpy(), n_classes=2)
-        target = target.cuda().requires_grad_(False)
+        target = torch.from_numpy(target).cuda().requires_grad_(False)
         target *= feature_mask.unsqueeze(2)
         cls_weight = 1. / target.mean(0).mean(0)
 
@@ -204,7 +204,7 @@ def validate(val_loader, model, criterion, iter):
             pos_ind = pos_ind.cuda().requires_grad_(False)
 
             target = convert_categorical(target.cpu().numpy(), n_classes=2)
-            target = target.cuda().requires_grad_(False)
+            target = torch.from_numpy(target).cuda().requires_grad_(False)
             target *= feature_mask.unsqueeze(2)
             cls_weight = 1. / target.mean(0).mean(0)
 
