@@ -143,8 +143,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target = torch.from_numpy(target).cuda().requires_grad_(False)
         target *= feature_mask.unsqueeze(2)
         # cls_weight = 1. / target.mean(0).mean(0)
-        cls_weight = (feature_mask.sum(1).unsqueeze(1) / target.sum(1).clamp(1e-14)).mean(0)
-        print(target.sum(1).sum(1))
+        cls_weight = 1. / (target.sum(1) / feature_mask.sum(1).unsqueeze(1)).mean(0)
 
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
