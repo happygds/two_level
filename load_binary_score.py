@@ -32,15 +32,14 @@ class BinaryInstance:
 
 
 class BinaryVideoRecord:
-    def __init__(self, prop_record, flow_h5_path, rgb_h5_path,
+    def __init__(self, video_record, frame_path, flow_h5_path, rgb_h5_path,
                  flow_feat_key, rgb_feat_key, use_flow=True, feat_stride=8):
-        self._data = prop_record
-#        print(prop_record)
+        self._data = video_record
+        self.id = self._data.id
+        video_name = 'v_{}'.format(self.id)
+        files = glob.glob(os.path.join(frame_path, video_name, 'frame*.jpg'))
+        frame_cnt = len(files)
 
-        frame_count = int(self._data[1])
-        self.id = self._data[0]
-        vid_name = os.path.split(self._data[0])[1]
-        vid_name = 'v_{}'.format(vid_name)
         # import pdb
         # pdb.set_trace()
         with h5py.File(rgb_h5_path, 'r') as f:
@@ -57,57 +56,27 @@ class BinaryVideoRecord:
                 rgb_feat = np.concatenate(
                     (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
         self.feat = rgb_feat
-
-        # build instance record
-        self.fps = 1
-        self.gt = [
-            BinaryInstance(int(x[1]), int(x[2]), frame_count, label=int(x[0]), iou=1.0) for x in self._data[2]
-            if int(x[2]) > int(x[1])
-        ]
-        self.gt = list(filter(lambda x: x.start_frame < frame_count, self.gt))
-
-        self.proposals = [
-            BinaryInstance(int(x[3]), int(x[4]), frame_count, label=int(x[0]), iou=float(x[1]),
-                           overlap_self=float(x[2])) for x in self._data[3] if int(x[4]) > int(x[3])
-        ]
-
-        self.proposals = list(
-            filter(lambda x: x.start_frame < frame_count, self.proposals))
-
-    @property
-    def num_frames(self):
-        return int(self._data[1])
-
-    def get_fg(self, fg_thresh, with_gt=True, begin_ind=0, end_ind=0):
-        fg = [p for p in self.proposals if p.iou > fg_thresh]
-        if with_gt:
-            fg.extend(self.gt)
-        if begin_ind > 0:
-            assert end_ind >  begin_ind
-            fg = list(filter(lambda x: 0.5 * (x.start_frame + x.end_frame) <= end_ind and 0.5 * (x.start_frame + x.end_frame) >= begin_ind, fg))
-        return fg
-
-    def get_bg(self, bg_thresh, begin_ind=0, end_ind=0):
-        bg = [p for p in self.proposals if p.iou < bg_thresh]
-        if begin_ind > 0:
-            assert end_ind >  begin_ind
-            bg = list(filter(lambda x: 0.5 * (x.start_frame + x.end_frame) <= end_ind and 0.5 * (x.start_frame + x.end_frame) >= begin_ind, bg))
-        return bg
+        
+        self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
+        for i, gt in enumerate(self._data.instance):
+            begin_ind, end_ind = gt.convering_ratio
+            begin_ind, end_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
+            self.label[begin_ind:end_ind+1] = 1.
 
 
 class BinaryDataSet(data.Dataset):
 
     def __init__(self, feat_root, feat_model,
-                 prop_file=None, body_seg=5, video_centric=True,
+                 subset_videos=None, body_seg=5, video_centric=True,
                  test_mode=False, feat_stride=16, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
                  bg_coverage_thresh=0.02, sample_duration=8196,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
-                 use_flow=True, num_local=8):
+                 use_flow=True, num_local=8, frame_path=None):
 
-        self.prop_file = prop_file
+        self.subset_videos = subset_videos
         self.verbose = verbose
         self.num_local = num_local
 
@@ -162,58 +131,9 @@ class BinaryDataSet(data.Dataset):
             raise NotImplementedError('this feature has been extracted !')
         print("using rgb feature from {}".format(rgb_h5_path))
 
-        self._parse_prop_file(flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
-                              use_flow=use_flow, feat_stride=feat_stride)
+        self.video_list = [BinaryVideoRecord(x, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
+                                             use_flow=use_flow, feat_stride=feat_stride) for x in self.subset_videos]
 
-    def _parse_prop_file(self, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
-                         use_flow=True, feat_stride=8):
-        prop_info = load_proposal_file(self.prop_file)
-
-        self.video_list = [BinaryVideoRecord(p, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
-                                             use_flow=use_flow, feat_stride=feat_stride) for p in prop_info]
-
-        if self.exclude_empty:
-            self.video_list = list(
-                filter(lambda x: len(x.gt) > 0, self.video_list))
-
-        self.video_dict = {v.id: v for v in self.video_list}
-
-        # construct two pools:
-        # 1. Foreground
-        # 2. Background
-
-        self.fg_pool = []
-        self.bg_pool = []
-
-        for v in self.video_list:
-            self.fg_pool.extend(
-                [(v.id, prop) for prop in v.get_fg(self.fg_iou_thresh, self.gt_as_fg)])
-            self.bg_pool.extend([(v.id, prop)
-                                 for prop in v.get_bg(self.fg_iou_thresh)])
-
-        if self.verbose:
-            print("""
-            
-            BinaryDataSet: Proposal file {prop_file} parse.
-
-            There are {pnum} usable proposals from {vnum} videos.
-            {fnum} foreground proposals
-            {bnum} background proposals
-
-            Sampling config:
-            FG/BG: {fr}/{br}
-            
-            Epoch size muiltiplier: {em}
-            """.format(prop_file=self.prop_file, pnum=len(self.fg_pool) + len(self.bg_pool),
-                       fnum=len(self.fg_pool), bnum=len(self.bg_pool),
-                       fr=self.fg_per_video, br=self.bg_per_video, vnum=len(
-                           self.video_dict),
-                       em=self.epoch_multiplier))
-        else:
-            print("""
-                       BinaryDataset: proposal file {prop_file} parsed.
-            """.format(prop_file=self.prop_file))
-      #  return self.video_list
 
     def __getitem__(self, index):
         real_index = index % len(self.video_list)
@@ -277,7 +197,7 @@ class BinaryDataSet(data.Dataset):
 
         return out_props
 
-    def _sample_feat(self, feat):
+    def _sample_feat(self, feat, label):
         feat_num = feat.shape[0]
         if feat_num > self.sample_duration:
             begin_index = random.randrange(
@@ -285,50 +205,27 @@ class BinaryDataSet(data.Dataset):
         else:
             begin_index = 0
         out = np.zeros((self.sample_duration, feat.shape[1]), dtype='float32')
+        out_label = np.zeros((self.sample_duration,), dtype='float32')
         min_len = min(feat_num, self.sample_duration)
         out[:min_len] = feat[begin_index:(begin_index+min_len)]
+        out_label[:min_len] = label[begin_index:(begin_index+min_len)]
         assert len(out) == self.sample_duration
         end_ind = begin_index + self.sample_duration
 
-        return out, begin_index, end_ind
+        return out, out_label, begin_index, end_ind
 
     def get_training_data(self, index):
         video = self.video_list[index]
         feat = video.feat
+        label = video.label
 
-        out_feats, begin_ind, end_ind = self._sample_feat(feat)
+        out_feats, out_lables, begin_ind, end_ind = self._sample_feat(feat, label)
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
-        props = self._video_centric_sampling(video, begin_ind=begin_ind * self.feat_stride, end_ind=end_ind * self.feat_stride)
-
-        sel_frame_inds = []
-        out_prop_type = []
-
-        frames = []
-        for idx, p in enumerate(props):
-            frame_selected, prop_type = self._load_prop_data(p, video.id, begin_ind=begin_ind * self.feat_stride)
-            sel_frame_inds.extend(frame_selected)
-            out_prop_type.extend(prop_type)
-        
-        # inds_dict = {}
-        # contracdict_inds = []
-        # for i, (sel_ind, prop_type) in enumerate(zip(sel_frame_inds, out_prop_type)):
-        #     if sel_ind not in inds_dict.keys():
-        #         inds_dict[sel_ind] = prop_type
-        #     else:
-        #         if prop_type != inds_dict[sel_ind]:
-        #             contracdict_inds.append(sel_ind)
-        # out_prop_type = [-100 if sel_frame_inds[i] in contracdict_inds else x for i, x in enumerate(out_prop_type)]
-
-        sel_frame_inds = np.around(np.asarray(sel_frame_inds, dtype='float32').reshape(
-            (-1, 1)) / self.feat_stride).clip(0., out_feats.shape[0] - 1)
-        sel_frame_inds = np.dot(sel_frame_inds, np.ones(
-            (1, self.input_dim))).astype('int')
-        sel_frame_inds = torch.from_numpy(sel_frame_inds).long()
-
-        out_prop_type = torch.from_numpy(np.array(out_prop_type)).long()
         out_feats = torch.from_numpy(out_feats)
+        out_labels = torch.from_numpy(out_lables)
+
         # print(out_feats.size(), out_prop_type.size())
-        return out_feats, pos_ind, sel_frame_inds, out_prop_type
+        return out_feats, out_label, pos_ind
 
     def get_test_data(self, video):
         props = []

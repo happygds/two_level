@@ -101,7 +101,7 @@ class BinaryClassifier(torch.nn.Module):
         self.dilated_mask = args.dilated_mask
         # self.layer_norm = nn.LayerNorm(args.d_model)
 
-    def forward(self, feature, pos_ind, sel_prop_ind=None, feature_mask=None, return_attns=False):
+    def forward(self, feature, pos_ind, label=None, feature_mask=None, return_attns=False):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
