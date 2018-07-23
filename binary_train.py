@@ -201,7 +201,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                   '\n FG{fg_acc.val:.02f}({fg_acc.avg:.02f}) BG {bg_acc.val:.02f} ({bg_acc.avg:.02f})'
                   .format(
                       epoch, i, len(train_loader), batch_time=batch_time,
-                      data_time=data_time, loss=losses, lr=optimizer.optimizer.param_groups[0]['lr'],
+                      data_time=data_time, loss=losses, lr=optimizer.param_groups[0]['lr'],
                       fg_acc=fg_accuracies, bg_acc=bg_accuracies)
                   )
 
