@@ -6,18 +6,18 @@ import numpy as np
 # from .torchsparseattn.fused import Fusedmax, FusedProxFunction
 from sparsemax import Sparsemax
 
-def to_contiguous(tensor):
-    if tensor.is_contiguous():
-        return tensor
-    else:
-        return tensor.contiguous()
-
 class CE_Criterion(nn.Module):
-    def __init__(self):
+    def __init__(self, use_weight=True):
         super(CE_Criterion, self).__init__()
+        self.use_weight = use_weight
 
-    def forward(self, x, target):
-        output = - target * torch.log(x.clamp(1e-14))
+    def forward(self, x, target, weight=None, mask=None):
+        # for i, x in enumerate(inputs):
+        output = - target * torch.log(x)
+        if self.use_weight:
+            output *= weight.unsqueeze(0).unsqueeze(0)
+            # output = torch.sum(output.mean(2) * mask, dim=1) / torch.sum(mask, dim=1)
+            output = torch.sum(output.mean(2) * mask) / torch.sum(mask)
         return torch.mean(output)
 
 class ScaledDotProductAttention(nn.Module):
