@@ -132,7 +132,7 @@ class BinaryDataSet(data.Dataset):
             raise NotImplementedError('this feature has been extracted !')
         print("using rgb feature from {}".format(rgb_h5_path))
 
-        self.video_list = [BinaryVideoRecord(x, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
+        self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
                                              use_flow=use_flow, feat_stride=feat_stride) for x in self.subset_videos]
 
 
