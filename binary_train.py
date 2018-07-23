@@ -92,7 +92,7 @@ def main():
     binary_criterion = CE_Criterion()
 
     optimizer = ScheduledOptim(
-        optim.Adam(
+        torch.optim.Adam(
             model.module.get_trainable_parameters(),
             betas=(0.9, 0.98), eps=1e-09),
         args.d_model, args.n_warmup_steps)
