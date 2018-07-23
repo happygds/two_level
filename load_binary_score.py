@@ -223,7 +223,7 @@ class BinaryDataSet(data.Dataset):
         out_labels = torch.from_numpy(out_lables)
 
         # print(out_feats.size(), out_prop_type.size())
-        return out_feats, out_label, pos_ind
+        return out_feats, out_labels, pos_ind
 
     def get_test_data(self, video):
         props = []
