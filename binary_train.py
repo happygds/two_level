@@ -13,7 +13,7 @@ from ssn_opts import parser
 from load_binary_score import BinaryDataSet
 from binary_model import BinaryClassifier
 from transforms import *
-from ops.utils import get_actionness_configs
+from ops.utils import get_actionness_configs, ScheduledOptim
 from torch.utils import model_zoo
 from attention.Modules import CE_Criterion
 best_loss = 100
@@ -91,8 +91,11 @@ def main():
 
     binary_criterion = CE_Criterion()
 
-    optimizer = torch.optim.Adam(model.module.get_trainable_parameters(),
-                                 lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = ScheduledOptim(
+        optim.Adam(
+            model.module.get_trainable_parameters(),
+            betas=(0.9, 0.98), eps=1e-09),
+        args.d_model, args.n_warmup_steps)
     # optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
     #                             args.lr,
     #                             momentum=args.momentum,
