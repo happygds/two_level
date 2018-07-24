@@ -143,7 +143,11 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target = torch.from_numpy(target).cuda().requires_grad_(False)
         target *= feature_mask.unsqueeze(2)
         # cls_weight = 1. / target.mean(0).mean(0)
-        cls_weight = 1. / (target.sum(1) / feature_mask.sum(1).unsqueeze(1)).mean(0)
+        cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
+        cls_weight_mask = cls_weight.min(1).ne(0).float().unsqueeze(1)
+        cls_weight =  (1. / cls_weight * cls_weight_mask).mean(0)
+        import pdb
+        pdb.set_trace()
 
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
@@ -208,9 +212,7 @@ def validate(val_loader, model, criterion, iter):
             target = torch.from_numpy(target).cuda().requires_grad_(False)
             target *= feature_mask.unsqueeze(2)
             # cls_weight = 1. / target.mean(0).mean(0)
-            cls_weight = (target.sum(1) / feature_mask.sum(1).unsqueeze(1))
-            import pdb
-            pdb.set_trace()
+            cls_weight = 1. / (target.sum(1) / feature_mask.sum(1).unsqueeze(1)).mean(0)
 
             # compute output
             binary_score = model(feature, pos_ind, feature_mask=feature_mask)
