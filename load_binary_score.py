@@ -40,11 +40,10 @@ class BinaryVideoRecord:
         vid_name = 'v_{}'.format(self.id)
 
         with h5py.File(rgb_h5_path, 'r') as f:
-            rgb_feat = f[vid_name][rgb_feat_key][:][::int(feat_stride // 8)]
+            rgb_feat = f[vid_name][rgb_feat_key][:]
         if use_flow:
             with h5py.File(flow_h5_path, 'r') as f:
-                flow_feat = f[vid_name][flow_feat_key][:][::int(
-                    feat_stride // 8)]
+                flow_feat = f[vid_name][flow_feat_key][:]
                 min_len = min(rgb_feat.shape[0], flow_feat.shape[0])
                 # both features are 8-frame strided
                 assert abs(rgb_feat.shape[0] - flow_feat.shape[0]) <= 1, \
@@ -52,6 +51,10 @@ class BinaryVideoRecord:
                         rgb_feat.shape, flow_feat.shape, vid_name)
                 rgb_feat = np.concatenate(
                     (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
+        if rgb_feat.shape[0] % 2 != 0:
+            rgb_feat = rgb_feat[:-1]
+        shp = rgb_feat.shape
+        rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
         self.feat = rgb_feat
         
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
