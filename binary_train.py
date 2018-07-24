@@ -91,13 +91,13 @@ def main():
 
     binary_criterion = CE_Criterion(use_weight=True)
 
-    optimizer = torch.optim.Adam(
-            model.module.get_trainable_parameters(),
-            args.lr, weight_decay=args.weight_decay)
-    # optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
-    #                             args.lr,
-    #                             momentum=args.momentum,
-    #                             weight_decay=args.weight_decay, nesterov=False)
+    # optimizer = torch.optim.Adam(
+    #         model.module.get_trainable_parameters(),
+    #         args.lr, weight_decay=args.weight_decay)
+    optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
+                                args.lr,
+                                momentum=args.momentum,
+                                weight_decay=args.weight_decay, nesterov=False)
 
     for epoch in range(args.start_epoch, args.epochs):
         # adjust_learning_rate(optimizer, epoch, args.lr_steps)
