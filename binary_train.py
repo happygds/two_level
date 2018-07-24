@@ -144,7 +144,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target *= feature_mask.unsqueeze(2)
         # cls_weight = 1. / target.mean(0).mean(0)
         cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-        cls_weight = 0.5 / cls_weight.mean(0)
+        cls_weight = (0.5 / cls_weight).mean(0)
 
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
@@ -203,7 +203,9 @@ def validate(val_loader, model, criterion, iter):
             target *= feature_mask.unsqueeze(2)
             # cls_weight = 1. / target.mean(0).mean(0)
             cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-            cls_weight = 0.5 / cls_weight.mean(0)
+            import pdb
+            pdb.set_trace()
+            cls_weight = (0.5 / cls_weight).mean(0)
 
             # compute output
             binary_score = model(feature, pos_ind, feature_mask=feature_mask)
