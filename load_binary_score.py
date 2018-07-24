@@ -228,7 +228,7 @@ class BinaryDataSet(data.Dataset):
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
-        out_label = torch.from_numpy(out_lable)
+        out_label = torch.from_numpy(out_label)
 
         # print(out_feats.size(), out_prop_type.size())
         return out_feat, out_label, pos_ind
