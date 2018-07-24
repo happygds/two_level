@@ -61,7 +61,7 @@ class BinaryVideoRecord:
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
             begin_ind, end_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
-            self.label[begin_ind:end_ind+1] = 1.
+            self.label[begin_ind:end_ind] = 1.
 
 
 class BinaryDataSet(data.Dataset):

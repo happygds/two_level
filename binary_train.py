@@ -144,7 +144,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target *= feature_mask.unsqueeze(2)
         # cls_weight = 1. / target.mean(0).mean(0)
         cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-        cls_weight = 1. / (cls_weight / cls_weight[:, 1].unsqueeze(1)).mean(0)
+        cls_weight = 0.5 / cls_weight.mean(0)
 
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
@@ -154,13 +154,6 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         # compute gradient and do SGD step
         loss.backward()
-
-        if i % args.iter_size == 0:
-            # scale down gradients when iter size is functioning
-            if args.iter_size != 1:
-                for g in optimizer.param_groups:
-                    for p in g['params']:
-                        p.grad /= args.iter_size
 
         if args.clip_gradient is not None:
             total_norm = clip_grad_norm_(
@@ -210,7 +203,7 @@ def validate(val_loader, model, criterion, iter):
             target *= feature_mask.unsqueeze(2)
             # cls_weight = 1. / target.mean(0).mean(0)
             cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-            cls_weight = 1. / (cls_weight / cls_weight[:, 1].unsqueeze(1)).mean(0)
+            cls_weight = 0.5 / cls_weight.mean(0)
 
             # compute output
             binary_score = model(feature, pos_ind, feature_mask=feature_mask)
