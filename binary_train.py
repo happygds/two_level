@@ -91,13 +91,13 @@ def main():
 
     binary_criterion = CE_Criterion(use_weight=True)
 
-    # optimizer = torch.optim.Adam(
-    #         model.module.get_trainable_parameters(),
-    #         args.lr, weight_decay=args.weight_decay)
-    optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
-                                args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay, nesterov=False)
+    optimizer = torch.optim.Adam(
+            model.module.get_trainable_parameters(),
+            args.lr, weight_decay=args.weight_decay)
+    # optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
+    #                             args.lr,
+    #                             momentum=args.momentum,
+    #                             weight_decay=args.weight_decay, nesterov=False)
 
     for epoch in range(args.start_epoch, args.epochs):
         # adjust_learning_rate(optimizer, epoch, args.lr_steps)
@@ -144,7 +144,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target *= feature_mask.unsqueeze(2)
         # cls_weight = 1. / target.mean(0).mean(0)
         cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-        cls_weight = 0.5 / cls_weight.mean(0)
+        cls_weight = (0.5 / cls_weight).mean(0)
+        print(cls_weight)
 
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
@@ -203,7 +204,7 @@ def validate(val_loader, model, criterion, iter):
             target *= feature_mask.unsqueeze(2)
             # cls_weight = 1. / target.mean(0).mean(0)
             cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-            cls_weight = 0.5 / cls_weight.mean(0)
+            cls_weight = (0.5 / cls_weight).mean(0)
 
             # compute output
             binary_score = model(feature, pos_ind, feature_mask=feature_mask)

@@ -201,7 +201,7 @@ class BinaryDataSet(data.Dataset):
         feat_num = feat.shape[0]
         if feat_num > self.sample_duration:
             begin_index = random.randrange(
-                0, feat_num - self.sample_duration + 1, 1)
+                0, feat_num - self.sample_duration + 1, 4)
         else:
             begin_index = 0
         out = np.zeros((self.sample_duration, feat.shape[1]), dtype='float32')
@@ -219,13 +219,19 @@ class BinaryDataSet(data.Dataset):
         feat = video.feat
         label = video.label
 
-        out_feats, out_lables, begin_ind, end_ind = self._sample_feat(feat, label)
+        out_feat, out_lable, begin_ind, end_ind = self._sample_feat(feat, label)
+        out_mask = (out_feat.abs().min(axis=1) > 0).astype('float')
+        tmp = out_mask * out_label
+        if tmp.sum() == out_mask.sum() or tmp.sum() == 0.:
+            ind = int(out_mask.sum()) - 1
+            out_label[ind] = 1. - out_label[ind]
+
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
-        out_feats = torch.from_numpy(out_feats)
-        out_labels = torch.from_numpy(out_lables)
+        out_feat = torch.from_numpy(out_feat)
+        out_label = torch.from_numpy(out_lable)
 
         # print(out_feats.size(), out_prop_type.size())
-        return out_feats, out_labels, pos_ind
+        return out_feat, out_label, pos_ind
 
     def get_test_data(self, video):
         props = []
