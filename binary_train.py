@@ -144,7 +144,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target *= feature_mask.unsqueeze(2)
         # cls_weight = 1. / target.mean(0).mean(0)
         cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-        cls_weight_mask = cls_weight.min(1).ne(0).float().unsqueeze(1)
+        cls_weight_mask = cls_weight.min(1)[0].ne(0).float().unsqueeze(1)
         cls_weight =  (1. / cls_weight * cls_weight_mask).mean(0)
         import pdb
         pdb.set_trace()
