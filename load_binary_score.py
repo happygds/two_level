@@ -223,6 +223,8 @@ class BinaryDataSet(data.Dataset):
         out_mask = (np.abs(out_feat).min(axis=1) > 0).astype('float')
         tmp = out_mask * out_label
         if tmp.sum() == out_mask.sum() or tmp.sum() == 0.:
+            import pdb
+            pdb.set_trace()
             ind = int(out_mask.sum()) - 1
             out_label[ind] = 1. - out_label[ind]
 
