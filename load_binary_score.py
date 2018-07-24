@@ -220,7 +220,7 @@ class BinaryDataSet(data.Dataset):
         label = video.label
 
         out_feat, out_lable, begin_ind, end_ind = self._sample_feat(feat, label)
-        out_mask = (out_feat.abs().min(axis=1) > 0).astype('float')
+        out_mask = (np.abs(out_feat).min(axis=1) > 0).astype('float')
         tmp = out_mask * out_label
         if tmp.sum() == out_mask.sum() or tmp.sum() == 0.:
             ind = int(out_mask.sum()) - 1
