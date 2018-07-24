@@ -223,8 +223,11 @@ class BinaryDataSet(data.Dataset):
         out_mask = (np.abs(out_feat).min(axis=1) > 0.).astype('float')
         tmp = out_mask * out_label
         if tmp.sum() == out_mask.sum() or tmp.sum() == 0.:
+            print(tmp.sum(), out_mask.sum())
+            print(out_label)
             ind = int(out_mask.sum()) - 1
             out_label[ind] = 1. - out_label[ind]
+            print(out_label)
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
