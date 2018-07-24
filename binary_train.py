@@ -208,7 +208,9 @@ def validate(val_loader, model, criterion, iter):
             target = torch.from_numpy(target).cuda().requires_grad_(False)
             target *= feature_mask.unsqueeze(2)
             # cls_weight = 1. / target.mean(0).mean(0)
-            cls_weight = 1. / (target.sum(1) / feature_mask.sum(1).unsqueeze(1)).mean(0)
+            cls_weight = (target.sum(1) / feature_mask.sum(1).unsqueeze(1))
+            import pdb
+            pdb.set_trace()
 
             # compute output
             binary_score = model(feature, pos_ind, feature_mask=feature_mask)
