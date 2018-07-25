@@ -10,7 +10,6 @@ class CE_Criterion(nn.Module):
     def __init__(self, use_weight=True, gamma=2):
         super(CE_Criterion, self).__init__()
         self.gamma = gamma
-        self.alpha = alpha
         self.use_weight = use_weight
 
     def forward(self, x, target, weight=None, mask=None):
