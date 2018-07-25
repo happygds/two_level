@@ -59,8 +59,8 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'inner_prod':
             attn = torch.bmm(q, k.transpose(1, 2)) / (q * q).sum(2).unsqueeze(1)
         elif self.kernel_type == 'highorder':
-            attn = (torch.bmm(q, k.transpose(1, 2)) / self.temper).unsqueeze(1).contiguous()
-            conv_attn = self.conv_layers(attn)
+            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            conv_attn = self.conv_layers(attn.unsqueeze(1)).squeeze(1)
             attn = (conv_attn + attn).squeeze(1).contiguous()
         else:
             raise NotImplementedError()

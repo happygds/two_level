@@ -67,6 +67,7 @@ def main():
         num_class, args.num_body_segments, args, dropout=args.dropout)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()
 
+    cudnn.enabled = False
     cudnn.benchmark = True
     pin_memory = True
 
