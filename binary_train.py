@@ -203,8 +203,7 @@ def validate(val_loader, model, criterion, iter):
             target *= feature_mask.unsqueeze(2)
             # cls_weight = 1. / target.mean(0).mean(0)
             cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-            cls_weight = 0.5 / cls_weight.mean(0)
-            cls_weight[1] *= 2
+            cls_weight = 0.5 / cls_weight.clamp(0.01)
 
             # compute output
             binary_score = model(feature, pos_ind, feature_mask=feature_mask)
