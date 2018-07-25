@@ -17,7 +17,7 @@ class CE_Criterion(nn.Module):
         # for i, x in enumerate(inputs):
         output = - target * torch.log(x)
         output = output * (1. - x) ** self.gamma
-        output[:, :, 0] *= self.alpha
+        # output[:, :, 0] *= self.alpha
         if self.use_weight:
             output *= weight.unsqueeze(1)
             output = torch.sum(output.mean(2) * mask, dim=1) / torch.sum(mask, dim=1)
