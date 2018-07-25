@@ -131,10 +131,10 @@ def train(train_loader, model, criterion, optimizer, epoch):
     end = time.time()
     optimizer.zero_grad()
 
-    for i, (feature, target, pos_ind) in enumerate(train_loader):
+    for i, (feature, feature_mask, target, pos_ind) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)
-        feature_mask = feature.abs().mean(2).ne(0).float()
+        # feature_mask = feature.abs().mean(2).ne(0).float()
         feature = feature.cuda().requires_grad_(False)
         feature_mask = feature_mask.cuda().requires_grad_(False)
         pos_ind = pos_ind.cuda().requires_grad_(False)
@@ -144,7 +144,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         target *= feature_mask.unsqueeze(2)
         # cls_weight = 1. / target.mean(0).mean(0)
         cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-        cls_weight = 0.5 / cls_weight.clamp(0.01)
+        cls_weight = 0.5 / cls_weight.clamp(0.001)
 
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
@@ -191,9 +191,9 @@ def validate(val_loader, model, criterion, iter):
 
     end = time.time()
 
-    for i, (feature, target, pos_ind) in enumerate(val_loader):
+    for i, (feature, feature_mask, target, pos_ind) in enumerate(val_loader):
         with torch.no_grad():
-            feature_mask = feature.abs().mean(2).ne(0).float()
+            # feature_mask = feature.abs().mean(2).ne(0).float()
             feature = feature.cuda().requires_grad_(False)
             feature_mask = feature_mask.cuda().requires_grad_(False)
             pos_ind = pos_ind.cuda().requires_grad_(False)
