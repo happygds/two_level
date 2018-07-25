@@ -7,7 +7,7 @@ import numpy as np
 from sparsemax import Sparsemax
 
 class CE_Criterion(nn.Module):
-    def __init__(self, use_weight=True, gamma=2):
+    def __init__(self, use_weight=True, gamma=0.1):
         super(CE_Criterion, self).__init__()
         self.gamma = gamma
         self.use_weight = use_weight
@@ -16,8 +16,6 @@ class CE_Criterion(nn.Module):
         # for i, x in enumerate(inputs):
         output = - target * torch.log(x)
         output = output * (1. - x) ** self.gamma
-        output[:, :, 0] *= 0.25
-        output[:, :, 1] *= 0.75
         if self.use_weight:
             output *= weight.unsqueeze(1)
             output = torch.sum(output.mean(2) * mask, dim=1) / torch.sum(mask, dim=1)
