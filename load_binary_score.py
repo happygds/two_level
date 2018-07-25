@@ -221,7 +221,7 @@ class BinaryDataSet(data.Dataset):
 
         out_feat, out_label, begin_ind, end_ind, min_len = self._sample_feat(feat, label)
         out_mask = np.zeros_like(out_label).astype('float32')
-        out_mask[:(min_len+1)] = 1.
+        out_mask[:min_len] = 1.
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
