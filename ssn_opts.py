@@ -19,7 +19,7 @@ parser.set_defaults(use_flow=True)    # for self-attetion encoder
 parser.add_argument('--pos_enc', default=False, type=int,
                     help='whether slice the original position indices of the input video sequence')
 parser.add_argument('--att_kernel_type', default='self_attn',
-                    type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot)')
+                    type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot, highorder)')
 parser.add_argument('--n_layers', default=1,
                     type=int, help='the number of encoder layers in the self_attention encoder')
 parser.add_argument('--reduce_dim', default=512,

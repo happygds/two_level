@@ -38,6 +38,10 @@ class ScaledDotProductAttention(nn.Module):
             self.relu = nn.ReLU()
         elif self.kernel_type == 'addition':
             self.fc = nn.Sequential(nn.Tanh(), nn.Linear(d_k, 1))
+        elif self.kernel_type == 'highorder':
+            self.conv_layers = nn.Sequential(nn.Conv2d(1, 32, 3, padding=1), nn.ReLU(),
+                                             nn.Conv2d(32, 32, 3, padding=1), nn.ReLU(),
+                                             nn.Conv2d(32, 1, 3, padding=1))
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -54,6 +58,9 @@ class ScaledDotProductAttention(nn.Module):
             attn = self.fc(q + k).squeeze(3)
         elif self.kernel_type == 'inner_prod':
             attn = torch.bmm(q, k.transpose(1, 2)) / (q * q).sum(2).unsqueeze(1)
+        elif self.kernel_type == 'highorder':
+            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper.unsqueeze(1)
+            attn = (attn + self.conv_layers(attn)).squeeze(1)
         else:
             raise NotImplementedError()
 
