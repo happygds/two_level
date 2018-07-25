@@ -212,16 +212,16 @@ class BinaryDataSet(data.Dataset):
         assert len(out) == self.sample_duration
         end_ind = begin_index + self.sample_duration
 
-        return out, out_label, begin_index, end_ind
+        return out, out_label, begin_index, end_ind, min_len
 
     def get_training_data(self, index):
         video = self.video_list[index]
         feat = video.feat
         label = video.label
 
-        out_feat, out_label, begin_ind, end_ind = self._sample_feat(feat, label)
+        out_feat, out_label, begin_ind, end_ind, min_len = self._sample_feat(feat, label)
         out_mask = np.zeros_like(out_label).astype('float32')
-        out_mask[:(end_ind-begin_ind+1)] = 1.
+        out_mask[:(min_len+1)] = 1.
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
