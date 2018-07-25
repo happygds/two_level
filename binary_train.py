@@ -89,7 +89,7 @@ def main():
         batch_size=args.batch_size * 3 // 2, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
-    binary_criterion = CE_Criterion(use_weight=True)
+    binary_criterion = CE_Criterion(use_weight=False)
 
     optimizer = torch.optim.Adam(
             model.module.get_trainable_parameters(),
