@@ -125,7 +125,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
                 output = net(feature, pos_ind)
                 output = output[0].cpu().numpy()
             else:
-                output = np.asarray([0, 1]).reshape((1, 1)).astype('float32')
+                output = np.asarray([0, 1]).reshape((1, 2)).astype('float32')
         # nframes = len(output) * args.frame_interval
         # output = np.interp(
         #     np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output[:, 1])

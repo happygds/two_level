@@ -78,7 +78,7 @@ class ScaledDotProductAttention(nn.Module):
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             # print(attn.mean(), attn.std())
             conv_attn = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
-            conv_attn = self.conv_reduce(conv_attn).view(conv_attn.size[0], 3*self.n_head, -1)
+            conv_attn = self.conv_reduce(conv_attn).view(conv_attn.size()[0], 3*self.n_head, -1)
             q_conv, k_conv, v_conv = torch.split(conv_attn, self.n_head, 3)
             conv_attn = torch.bmm(q_conv.transpose(1, 2), k_conv) / np.power(self.n_head, 0.5)
         else:
