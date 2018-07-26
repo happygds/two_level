@@ -78,7 +78,7 @@ def main():
     train_videos = db.get_subset_videos('training')
     val_videos = db.get_subset_videos('validation')
     train_loader = torch.utils.data.DataLoader(
-        BinaryDataSet(args.feat_root, args.feat_model, train_videos, train_prop_file,
+        BinaryDataSet(args.feat_root, args.feat_model, train_prop_file, train_videos,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6, num_local=args.num_local, use_flow=args.use_flow),
@@ -87,7 +87,7 @@ def main():
         drop_last=True)
 
     val_loader = torch.utils.data.DataLoader(
-        BinaryDataSet(args.feat_root, args.feat_model, val_videos, val_prop_file,
+        BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, val_videos,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6, num_local=args.num_local, use_flow=args.use_flow),
