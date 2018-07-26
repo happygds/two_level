@@ -67,8 +67,8 @@ class ScaledDotProductAttention(nn.Module):
             conv_attn = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             conv_attn = self.conv_layers(conv_attn).transpose(0, 1).contiguous().view(attn.size())
             print(conv_attn.mean(), conv_attn.std())
-            import pdb
-            pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
             attn = conv_attn + attn
         else:
             raise NotImplementedError()
