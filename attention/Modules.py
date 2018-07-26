@@ -61,7 +61,7 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             conv_attn = self.conv_layers(attn.unsqueeze(1)).squeeze(1)
-            attn = (conv_attn + attn).squeeze(1).contiguous()
+            attn = (conv_attn + attn).squeeze(1).view(attn_mask.size())
         else:
             raise NotImplementedError()
 
