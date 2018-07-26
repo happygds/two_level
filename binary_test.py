@@ -121,7 +121,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         feature = torch.autograd.Variable(feature).cuda()
         pos_ind = torch.autograd.Variable(pos_ind).cuda()
         with torch.no_grad():
-            if feature.size[1] > 1:
+            if feature.size()[1] > 1:
                 output = net(feature, pos_ind)
                 output = output[0].cpu().numpy()
             else:
