@@ -44,7 +44,7 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
                                             #  nn.Conv2d(32, 32, 3, padding=1), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(self.n_head))
+                                             nn.BatchNorm2d(self.n_head), nn.ReLU())
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -63,13 +63,13 @@ class ScaledDotProductAttention(nn.Module):
             attn = torch.bmm(q, k.transpose(1, 2)) / (q * q).sum(2).unsqueeze(1)
         elif self.kernel_type == 'highorder':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
-            print(attn.mean(), attn.std())
+            # print(attn.mean(), attn.std())
             conv_attn = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             conv_attn = self.conv_layers(conv_attn).transpose(0, 1).contiguous().view(attn.size())
-            print(conv_attn.mean(), conv_attn.std())
+            # print(conv_attn.mean(), conv_attn.std())
             # import pdb
             # pdb.set_trace()
-            attn = conv_attn + attn
+            attn = conv_attn
         else:
             raise NotImplementedError()
 
