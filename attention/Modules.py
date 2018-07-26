@@ -46,6 +46,9 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.InstanceNorm2d(8*self.n_head), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
                                              nn.InstanceNorm2d(8*self.n_head))
+        elif self.kernel_type == 'highorder-nonlocal':
+            self.conv_reduce = nn.Conv2d(self.n_head, 3*self.n_head, 1)
+            
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -71,6 +74,13 @@ class ScaledDotProductAttention(nn.Module):
             # import pdb
             # pdb.set_trace()
             attn = conv_attn + attn
+        elif self.kernel_type == 'highorder-nonlocal':
+            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            # print(attn.mean(), attn.std())
+            conv_attn = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
+            conv_attn = self.conv_reduce(conv_attn).view(conv_attn.size[0], 3*self.n_head, -1)
+            q_conv, k_conv, v_conv = torch.split(conv_attn, self.n_head, 3)
+            conv_attn = torch.bmm(q_conv.transpose(1, 2), k_conv) / np.power(self.n_head, 0.5)
         else:
             raise NotImplementedError()
 
