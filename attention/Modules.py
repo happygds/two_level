@@ -25,10 +25,11 @@ class CE_Criterion(nn.Module):
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
-    def __init__(self, d_model, d_k, attn_dropout=0.1, kernel_type='self_attn'):
+    def __init__(self, d_model, d_k, n_head, attn_dropout=0.1, kernel_type='self_attn'):
         super(ScaledDotProductAttention, self).__init__()
         self.temper = np.power(d_model, 0.5)
         self.dropout = nn.Dropout(attn_dropout)
+        self.n_head = n_head
         self.softmax = nn.Softmax(dim=2)
         # self.softmax = Sparsemax(mask_value=-1e+32)
         self.kernel_type = kernel_type
@@ -39,9 +40,9 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'addition':
             self.fc = nn.Sequential(nn.Tanh(), nn.Linear(d_k, 1))
         elif self.kernel_type == 'highorder':
-            self.conv_layers = nn.Sequential(nn.Conv2d(1, 32, 3, padding=1), nn.ReLU(),
+            self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1), nn.ReLU(),
                                             #  nn.Conv2d(32, 32, 3, padding=1), nn.ReLU(),
-                                             nn.Conv2d(32, 1, 3, padding=1))
+                                             nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1))
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -60,8 +61,9 @@ class ScaledDotProductAttention(nn.Module):
             attn = torch.bmm(q, k.transpose(1, 2)) / (q * q).sum(2).unsqueeze(1)
         elif self.kernel_type == 'highorder':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
-            conv_attn = self.conv_layers(attn.unsqueeze(1)).squeeze(1)
-            attn = (conv_attn + attn).squeeze(1).view(attn_mask.size())
+            conv_attn = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
+            conv_attn = self.conv_layers(conv_attn).transpose(0, 1).view(attn.size())
+            attn = conv_attn + attn
         else:
             raise NotImplementedError()
 
@@ -108,7 +110,7 @@ class MultiHeadAttention(nn.Module):
         self.w_vs = nn.Parameter(torch.FloatTensor(n_head, d_model, d_v))
 
         self.attention = ScaledDotProductAttention(
-            d_model, d_k, attn_dropout=dropout, kernel_type=kernel_type)
+            d_model, d_k, n_head, attn_dropout=dropout, kernel_type=kernel_type)
         self.layer_norm = nn.LayerNorm(d_model)
         self.proj = nn.Linear(n_head*d_v, d_model)
         if self.d_out is not None:
