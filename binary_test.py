@@ -145,7 +145,7 @@ if __name__ == '__main__':
     base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint['state_dict'].items())}
     db = ANetDB.get_db("1.3")
     val_videos = db.get_subset_videos('validation')
-    dataset = BinaryDataSet(args.feat_root, args.feat_model, subset_videos=val_videos, 
+    dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos, 
                             exclude_empty=True, body_seg=args.num_body_segments,
                             input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow, 
                             test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
