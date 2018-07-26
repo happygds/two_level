@@ -44,7 +44,7 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.InstanceNorm2d(8*self.n_head), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
                                              nn.InstanceNorm2d(8*self.n_head), nn.ReLU(),
-                                             nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1)
+                                             nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
                                              nn.InstanceNorm2d(8*self.n_head))
 
     def forward(self, q, k, v, attn_mask=None):
