@@ -41,7 +41,7 @@ class ScaledDotProductAttention(nn.Module):
             self.fc = nn.Sequential(nn.Tanh(), nn.Linear(d_k, 1))
         elif self.kernel_type == 'highorder':
             self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1), nn.ReLU(),
-                                             nn.Conv2d(8*self.n_head, 8*self.n_head, 1, padding=0), nn.ReLU(),
+                                             nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),)
 
     def forward(self, q, k, v, attn_mask=None):
