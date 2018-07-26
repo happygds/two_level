@@ -30,7 +30,7 @@ class Local_EncoderLayer(nn.Module):
         super(Local_EncoderLayer, self).__init__()
         self.local_type = local_type
         self.local_attn = MultiHeadAttention(
-            n_head//4, d_model, d_k*4, d_v*4, dropout=dropout, kernel_type=kernel_type)
+            n_head//4, d_model, d_k*4, d_v*4, dropout=dropout, kernel_type='self_attn')
 
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
