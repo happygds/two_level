@@ -44,7 +44,7 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
                                             #  nn.Conv2d(32, 32, 3, padding=1), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(self.n_head), nn.ReLU())
+                                             nn.BatchNorm2d(self.n_head))
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -69,7 +69,7 @@ class ScaledDotProductAttention(nn.Module):
             # print(conv_attn.mean(), conv_attn.std())
             # import pdb
             # pdb.set_trace()
-            attn = conv_attn
+            attn = conv_attn + attn
         else:
             raise NotImplementedError()
 
@@ -80,13 +80,13 @@ class ScaledDotProductAttention(nn.Module):
                     'Attention mask shape {} mismatch ' \
                     'with Attention logit tensor shape ' \
                     '{}.'.format(attn_mask.size(), attn.size())
-            if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
+            if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder']:
                 attn.data.masked_fill_(attn_mask, -float('inf'))
                 # attn.data.masked_fill_(attn_mask, -1e+32)
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
-        if self.kernel_type in ['self_attn', 'addition', 'inner_prod']:
+        if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder']:
             attn = self.softmax(attn)
             attn.data.masked_fill_(torch.isnan(attn), 0)
             # shp = attn.size()
