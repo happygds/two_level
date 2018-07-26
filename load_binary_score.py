@@ -143,61 +143,6 @@ class BinaryDataSet(data.Dataset):
         else:
             return self.get_training_data(real_index)
 
-    def _sample_frames(self, prop):
-        start_frame = prop.start_frame + 1
-        end_frame = prop.end_frame
-        duration = end_frame - start_frame + 1
-        sample_duration = duration / self.body_seg
-
-        if sample_duration < 1:
-            return start_frame + randint(prop.end_frame - prop.start_frame, size=self.body_seg)
-
-        frame_indice = []
-        split_stage = [int(np.round(i*sample_duration)) +
-                       start_frame for i in range(self.body_seg+1)]
-
-        for i in range(self.body_seg):
-           #  print(split_stage[i], split_stage[i+1])
-            index = np.random.choice(
-                range(split_stage[i], split_stage[i+1]), 1)
-            frame_indice.extend(index)
-        return frame_indice
-
-    def _load_prop_data(self, prop, video_id, begin_ind=0):
-        # read frame count
-        frame_cnt = self.video_dict[prop[0][0]].num_frames
-        # frame_cnt = 1572
-        frame_selected = self._sample_frames(prop[0][1])
-        # if max(frame_selected) > feat.shape[0] * self.feat_stride:
-        #     print(frame_selected, feat.shape[0], video_id)
-        frame_selected = [max(min(x, frame_cnt) - 1 - begin_ind, 0) for x in frame_selected]
-
-        return frame_selected, [prop[1]]
-
-    def _video_centric_sampling(self, video, begin_ind=0, end_ind=0):
-
-        fg = video.get_fg(self.fg_iou_thresh, self.gt_as_fg, begin_ind=begin_ind, end_ind=end_ind)
-        bg = video.get_bg(self.bg_iou_thresh, begin_ind=begin_ind, end_ind=end_ind)
-
-        def sample_video_proposals(proposal_type, video_id, video_pool, requested_num, dataset_pool):
-            if len(video_pool) == 0:
-                # if there is noting in the video pool, go fetch from the dataset pool
-                return [(dataset_pool[x], 0) for x in np.random.choice(len(dataset_pool), requested_num, replace=False)]
-                # return [(dataset_pool[x], proposal_type) for x in np.random.choice(len(dataset_pool), requested_num, replace=False)]
-            else:
-                replicate = len(video_pool) < requested_num
-                idx = np.random.choice(
-                    len(video_pool), requested_num, replace=replicate)
-                return [((video_id, video_pool[x]), proposal_type) for x in idx]
-
-        out_props = []
-        out_props.extend(sample_video_proposals(
-            1, video.id, fg, self.fg_per_video, self.fg_pool))  # sample foreground
-        out_props.extend(sample_video_proposals(
-            0, video.id, bg, self.bg_per_video, self.bg_pool))  # sample background
-
-        return out_props
-
     def _sample_feat(self, feat, label):
         feat_num = feat.shape[0]
         if feat_num > self.sample_duration:
