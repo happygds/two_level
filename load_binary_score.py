@@ -66,7 +66,7 @@ class BinaryVideoRecord:
 
 class BinaryDataSet(data.Dataset):
 
-    def __init__(self, feat_root, feat_model,
+    def __init__(self, feat_root, feat_model, prop_file,
                  subset_videos=None, body_seg=5, video_centric=True,
                  test_mode=False, feat_stride=16, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
@@ -131,7 +131,7 @@ class BinaryDataSet(data.Dataset):
             raise NotImplementedError('this feature has been extracted !')
         print("using rgb feature from {}".format(rgb_h5_path))
 
-        prop_info = load_proposal_file(self.prop_file)
+        prop_info = load_proposal_file(prop_file)
         self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
                                              use_flow=use_flow, feat_stride=feat_stride) for x in subset_videos]
 

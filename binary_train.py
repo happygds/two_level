@@ -71,10 +71,14 @@ def main():
     cudnn.benchmark = True
     pin_memory = True
 
+    train_prop_file = 'data/{}_proposal_list.txt'.format(
+        dataset_configs['train_list'])
+    val_prop_file = 'data/{}_proposal_list.txt'.format(
+        dataset_configs['test_list'])
     train_videos = db.get_subset_videos('training')
     val_videos = db.get_subset_videos('validation')
     train_loader = torch.utils.data.DataLoader(
-        BinaryDataSet(args.feat_root, args.feat_model, train_videos,
+        BinaryDataSet(args.feat_root, args.feat_model, train_videos, train_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6, num_local=args.num_local, use_flow=args.use_flow),
@@ -83,7 +87,7 @@ def main():
         drop_last=True)
 
     val_loader = torch.utils.data.DataLoader(
-        BinaryDataSet(args.feat_root, args.feat_model, val_videos,
+        BinaryDataSet(args.feat_root, args.feat_model, val_videos, val_prop_file,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6, num_local=args.num_local, use_flow=args.use_flow),
