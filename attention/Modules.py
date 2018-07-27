@@ -48,7 +48,8 @@ class ScaledDotProductAttention(nn.Module):
                                             #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1))
         elif self.kernel_type == 'highorder-nonlocal':
-            self.conv_reduce = nn.Conv2d(self.n_head, 3*self.n_head, 1)
+            self.highorder_layer = MultiHeadAttention(
+            1, d_model, d_model, d_model, dropout=attn_dropout, kernel_type='self_attn')
             
 
     def forward(self, q, k, v, attn_mask=None):
@@ -78,10 +79,8 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder-nonlocal':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             # print(attn.mean(), attn.std())
-            conv_attn = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
-            conv_attn = self.conv_reduce(conv_attn).view(conv_attn.size()[0], 3*self.n_head, -1)
-            q_conv, k_conv, v_conv = torch.split(conv_attn, self.n_head, 3)
-            conv_attn = torch.bmm(q_conv.transpose(1, 2), k_conv) / np.power(self.n_head, 0.5)
+            attn, _ = self.slf_attn(
+                attn, attn, attn, attn_mask=attn_mask)
         else:
             raise NotImplementedError()
 
@@ -92,13 +91,13 @@ class ScaledDotProductAttention(nn.Module):
                     'Attention mask shape {} mismatch ' \
                     'with Attention logit tensor shape ' \
                     '{}.'.format(attn_mask.size(), attn.size())
-            if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder']:
+            if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-nonlocal']:
                 attn.data.masked_fill_(attn_mask, -float('inf'))
                 # attn.data.masked_fill_(attn_mask, -1e+32)
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
-        if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder']:
+        if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-nonlocal']:
             attn = self.softmax(attn)
             attn.data.masked_fill_(torch.isnan(attn), 0)
             # shp = attn.size()
