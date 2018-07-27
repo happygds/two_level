@@ -49,7 +49,7 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1))
         elif self.kernel_type == 'highorder-nonlocal':
             self.highorder_layer = MultiHeadAttention(
-            1, d_model, d_model, d_model, dropout=attn_dropout, kernel_type='self_attn')
+                1, d_model, d_model, d_model, dropout=attn_dropout, kernel_type='self_attn')
             
 
     def forward(self, q, k, v, attn_mask=None):
