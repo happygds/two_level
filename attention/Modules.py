@@ -87,7 +87,9 @@ class ScaledDotProductAttention(nn.Module):
             if self.kernel_type in ['highorder']:
                 conv_attn = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
                 conv_attn = self.conv_layers(conv_attn).transpose(0, 1).contiguous().view((-1,) + attn.size()[1:])
-                attn = conv_attn / conv_attn.sum(dim=2, keepdim=True).clamp(1e-14)
+                attn = conv_attn
+                attn.data.masked_fill_(attn_mask, 0)
+                attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
