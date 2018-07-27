@@ -47,7 +47,7 @@ class ScaledDotProductAttention(nn.Module):
                                             #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
                                             #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(8*self.n_head))
+                                             nn.BatchNorm2d(self.n_head))
         elif self.kernel_type == 'highorder-nonlocal':
             self.highorder_attn = MultiHeadAttention(
                 1, d_model, d_model, d_model, dropout=attn_dropout, kernel_type='self_attn')
