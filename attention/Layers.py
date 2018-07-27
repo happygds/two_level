@@ -31,6 +31,8 @@ class Local_EncoderLayer(nn.Module):
         self.local_type = local_type
         self.local_attn = MultiHeadAttention(
             n_head//4, d_model, d_k*4, d_v*4, dropout=dropout, kernel_type='self_attn')
+        if self.local_type == 'diff':
+            self.layernorm = nn.LayerNorm(d_model)
 
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
@@ -46,6 +48,7 @@ class Local_EncoderLayer(nn.Module):
             enc_output, enc_slf_attn = self.slf_attn(
                 local_output, local_output, local_output, attn_mask=slf_attn_mask)
         elif self.local_type == 'diff':
+            enc_input = self.layernorm(enc_input)
             enc_output, enc_slf_attn = self.slf_attn(
                 enc_input - local_output, enc_input - local_output, 
                 enc_input - local_output, attn_mask=slf_attn_mask)
