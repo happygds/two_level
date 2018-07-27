@@ -43,7 +43,7 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder':
             self.reduce = nn.Conv2d(self.n_head, self.n_head, 1)
             self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
+                                             nn.BatchNorm2d(8*self.n_head), nn.SELU(),
                                             #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
                                             #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1))
@@ -70,10 +70,9 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             # print(attn.mean(), attn.std())
-            attn.data.masked_fill_(attn_mask, 0)
             attn_reshape = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
-            conv_attn_mask = attn_mask.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
-            attn_reshape.data.masked_fill_(conv_attn_mask, 0)
+            # conv_attn_mask = attn_mask.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
+            # attn_reshape.data.masked_fill_(conv_attn_mask, 0)
             conv_attn = self.conv_layers(attn_reshape) + self.reduce(attn_reshape)
             attn = conv_attn.transpose(0, 1).contiguous().view(attn.size())
         elif self.kernel_type == 'highorder-nonlocal':
