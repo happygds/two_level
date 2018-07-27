@@ -191,12 +191,12 @@ class BinaryDataSet(data.Dataset):
         # num_sampled_frames = len(frame_ticks)
         pos_ind = torch.from_numpy(frame_ticks).long()
 
-        # num_feat = feat.shape[0]
-        # if num_feat % self.num_local != 0:
-        #     tmp = 8 - num_feat % self.num_local
-        #     feat = np.concatenate((feat, np.zeros((tmp, feat.shape[1]), dtype='float32')), dim=1)
+        num_feat = feat.shape[0]
+        if num_feat < self.sample_duration:
+            feat = np.concatenate([feat, np.zeros((self.sample_duration-num_feat, feat.shape[1]), dtype='float32')], axis=1)
+        feat_mask = (np.abs(feat).mean(axis=1) > 0.).astype('float32')
 
-        return torch.from_numpy(np.expand_dims(feat, axis=0)), pos_ind
+        return torch.from_numpy(np.expand_dims(feat, axis=0)), torch.from_numpy(np.expand_dims(feat_mask, axis=0)), num_feat, pos_ind
 
     def __len__(self):
         return len(self.video_list) * self.epoch_multiplier

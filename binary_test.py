@@ -117,15 +117,13 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     net.cuda()
     while True:
         index = index_queue.get()
-        feature, pos_ind = dataset[index]
-        feature = torch.autograd.Variable(feature).cuda()
-        pos_ind = torch.autograd.Variable(pos_ind).cuda()
+        feature, feature_mask, num_feat, pos_ind = dataset[index]
+        feature = feature.cuda()
+        feature_mask = feature_mask.cuda()
+        pos_ind = pos_ind.cuda()
         with torch.no_grad():
-            if feature.size()[1] > 1:
-                output = net(feature, pos_ind)
-                output = output[0].cpu().numpy()
-            else:
-                output = np.asarray([0, 1]).reshape((1, 2)).astype('float32')
+            output = net(feature, pos_ind, feature_mask=feature_mask)
+            output = output[0].cpu().numpy()[:num_feat]
         # nframes = len(output) * args.frame_interval
         # output = np.interp(
         #     np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output[:, 1])
