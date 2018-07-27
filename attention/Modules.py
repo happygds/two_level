@@ -69,6 +69,7 @@ class ScaledDotProductAttention(nn.Module):
             conv_attn_mask = attn_mask.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             conv_attn.data.masked_fill_(conv_attn_mask, 0)
             conv_attn = self.conv1(conv_attn)
+            conv_attn_mask = conv_attn_mask[:, :1, :, :].expand(-1, 8*self.n_head, -1, -1)
             conv_attn.data.masked_fill_(conv_attn_mask, 0)
             conv_attn = self.conv2(conv_attn)
             conv_attn.data.masked_fill_(conv_attn_mask, 0)
