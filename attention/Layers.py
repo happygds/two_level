@@ -45,21 +45,10 @@ class Local_EncoderLayer(nn.Module):
         if self.local_type == 'qkv':
             enc_output, enc_slf_attn = self.slf_attn(
                 local_output, local_output, local_output, attn_mask=slf_attn_mask)
-        elif self.local_type == 'kv':
+        elif self.local_type == 'diff':
             enc_output, enc_slf_attn = self.slf_attn(
-                enc_input, local_output, local_output, attn_mask=slf_attn_mask)
-        elif self.local_type == 'v':
-            enc_output, enc_slf_attn = self.slf_attn(
-                enc_input, enc_input, local_output, attn_mask=slf_attn_mask)
-        elif self.local_type == 'qv':
-            enc_output, enc_slf_attn = self.slf_attn(
-                local_output, enc_input, local_output, attn_mask=slf_attn_mask)
-        elif self.local_type == 'qk':
-            enc_output, enc_slf_attn = self.slf_attn(
-                local_output, local_output, enc_input, attn_mask=slf_attn_mask)
-        elif self.local_type == 'q':
-            enc_output, enc_slf_attn = self.slf_attn(
-                local_output, enc_input, enc_input, attn_mask=slf_attn_mask)
+                enc_input - local_output, enc_input - local_output, enc_input - local_output, attn_mask=slf_attn_mask)
+            enc_output = enc_output + local_output
         else:
             raise NotImplementedError()
         # enc_output = self.pos_ffn_slf(enc_output)
