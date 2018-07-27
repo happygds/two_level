@@ -41,9 +41,12 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'addition':
             self.fc = nn.Sequential(nn.Tanh(), nn.Linear(d_k, 1))
         elif self.kernel_type == 'highorder':
-            self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1), nn.ReLU(),
-                                             nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1), nn.ReLU(),
-                                             nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1), )
+            self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1),
+                                             nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
+                                            #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
+                                            #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
+                                             nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
+                                             nn.BatchNorm2d(self.n_head))
         elif self.kernel_type == 'highorder-nonlocal':
             self.split = nn.Conv2d(self.n_head, 3*self.n_head, 1)
             
@@ -66,13 +69,12 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             # print(attn.mean(), attn.std())
-            attn.data.masked_fill_(attn_mask, -float('inf'))
+            attn.data.masked_fill_(attn_mask, 0)
             attn_reshape = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             # conv_attn_mask = attn_mask.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             # attn_reshape.data.masked_fill_(conv_attn_mask, 0)
             conv_attn = self.conv_layers(attn_reshape)
             attn = conv_attn.transpose(0, 1).contiguous().view(attn.size()) + attn
-            attn.data.masked_fill_(torch.isnan(attn), -float('inf'))
         elif self.kernel_type == 'highorder-nonlocal':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             attn_reshape = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
