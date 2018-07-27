@@ -48,7 +48,7 @@ class ScaledDotProductAttention(nn.Module):
                                             #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1))
         elif self.kernel_type == 'highorder-nonlocal':
-            self.highorder_layer = MultiHeadAttention(
+            self.highorder_attn = MultiHeadAttention(
                 1, d_model, d_model, d_model, dropout=attn_dropout, kernel_type='self_attn')
             
 
@@ -79,7 +79,7 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder-nonlocal':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             # print(attn.mean(), attn.std())
-            attn, _ = self.slf_attn(
+            attn, _ = self.highorder_attn(
                 attn, attn, attn, attn_mask=attn_mask)
         else:
             raise NotImplementedError()
