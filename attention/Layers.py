@@ -47,7 +47,8 @@ class Local_EncoderLayer(nn.Module):
                 local_output, local_output, local_output, attn_mask=slf_attn_mask)
         elif self.local_type == 'diff':
             enc_output, enc_slf_attn = self.slf_attn(
-                enc_input - local_output, enc_input - local_output, enc_input - local_output, attn_mask=slf_attn_mask)
+                enc_input - local_output, enc_input - local_output, 
+                enc_input - local_output, attn_mask=slf_attn_mask)
             enc_output = enc_output + local_output
         else:
             raise NotImplementedError()
