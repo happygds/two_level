@@ -41,7 +41,6 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'addition':
             self.fc = nn.Sequential(nn.Tanh(), nn.Linear(d_k, 1))
         elif self.kernel_type == 'highorder':
-            self.reduce = nn.Conv2d(self.n_head, self.n_head, 1)
             self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1),
                                              nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
                                             #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
@@ -49,8 +48,7 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
                                              nn.BatchNorm2d(self.n_head))
         elif self.kernel_type == 'highorder-nonlocal':
-            self.highorder_attn = MultiHeadAttention(
-                1, d_model, d_model, d_model, dropout=attn_dropout, kernel_type='self_attn')
+            self.split = nn.Conv2d(self.n_head, 3*self.n_head, 1)
             
 
     def forward(self, q, k, v, attn_mask=None):
@@ -75,13 +73,19 @@ class ScaledDotProductAttention(nn.Module):
             attn_reshape = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             # conv_attn_mask = attn_mask.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             # attn_reshape.data.masked_fill_(conv_attn_mask, 0)
-            conv_attn = self.conv_layers(attn_reshape) + self.reduce(attn_reshape)
-            attn = conv_attn.transpose(0, 1).contiguous().view(attn.size())
+            conv_attn = self.conv_layers(attn_reshape)
+            attn = conv_attn.transpose(0, 1).contiguous().view(attn.size()) + attn
         elif self.kernel_type == 'highorder-nonlocal':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
-            # print(attn.mean(), attn.std())
-            attn, _ = self.highorder_attn(
-                attn, attn, attn, attn_mask=attn_mask)
+            attn_reshape = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
+            conv_attn_mask = attn_mask.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous().view(attn_reshape.size()[0], self.n_head, -1)
+            conv_attn = self.split(attn_reshape).view(attn_reshape.size()[0], 3*self.n_head, -1)
+            q_attn, k_attn, v_attn = torch.split(conv_attn, self.n_head, dim=1)
+            q_attn.data.masked_fill_(conv_attn_mask, -float('inf'))
+            k_attn.data.masked_fill_(conv_attn_mask, -float('inf'))
+            qk_attn = torch.bmm(q_attn.transpose(1, 2), k_attn)
+            qk_attn.data.masked_fill_(torch.isnan(qk_attn), -float('inf'))
+            conv_attn = torch.bmm(v_attn, F.softmax(qk_attn, dim=1)) + attn
         else:
             raise NotImplementedError()
 
