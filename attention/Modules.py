@@ -44,8 +44,8 @@ class ScaledDotProductAttention(nn.Module):
             self.reduce = nn.Conv2d(self.n_head, self.n_head, 1)
             self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1),
                                              nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
-                                             nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
+                                            #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
+                                            #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
                                              nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1))
         elif self.kernel_type == 'highorder-nonlocal':
             self.conv_reduce = nn.Conv2d(self.n_head, 3*self.n_head, 1)
