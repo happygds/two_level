@@ -192,8 +192,8 @@ class BinaryDataSet(data.Dataset):
         pos_ind = torch.from_numpy(frame_ticks).long()
 
         num_feat = feat.shape[0]
-        if num_feat < self.sample_duration:
-            feat = np.concatenate([feat, np.zeros((self.sample_duration-num_feat, feat.shape[1]), dtype='float32')], axis=0)
+        # if num_feat < self.sample_duration:
+        #     feat = np.concatenate([feat, np.zeros((self.sample_duration-num_feat, feat.shape[1]), dtype='float32')], axis=0)
         feat_mask = (np.abs(feat).mean(axis=1) > 0.).astype('float32')
 
         return torch.from_numpy(np.expand_dims(feat, axis=0)), torch.from_numpy(np.expand_dims(feat_mask, axis=0)), num_feat, pos_ind
