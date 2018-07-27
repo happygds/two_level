@@ -41,12 +41,9 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'addition':
             self.fc = nn.Sequential(nn.Tanh(), nn.Linear(d_k, 1))
         elif self.kernel_type == 'highorder':
-            self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
-                                            #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
-                                            #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
-                                             nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(self.n_head))
+            self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1), nn.ReLU(),
+                                             nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1), nn.ReLU(),
+                                             nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1), )
         elif self.kernel_type == 'highorder-nonlocal':
             self.split = nn.Conv2d(self.n_head, 3*self.n_head, 1)
             
