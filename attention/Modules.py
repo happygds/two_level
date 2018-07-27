@@ -69,12 +69,13 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             # print(attn.mean(), attn.std())
-            attn.data.masked_fill_(attn_mask, 0)
+            attn.data.masked_fill_(attn_mask, -float('inf'))
             attn_reshape = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             # conv_attn_mask = attn_mask.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             # attn_reshape.data.masked_fill_(conv_attn_mask, 0)
             conv_attn = self.conv_layers(attn_reshape)
             attn = conv_attn.transpose(0, 1).contiguous().view(attn.size()) + attn
+            attn.data.masked_fill_(torch.isnan(attn), -float('inf'))
         elif self.kernel_type == 'highorder-nonlocal':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             attn_reshape = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
