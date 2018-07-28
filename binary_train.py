@@ -103,7 +103,7 @@ def main():
     #                             args.lr,
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay, nesterov=False)
-
+    patience = 0
     for epoch in range(args.start_epoch, args.epochs):
         # adjust_learning_rate(optimizer, epoch, args.lr_steps)
         # train for one epoch
@@ -116,6 +116,12 @@ def main():
 
         # remember best prec@1 and save checkpoint
             is_best = loss < best_loss
+            if is_best:
+                patience = 0
+            else:
+                patience += 1
+            if patience > 3:
+                break
             best_loss = min(loss, best_loss)
             save_checkpoint({
                 'epoch': epoch + 1,
