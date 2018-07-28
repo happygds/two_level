@@ -47,6 +47,7 @@ class Local_EncoderLayer(nn.Module):
         if self.local_type == 'qkv':
             enc_output, enc_slf_attn = self.slf_attn(
                 enc_input, enc_input, enc_input, attn_mask=slf_attn_mask)
+            enc_output += local_output
         elif self.local_type == 'diff':
             enc_input = self.layernorm(enc_input)
             enc_output, enc_slf_attn = self.slf_attn(
