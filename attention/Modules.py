@@ -149,7 +149,7 @@ class MultiHeadAttention(nn.Module):
         d_k, d_v = self.d_k, self.d_v
         n_head = self.n_head
 
-        residual = q
+        residual = v
 
         mb_size, len_q, d_model = q.size()
         mb_size, len_k, d_model = k.size()
