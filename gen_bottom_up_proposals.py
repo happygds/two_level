@@ -148,7 +148,7 @@ def gen_prop(v):
     frm_interval = v.frame_interval
     frm_cnt = v.frame_cnt
     topk_cls = [0]
-    topk_labels = label_frame_by_threshold(scores, topk_cls, bw=3, thresh=[.5, .6, .7, .8, .9, .95, ], multicrop=False)
+    topk_labels = label_frame_by_threshold(scores, topk_cls, bw=3, thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95, ], multicrop=False)
 
     bboxes = []
     tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
@@ -167,7 +167,7 @@ def gen_prop(v):
 
     # filter out too short proposals
     pr_box = list(filter(lambda b: b[1] - b[0] > args.minimum_len, pr_box))
-    return v.id, pr_box, [x[3] for x in bboxes]
+    return v.id, pr_box, [x[3] / (float(x[1] - x[0])) for x in bboxes]
 
 
 def call_back(rst):
