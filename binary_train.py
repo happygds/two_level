@@ -107,6 +107,8 @@ def main():
     for epoch in range(args.start_epoch, args.epochs):
         # adjust_learning_rate(optimizer, epoch, args.lr_steps)
         # train for one epoch
+        if patience > 3:
+            break
         train(train_loader, model, binary_criterion, optimizer, epoch)
 
         # evaluate on validation list
@@ -120,8 +122,6 @@ def main():
                 patience = 0
             else:
                 patience += 1
-            if patience > 3:
-                break
             best_loss = min(loss, best_loss)
             save_checkpoint({
                 'epoch': epoch + 1,
