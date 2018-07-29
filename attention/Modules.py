@@ -20,7 +20,8 @@ class CE_Criterion(nn.Module):
         # output = output * (1. - x) ** self.gamma
         if self.use_weight:
             output *= weight.unsqueeze(1)
-            output = torch.sum(output.mean(2) * mask, dim=1) / torch.sum(mask, dim=1)
+            output = torch.sum(output.mean(2) * mask, dim=1) / \
+                torch.sum(mask, dim=1)
             # output = torch.sum(output.mean(2) * mask) / torch.sum(mask)
         return torch.mean(output)
 
@@ -88,19 +89,21 @@ class ScaledDotProductAttention(nn.Module):
             qsize = q.size()
             _, topk_inds = torch.topk(attn, num_local, dim=2)
             topk_inds = topk_inds.clamp(0, qsize[1] - 1)
-            topk_inds = topk_inds.unsqueeze(3).expand(-1, -1, -1, qsize[2]).long()
+            topk_inds = topk_inds.unsqueeze(
+                3).expand(-1, -1, -1, qsize[2]).long()
+
+            topk_mask = attn_mask[:, 0].unsqueeze(2).expand(-1, -1, qsize[2])
+            q.data.masked_fill_(attn_topk_mask, 0)
+            k.data.masked_fill_(attn_topk_mask, 0)
+
             q_topk, k_topk = q.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
                 k.unsqueeze(2).expand(-1, -1, qsize[1], -1)
             q_topk, k_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
-                torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2])
-            attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper / num_local
+                torch.gather(k_topk, 2, topk_inds).view(
+                    qsize[0], qsize[1], num_local*qsize[2])
+            attn_topk = torch.bmm(q_topk, k_topk.transpose(
+                1, 2)) / self.temper / num_local
             attn += attn_topk
-            
-            # attn_topk_mask = attn_mask[:, 0].unsqueeze(2).expand(-1, -1, num_local).contiguous(
-            # ).view(qsize[0], qsize[1]*num_local).unsqueeze(1).expand(attn_topk.size())
-            # attn_topk_mask = torch.gt(
-            #     attn_topk_mask + attn_topk_mask.transpose(1, 2), 0)
-            # attn_topk.data.masked_fill_(attn_topk_mask, -float('inf'))
 
         else:
             raise NotImplementedError()
