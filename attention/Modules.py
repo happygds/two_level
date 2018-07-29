@@ -101,7 +101,9 @@ class ScaledDotProductAttention(nn.Module):
             attn_topk_mask = torch.gt(
                 attn_topk_mask + attn_topk_mask.transpose(1, 2), 0)
             attn_topk.data.masked_fill_(attn_topk_mask, -float('inf'))
-            attn_topk = self.dropout(F.softmax(attn_topk, dim=2))
+            attn_topk = F.softmax(attn_topk, dim=2)
+            attn_topk.data.masked_fill_(attn_topk_mask, 0)
+            attn_topk = self.dropout(attn_topk)
             attn_topk.data.masked_fill_(torch.isnan(attn_topk), 0)
             attn_topk = torch.bmm(attn_topk, v_topk).view(
                 qsize[0], qsize[1], num_local, qsize[2]).mean(2)
