@@ -93,15 +93,17 @@ class ScaledDotProductAttention(nn.Module):
                 v.unsqueeze(2).expand(-1, -1, qsize[1], -1)
             q_topk, k_topk, v_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2]), \
                 torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2]), \
-                torch.gather(v_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2])
+                torch.gather(v_topk, 2, topk_inds).view(
+                    qsize[0], qsize[1]*num_local, qsize[2])
             attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper
-            attn_topk_mask = attn_mask[:, 0].unsqueeze(
-                2).expand(-1, -1, num_local).contiguous().view(qsize[0], qsize[1]*num_local).unsqueeze(1).expand(attn_topk.size())
+            attn_topk_mask = attn_mask[:, 0].unsqueeze(2).expand(-1, -1, num_local).contiguous(
+            ).view(qsize[0], qsize[1]*num_local).unsqueeze(1).expand(attn_topk.size())
             attn_topk_mask = torch.gt(
                 attn_topk_mask + attn_topk_mask.transpose(1, 2), 0)
             attn_topk.data.masked_fill_(attn_topk_mask, -float('inf'))
             attn_topk = self.dropout(F.softmax(attn_topk, dim=2))
-            attn_topk = torch.bmm(attn_topk, v_topk).view(qsize[0], qsize[1], num_local, qsize[2]).mean(2)
+            attn_topk = torch.bmm(attn_topk, v_topk).view(
+                qsize[0], qsize[1], num_local, qsize[2]).mean(2)
         else:
             raise NotImplementedError()
 
