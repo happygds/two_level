@@ -128,8 +128,6 @@ class ScaledDotProductAttention(nn.Module):
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
-        if self.kernel_type in ['highorder-nonlocal']:
-            output += attn_topk
 
         return output, attn
 
