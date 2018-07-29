@@ -98,7 +98,7 @@ class ScaledDotProductAttention(nn.Module):
             attn_topk.data.masked_fill_(attn_topk_mask, -float('inf'))
             attn_topk = F.softmax(attn_topk, dim=2).view(qsize[0], qsize[1], num_local, qsize[1], num_local).transpose(2, 3)
             attn_topk = attn_topk.view(-1, 1, num_local, num_local)
-            attn_topk = attn_topk.mean(3).mean(2).mean(1).view(attn.size()) + attn
+            attn_topk = attn_topk.mean(3).mean(2).mean(1).view(attn.size())
         else:
             raise NotImplementedError()
 
@@ -118,9 +118,8 @@ class ScaledDotProductAttention(nn.Module):
         if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-nonlocal']:
             attn = self.softmax(attn)
             attn.data.masked_fill_(torch.isnan(attn), 0)
-            # shp = attn.size()
-            # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
-            # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
+            if self.kernel_type in ['highorder-nonlocal']:
+                attn += attn_topk
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
