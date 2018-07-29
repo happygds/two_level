@@ -87,7 +87,7 @@ class ScaledDotProductAttention(nn.Module):
             attn.data.masked_fill_(attn_mask, -1e+13)
             qsize = q.size()
             topk_inds = torch.topk(attn, num_local, dim=2)[1].unsqueeze(
-                3).expand(-1, -1, -1, qsize[2])
+                3).expand(-1, -1, -1, qsize[2]).requires_grad_(False)
             q_topk, k_topk, v_topk = q.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
                 k.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
                 v.unsqueeze(2).expand(-1, -1, qsize[1], -1)
