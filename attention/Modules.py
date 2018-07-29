@@ -7,6 +7,7 @@ import numpy as np
 # from .torchsparseattn.fused import Fusedmax, FusedProxFunction
 from sparsemax import Sparsemax
 
+
 class CE_Criterion(nn.Module):
     def __init__(self, use_weight=True, gamma=0.1):
         super(CE_Criterion, self).__init__()
@@ -19,9 +20,11 @@ class CE_Criterion(nn.Module):
         # output = output * (1. - x) ** self.gamma
         if self.use_weight:
             output *= weight.unsqueeze(1)
-            output = torch.sum(output.mean(2) * mask, dim=1) / torch.sum(mask, dim=1)
+            output = torch.sum(output.mean(2) * mask, dim=1) / \
+                torch.sum(mask, dim=1)
             # output = torch.sum(output.mean(2) * mask) / torch.sum(mask)
         return torch.mean(output)
+
 
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
@@ -42,14 +45,15 @@ class ScaledDotProductAttention(nn.Module):
             self.fc = nn.Sequential(nn.Tanh(), nn.Linear(d_k, 1))
         elif self.kernel_type == 'highorder':
             self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
-                                            #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
-                                            #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
-                                             nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
+                                             nn.BatchNorm2d(
+                                                 8*self.n_head), nn.ReLU(),
+                                             #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
+                                             #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
+                                             nn.Conv2d(
+                                                 8*self.n_head, self.n_head, 3, padding=1),
                                              nn.BatchNorm2d(self.n_head))
         elif self.kernel_type == 'highorder-nonlocal':
             self.split = nn.Conv2d(self.n_head, 3*self.n_head, 1)
-            
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -65,27 +69,39 @@ class ScaledDotProductAttention(nn.Module):
             k = k.unsqueeze(1)
             attn = self.fc(q + k).squeeze(3)
         elif self.kernel_type == 'inner_prod':
-            attn = torch.bmm(q, k.transpose(1, 2)) / (q * q).sum(2).unsqueeze(1)
+            attn = torch.bmm(q, k.transpose(1, 2)) / \
+                (q * q).sum(2).unsqueeze(1)
         elif self.kernel_type == 'highorder':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             # print(attn.mean(), attn.std())
             attn.data.masked_fill_(attn_mask, 0)
-            attn_reshape = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
+            attn_reshape = attn.view(
+                (self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             # conv_attn_mask = attn_mask.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
             # attn_reshape.data.masked_fill_(conv_attn_mask, 0)
             conv_attn = self.conv_layers(attn_reshape)
-            attn = conv_attn.transpose(0, 1).contiguous().view(attn.size()) + attn
+            attn = conv_attn.transpose(
+                0, 1).contiguous().view(attn.size()) + attn
         elif self.kernel_type == 'highorder-nonlocal':
+            num_local = 7
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
-            attn_reshape = attn.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous()
-            conv_attn_mask = attn_mask.view((self.n_head, -1) + attn.size()[1:]).transpose(0, 1).contiguous().view(attn_reshape.size()[0], self.n_head, -1)
-            conv_attn = self.split(attn_reshape).view(attn_reshape.size()[0], 3*self.n_head, -1)
-            q_attn, k_attn, v_attn = torch.split(conv_attn, self.n_head, dim=1)
-            q_attn.data.masked_fill_(conv_attn_mask, -float('inf'))
-            k_attn.data.masked_fill_(conv_attn_mask, -float('inf'))
-            qk_attn = torch.bmm(q_attn.transpose(1, 2), k_attn)
-            qk_attn.data.masked_fill_(torch.isnan(qk_attn), -float('inf'))
-            conv_attn = torch.bmm(v_attn, F.softmax(qk_attn, dim=1)) + attn
+            qsize = q.size()
+            topk_inds = torch.topk(attn, num_local, dim=2)[1].unsqueeze(
+                3).expand(-1, -1, -1, qsize[2])
+            q_topk, k_topk, v_topk = q.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
+                k.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
+                v.unsqueeze(2).expand(-1, -1, qsize[1], -1)
+            q_topk, k_topk, v_topk = torch.gather(q_topk, topk_inds).view((qsize[0], qsize[1]*num_local, qsize[2])), \
+                torch.gather(k_topk, topk_inds).view((qsize[0], qsize[1]*num_local, qsize[2])), \
+                torch.gather(v_topk, topk_inds).view((qsize[0], qsize[1]*num_locaL, qsize[2]))
+            attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper
+            attn_topk_mask = attn_mask[:, 0].unsqueeze(
+                2).expand(-1, -1, num_local).unsqueeze(1).expand(attn_topk_mask.size())
+            attn_topk_mask = torch.gt(
+                attn_topk_mask + attn_topk_mask.transpose(1, 2), 0)
+            attn_topk.data.masked_fill_(attn_topk_mask, -float('inf'))
+            attn_topk = self.dropout(F.softmax(attn_topk, dim=2))
+            attn_topk = torch.bmm(attn_topk, v_topk).view((qsize[0], qsize[1], num_local, qsize[2])).mean(2)
         else:
             raise NotImplementedError()
 
@@ -93,9 +109,9 @@ class ScaledDotProductAttention(nn.Module):
         if attn_mask is not None:
 
             assert attn_mask.size() == attn.size(), \
-                    'Attention mask shape {} mismatch ' \
-                    'with Attention logit tensor shape ' \
-                    '{}.'.format(attn_mask.size(), attn.size())
+                'Attention mask shape {} mismatch ' \
+                'with Attention logit tensor shape ' \
+                '{}.'.format(attn_mask.size(), attn.size())
             if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-nonlocal']:
                 attn.data.masked_fill_(attn_mask, -float('inf'))
                 # attn.data.masked_fill_(attn_mask, -1e+32)
@@ -112,9 +128,10 @@ class ScaledDotProductAttention(nn.Module):
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
+        if self.kernel_type in ['highorder-nonlocal']:
+            otuput += attn_topk
 
         return output, attn
-
 
 
 class MultiHeadAttention(nn.Module):
@@ -192,7 +209,6 @@ class MultiHeadAttention(nn.Module):
             return self.layer_norm(outputs + residual), attns
         else:
             return self.layer_norm(outputs), cluster_outputs
-
 
 
 class PositionwiseFeedForward(nn.Module):
