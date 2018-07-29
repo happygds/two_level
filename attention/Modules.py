@@ -104,6 +104,8 @@ class ScaledDotProductAttention(nn.Module):
             attn_topk.data.masked_fill_(torch.isnan(attn_topk), 0)
             attn_topk = torch.bmm(attn_topk, v_topk).view(
                 qsize[0], qsize[1], num_local, qsize[2]).mean(2)
+            import pdb
+            pdb.set_trace()
         else:
             raise NotImplementedError()
 
