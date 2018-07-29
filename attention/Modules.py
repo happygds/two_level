@@ -83,7 +83,7 @@ class ScaledDotProductAttention(nn.Module):
             attn = conv_attn.transpose(
                 0, 1).contiguous().view(attn.size()) + attn
         elif self.kernel_type == 'highorder-nonlocal':
-            num_local = 7
+            num_local = 5
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             qsize = q.size()
             topk_inds = torch.topk(attn, num_local, dim=2)[1].unsqueeze(
