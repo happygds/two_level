@@ -93,8 +93,8 @@ class ScaledDotProductAttention(nn.Module):
                 3).expand(-1, -1, -1, qsize[2]).long()
 
             topk_mask = attn_mask[:, 0].unsqueeze(2).expand(-1, -1, qsize[2])
-            q.data.masked_fill_(attn_topk_mask, 0)
-            k.data.masked_fill_(attn_topk_mask, 0)
+            q.data.masked_fill_(topk_mask, 0)
+            k.data.masked_fill_(topk_mask, 0)
 
             q_topk, k_topk = q.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
                 k.unsqueeze(2).expand(-1, -1, qsize[1], -1)
