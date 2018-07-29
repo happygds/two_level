@@ -89,24 +89,19 @@ class ScaledDotProductAttention(nn.Module):
             _, topk_inds = torch.topk(attn, num_local, dim=2)
             topk_inds = topk_inds.clamp(0, qsize[1] - 1)
             topk_inds = topk_inds.unsqueeze(3).expand(-1, -1, -1, qsize[2]).long()
-            q_topk, k_topk, v_topk = q.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
-                k.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
-                v.unsqueeze(2).expand(-1, -1, qsize[1], -1)
-            q_topk, k_topk, v_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2]), \
-                torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2]), \
-                torch.gather(v_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2])
-            attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper
-            attn_topk_mask = attn_mask[:, 0].unsqueeze(2).expand(-1, -1, num_local).contiguous(
-            ).view(qsize[0], qsize[1]*num_local).unsqueeze(1).expand(attn_topk.size())
-            attn_topk_mask = torch.gt(
-                attn_topk_mask + attn_topk_mask.transpose(1, 2), 0)
-            attn_topk.data.masked_fill_(attn_topk_mask, -float('inf'))
-            attn_topk = F.softmax(attn_topk, dim=2)
-            attn_topk.data.masked_fill_(attn_topk_mask, 0)
-            attn_topk = self.dropout(attn_topk)
-            attn_topk.data.masked_fill_(torch.isnan(attn_topk), 0)
-            attn_topk = torch.bmm(attn_topk, v_topk).view(
-                qsize[0], qsize[1], num_local, qsize[2]).mean(2)
+            q_topk, k_topk = q.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
+                k.unsqueeze(2).expand(-1, -1, qsize[1], -1)
+            q_topk, k_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
+                torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2])
+            attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper / num_local
+            attn += attn_topk
+            
+            # attn_topk_mask = attn_mask[:, 0].unsqueeze(2).expand(-1, -1, num_local).contiguous(
+            # ).view(qsize[0], qsize[1]*num_local).unsqueeze(1).expand(attn_topk.size())
+            # attn_topk_mask = torch.gt(
+            #     attn_topk_mask + attn_topk_mask.transpose(1, 2), 0)
+            # attn_topk.data.masked_fill_(attn_topk_mask, -float('inf'))
+
         else:
             raise NotImplementedError()
 
