@@ -98,7 +98,7 @@ class ScaledDotProductAttention(nn.Module):
             #     attn_topk_mask + attn_topk_mask.transpose(1, 2), 0)
             # attn_topk.data.masked_fill_(attn_topk_mask, -float('inf'))
             # attn_topk = F.softmax(attn_topk, dim=2).view(qsize[0], qsize[1], num_local, qsize[1], num_local).transpose(2, 3)
-            attn_topk = attn_topk.view(qsize[0], qsize[1], num_local, qsize[1], num_local).transpose(2, 3)
+            attn_topk = attn_topk.view(qsize[0], qsize[1], num_local, qsize[1], num_local).transpose(2, 3).contiguous()
             attn_topk = attn_topk.view(-1, 1, num_local, num_local)
             attn = attn_topk.mean(3).mean(2).mean(1).view(attn.size()) + attn
         else:
