@@ -85,6 +85,7 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder-nonlocal':
             num_local = 7
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            attn.data.masked_fill_(attn_mask, -float('inf'))
             qsize = q.size()
             topk_inds = torch.topk(attn, num_local, dim=2)[1].unsqueeze(
                 3).expand(-1, -1, -1, qsize[2])
