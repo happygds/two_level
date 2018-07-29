@@ -159,6 +159,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
+        import pdb
+        pdb.set_trace()
 
         loss = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
         losses.update(loss.item(), feature.size(0))
