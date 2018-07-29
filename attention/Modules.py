@@ -20,8 +20,7 @@ class CE_Criterion(nn.Module):
         # output = output * (1. - x) ** self.gamma
         if self.use_weight:
             output *= weight.unsqueeze(1)
-            output = torch.sum(output.mean(2) * mask, dim=1) / \
-                torch.sum(mask, dim=1)
+            output = torch.sum(output.mean(2) * mask, dim=1) / torch.sum(mask, dim=1)
             # output = torch.sum(output.mean(2) * mask) / torch.sum(mask)
         return torch.mean(output)
 
