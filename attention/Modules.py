@@ -93,7 +93,7 @@ class ScaledDotProductAttention(nn.Module):
                 v.unsqueeze(2).expand(-1, -1, qsize[1], -1)
             q_topk, k_topk, v_topk = torch.gather(q_topk, 2, topk_inds).view((qsize[0], qsize[1]*num_local, qsize[2])), \
                 torch.gather(k_topk, 2, topk_inds).view((qsize[0], qsize[1]*num_local, qsize[2])), \
-                torch.gather(v_topk, 2, topk_inds).view((qsize[0], qsize[1]*num_locaL, qsize[2]))
+                torch.gather(v_topk, 2, topk_inds).view((qsize[0], qsize[1]*num_local, qsize[2]))
             attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper
             attn_topk_mask = attn_mask[:, 0].unsqueeze(
                 2).expand(-1, -1, num_local).unsqueeze(1).expand(attn_topk_mask.size())
