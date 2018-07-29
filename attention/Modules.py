@@ -52,8 +52,9 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.Conv2d(
                                                  8*self.n_head, self.n_head, 3, padding=1),
                                              nn.BatchNorm2d(self.n_head))
-        # elif self.kernel_type == 'highorder-nonlocal':
-        #     self.split = nn.Conv2d(self.n_head, 3*self.n_head, 1)
+        elif self.kernel_type == 'highorder-nonlocal':
+            self.q_reduce = nn.Sequential(nn.Linear(7*d_k, 2*d_k), nn.ReLU(), nn.Linear(2*d_k, d_k))
+            self.k_reduce = nn.Sequential(nn.Linear(7*d_k, 2*d_k), nn.ReLU(), nn.Linear(2*d_k, d_k))
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -99,10 +100,10 @@ class ScaledDotProductAttention(nn.Module):
             q_topk, k_topk = q.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
                 k.unsqueeze(2).expand(-1, -1, qsize[1], -1)
             q_topk, k_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
-                torch.gather(k_topk, 2, topk_inds).view(
-                    qsize[0], qsize[1], num_local*qsize[2])
+                torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2])
+            q_topk, k_topk = self.q_reduce(q_topk), self.k_reduce(k_topk)
             attn_topk = torch.bmm(q_topk, k_topk.transpose(
-                1, 2)) / self.temper / num_local
+                1, 2)) / self.temper
             attn += attn_topk
 
         else:
