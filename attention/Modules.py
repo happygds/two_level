@@ -52,8 +52,6 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.Conv2d(
                                                  8*self.n_head, self.n_head, 3, padding=1),
                                              nn.BatchNorm2d(self.n_head))
-        elif self.kernel_type == 'highorder-nonlocal':
-            self.split = nn.Conv2d(self.n_head, 3*self.n_head, 1)
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -83,27 +81,24 @@ class ScaledDotProductAttention(nn.Module):
             attn = conv_attn.transpose(
                 0, 1).contiguous().view(attn.size()) + attn
         elif self.kernel_type == 'highorder-nonlocal':
-            num_local = 5
+            num_local = 7
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             qsize = q.size()
             topk_inds = torch.topk(attn, num_local, dim=2)[1].unsqueeze(
                 3).expand(-1, -1, -1, qsize[2])
-            q_topk, k_topk, v_topk = q.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
-                k.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
-                v.unsqueeze(2).expand(-1, -1, qsize[1], -1)
-            q_topk, k_topk, v_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2]), \
-                torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2]), \
-                torch.gather(v_topk, 2, topk_inds).view(
-                    qsize[0], qsize[1]*num_local, qsize[2])
+            q_topk, k_topk = q.unsqueeze(2).expand(-1, -1, qsize[1], -1), \
+                k.unsqueeze(2).expand(-1, -1, qsize[1], -1)
+            q_topk, k_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2]), \
+                torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1]*num_local, qsize[2])
             attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper
             attn_topk_mask = attn_mask[:, 0].unsqueeze(2).expand(-1, -1, num_local).contiguous(
             ).view(qsize[0], qsize[1]*num_local).unsqueeze(1).expand(attn_topk.size())
             attn_topk_mask = torch.gt(
                 attn_topk_mask + attn_topk_mask.transpose(1, 2), 0)
             attn_topk.data.masked_fill_(attn_topk_mask, -float('inf'))
-            attn_topk = self.dropout(F.softmax(attn_topk, dim=2))
-            attn_topk = torch.bmm(attn_topk, v_topk).view(
-                qsize[0], qsize[1], num_local, qsize[2]).mean(2)
+            attn_topk = F.softmax(attn_topk, dim=2).view(qsize[0], qsize[1], num_local, qsize[1], num_local).tranpose(2, 3)
+            attn_topk = attn_topk.view(-1, 1, num_local, num_local)
+            attn_topk = attn_topk.mean(3).mean(2).mean(1).view(attn.size()) + attn
         else:
             raise NotImplementedError()
 
@@ -130,8 +125,6 @@ class ScaledDotProductAttention(nn.Module):
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
-        if self.kernel_type in ['highorder-nonlocal']:
-            otuput += attn_topk
 
         return output, attn
 
