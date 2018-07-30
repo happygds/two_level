@@ -83,7 +83,7 @@ class ScaledDotProductAttention(nn.Module):
             attn = conv_attn.transpose(
                 0, 1).contiguous().view(attn.size()) + attn
         elif self.kernel_type == 'highorder-nonlocal':
-            num_local = 7
+            num_local = 3
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             attn.data.masked_fill_(attn_mask, -1e+13)
             qsize = q.size()
@@ -136,8 +136,8 @@ class ScaledDotProductAttention(nn.Module):
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
-        # if self.kernel_type in ['highorder-nonlocal']:
-        #     output = self.layernorm(output - output_topk)
+        if self.kernel_type in ['highorder-nonlocal']:
+            output = output - output_topk
 
         return output, attn
 
