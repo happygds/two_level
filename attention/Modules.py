@@ -52,8 +52,8 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.Conv2d(
                                                  8*self.n_head, self.n_head, 3, padding=1),
                                              nn.BatchNorm2d(self.n_head))
-        # elif self.kernel_type == 'highorder-nonlocal':
-        #     self.layernorm = nn.LayerNorm(d_k)
+        elif self.kernel_type == 'highorder-nonlocal':
+            self.reduce = nn.Linear(4*d_k, d_k)
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -109,7 +109,7 @@ class ScaledDotProductAttention(nn.Module):
             attn_topk.data.masked_fill_(attn_mask, -float('inf'))
             attn_topk = self.softmax(attn_topk)
             attn_topk.data.masked_fill_(torch.isnan(attn_topk), 0)
-            output_topk = torch.bmm(self.dropout(attn_topk), v_topk).view(qsize[0], qsize[1], num_local, qsize[2]).mean(2)
+            output_topk = torch.bmm(self.dropout(attn_topk), v_topk)
         else:
             raise NotImplementedError()
 
@@ -137,7 +137,7 @@ class ScaledDotProductAttention(nn.Module):
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
         if self.kernel_type in ['highorder-nonlocal']:
-            output = output - output_topk
+            output = self.reduce(torch.cat([output, output_topk], dim=2))
 
         return output, attn
 
