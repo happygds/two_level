@@ -101,13 +101,13 @@ class ScaledDotProductAttention(nn.Module):
                 v.unsqueeze(1).expand(-1, qsize[1], -1, -1)
             q_topk, k_topk, v_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
                 torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
-                torch.gather(v_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local, qsize[2])
+                torch.gather(v_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2])
             # q_topk, k_topk = self.q_reduce(q_topk), self.k_reduce(k_topk)
             attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper / num_local
             attn_topk.data.masked_fill_(attn_mask, -float('inf'))
             attn_topk = self.softmax(attn_topk)
             attn_topk.data.masked_fill_(torch.isnan(attn_topk), 0)
-            output_topk = torch.bmm(F.dropout(attn_topk, p=0.1), v_topk).mean(2)
+            output_topk = torch.bmm(self.dropout(attn_topk), v_topk).view(qsize[0], qsize[1], num_local, qsize[2]).mean(2)
         else:
             raise NotImplementedError()
 
