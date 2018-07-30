@@ -52,9 +52,8 @@ class ScaledDotProductAttention(nn.Module):
                                              nn.Conv2d(
                                                  8*self.n_head, self.n_head, 3, padding=1),
                                              nn.BatchNorm2d(self.n_head))
-        # elif self.kernel_type == 'highorder-nonlocal':
-        #     self.q_reduce = nn.Sequential(nn.Linear(7*d_k, 2*d_k), nn.ReLU(), nn.Linear(2*d_k, d_k))
-        #     self.k_reduce = nn.Sequential(nn.Linear(7*d_k, 2*d_k), nn.ReLU(), nn.Linear(2*d_k, d_k))
+        elif self.kernel_type == 'highorder-nonlocal':
+            self.reduce = nn.Linear(2*d_k, d_k)
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -97,18 +96,18 @@ class ScaledDotProductAttention(nn.Module):
             q.data.masked_fill_(topk_mask, 0)
             k.data.masked_fill_(topk_mask, 0)
 
-            q_topk, k_topk = q.unsqueeze(1).expand(-1, qsize[1], -1, -1), \
-                k.unsqueeze(1).expand(-1, qsize[1], -1, -1)
-            q_topk, k_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
-                torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2])
-            import pdb
-            pdb.set_trace()
+            q_topk, k_topk, v_topk = q.unsqueeze(1).expand(-1, qsize[1], -1, -1), \
+                k.unsqueeze(1).expand(-1, qsize[1], -1, -1), \
+                v.unsqueeze(1).expand(-1, qsize[1], -1, -1)
+            q_topk, k_topk, v_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
+                torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
+                torch.gather(v_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local, qsize[2])
             # q_topk, k_topk = self.q_reduce(q_topk), self.k_reduce(k_topk)
             attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper / num_local
             attn_topk.data.masked_fill_(attn_mask, -float('inf'))
             attn_topk = self.softmax(attn_topk)
             attn_topk.data.masked_fill_(torch.isnan(attn_topk), 0)
-            output_topk = torch.bmm(self.dropout(attn_topk), v)
+            output_topk = torch.bmm(self.dropout(attn_topk), v_topk).mean(2)
         else:
             raise NotImplementedError()
 
@@ -136,7 +135,7 @@ class ScaledDotProductAttention(nn.Module):
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
         if self.kernel_type in ['highorder-nonlocal']:
-            output = 0.5 * (output_topk + output)
+            output = self.reduce(torch.cat([output, output_topk], dim=2))
 
         return output, attn
 
