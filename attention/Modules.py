@@ -53,7 +53,7 @@ class ScaledDotProductAttention(nn.Module):
                                                  8*self.n_head, self.n_head, 3, padding=1),
                                              nn.BatchNorm2d(self.n_head))
         elif self.kernel_type == 'highorder-nonlocal':
-            self.layernorm = nn.LayerNorm(d_v)
+            self.layernorm = nn.LayerNorm(d_k)
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
