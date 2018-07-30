@@ -86,12 +86,27 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder-nonlocal':
             num_local = 7
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            attn.data.masked_fill_(attn_mask, -1e+13)
             qsize = q.size()
-            attn_topk, topk_inds = torch.topk(attn, num_local, dim=2, sorted=True, largest=True)
-            q_topk, k_topk, v_topk = attn_topk, attn_topk, attn_topk
-            attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper / num_local
-            attn += attn_topk
+            _, topk_inds = torch.topk(attn, num_local, dim=2, sorted=True, largest=True)
+            topk_inds = topk_inds.clamp(0, qsize[1] - 1)
+            topk_inds = topk_inds.unsqueeze(
+                3).expand(-1, -1, -1, qsize[2]).long()
 
+            topk_mask = attn_mask[:, 0].unsqueeze(2).expand(-1, -1, qsize[2])
+            q.data.masked_fill_(topk_mask, 0)
+            k.data.masked_fill_(topk_mask, 0)
+
+            q_topk, k_topk = q.unsqueeze(1).expand(-1, qsize[1], -1, -1), \
+                k.unsqueeze(1).expand(-1, qsize[1], -1, -1)
+            q_topk, k_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
+                torch.gather(k_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2])
+            # q_topk, k_topk = self.q_reduce(q_topk), self.k_reduce(k_topk)
+            attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper / num_local
+            attn_topk.data.masked_fill_(attn_mask, -float('inf'))
+            attn_topk = self.softmax(attn_topk)
+            attn_topk.data.masked_fill_(torch.isnan(attn_topk), 0)
+            output_topk = torch.bmm(self.dropout(attn_topk), v)
         else:
             raise NotImplementedError()
 
@@ -118,6 +133,8 @@ class ScaledDotProductAttention(nn.Module):
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
+        if self.kernel_type in ['highorder-nonlocal']:
+            output += output_topk
 
         return output, attn
 
