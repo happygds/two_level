@@ -107,7 +107,7 @@ class ScaledDotProductAttention(nn.Module):
             attn_topk.data.masked_fill_(attn_mask, -float('inf'))
             attn_topk = self.softmax(attn_topk)
             attn_topk.data.masked_fill_(torch.isnan(attn_topk), 0)
-            output_topk = torch.bmm(self.dropout(attn_topk), v_topk).mean(2)
+            output_topk = torch.bmm(F.dropout(attn_topk, p=0.1), v_topk).mean(2)
         else:
             raise NotImplementedError()
 
