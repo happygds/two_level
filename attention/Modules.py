@@ -85,24 +85,10 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'highorder-nonlocal':
             num_local = 3
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
-            attn.data.masked_fill_(attn_mask, -1e+13)
+            q_corr, k_corr = torch.bmm(q, q.transpose(1, 2)) / self.temper, torch.bmm(k, k.transpose(1, 2)) / self.temper
             qsize = attn.size()
-            _, topk_inds = torch.topk(attn, num_local, dim=2, sorted=True, largest=True)
-            topk_inds = topk_inds.clamp(0, qsize[1] - 1)
-            topk_inds = topk_inds.unsqueeze(
-                3).expand(-1, -1, -1, qsize[2]).long()
-
-            q_topk = attn.unsqueeze(1).expand(-1, qsize[1], -1, -1)
-            q_topk, k_topk, v_topk = torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
-                torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2]), \
-                torch.gather(q_topk, 2, topk_inds).view(qsize[0], qsize[1], num_local*qsize[2])
-            # q_topk, k_topk = self.q_reduce(q_topk), self.k_reduce(k_topk)
-            attn_topk = torch.bmm(q_topk, k_topk.transpose(1, 2)) / self.temper / num_local
-            attn_topk.data.masked_fill_(attn_mask, -float('inf'))
-            attn_topk = self.softmax(attn_topk)
-            attn_topk.data.masked_fill_(torch.isnan(attn_topk), 0)
-            output_topk = torch.bmm(self.dropout(attn_topk), v_topk).view(qsize[0], qsize[1], num_local, qsize[2]).mean(2)
-            attn += output_topk
+            high_attn = torch.bmm(q_corr, k_corr.transpose(1, 2)) / np.power(qsize[1], 0.5)
+            attn += high_attn
         else:
             raise NotImplementedError()
 
