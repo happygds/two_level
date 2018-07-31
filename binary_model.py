@@ -19,6 +19,16 @@ def position_encoding_init(n_position, d_pos_vec):
     position_enc[1:, 1::2] = np.cos(position_enc[1:, 1::2])  # dim 2i+1
     return torch.from_numpy(position_enc).type(torch.FloatTensor)
 
+def score_embedding(position_mat, feat_dim, wave_length=1000):
+    feat_range = torch.arange(0, feat_dim / 2)
+    dim_mat = torch.pow(wave_length, (2. / feat_dim) * feat_range)
+    dim_mat = dim_mat.view(1, 1, -1))
+    position_mat = (100.0 * position_mat).unsqueeze(2)
+    div_mat = torch.div(position_mat, dim_mat)
+    sin_mat = torch.sin(div_mat)
+    cos_mat = torch.cos(div_mat)
+    embedding = torch.cat([sin_mat, cos_mat], dim=2)
+    return embedding
 
 def get_attn_dilated_mask(attn_mask, num_local=16):
     ''' get the dilated mask to utilize the global information '''
@@ -93,7 +103,7 @@ class BinaryClassifier(torch.nn.Module):
                             args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
                 for _ in range(args.n_layers)])
 
-        self.num_segments = course_segment
+        self.d_model = args.d_model
         self.dropout = dropout
         self.test_mode = test_mode
         self.binary_classifier = nn.Linear(args.d_model, num_class)
@@ -101,6 +111,9 @@ class BinaryClassifier(torch.nn.Module):
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
         # self.layer_norm = nn.LayerNorm(args.d_model)
+        self.score_att_layer = EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+                                            args.d_v, dropout=0.1, kernel_type='self_att')
+        self.binary_score = nn.Linear(args.d_model, num_class)
 
     def forward(self, feature, pos_ind, feature_mask=None, return_attns=False):
         # Word embedding look up
@@ -133,9 +146,15 @@ class BinaryClassifier(torch.nn.Module):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
             enc_slf_attns += [enc_slf_attn]
+        score_output = self.softmax(self.binary_classifier(enc_output))
 
-        enc_output = self.softmax(self.binary_classifier(enc_output))
-        return enc_output
+        # use scores embedding
+        score_embed = score_embedding(score_output[:, :, 1], self.d_model)
+        score_att_output, _ = self.score_att_layer(
+                enc_output, slf_attn_mask=enc_slf_attn_mask)
+        score_att_output = self.softmax(self.binary_score(score_att_output))
+
+        return [score_output, score_att_output]
 
     def get_trainable_parameters(self):
         # ''' Avoid updating the position encoding '''
