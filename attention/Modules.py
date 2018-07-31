@@ -9,7 +9,7 @@ from sparsemax import Sparsemax
 
 
 class CE_Criterion(nn.Module):
-    def __init__(self, use_weight=True, l_step=1.):
+    def __init__(self, use_weight=True, l_step=1.1):
         super(CE_Criterion, self).__init__()
         self.l_step = l_step
         self.use_weight = use_weight
