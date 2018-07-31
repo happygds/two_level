@@ -125,7 +125,6 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
             output = net(feature, pos_ind, feature_mask=feature_mask)
             if isinstance(output, list):
                 output = output[-1]
-                print(output.shape)
             output = output[0].cpu().numpy()[:num_feat]
         # nframes = len(output) * args.frame_interval
         # output = np.interp(
