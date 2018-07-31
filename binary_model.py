@@ -150,9 +150,6 @@ class BinaryClassifier(torch.nn.Module):
 
         # use scores embedding
         score_embed = score_embedding(score_output[:, :, 1], self.d_model)
-        print(score_embed[0, 0], score_embed[0, 10], score_embed[0, -1])
-        import pdb
-        pdb.set_trace()
         score_att_output, _ = self.score_att_layer(
                 score_embed, slf_attn_mask=enc_slf_attn_mask)
         score_att_output = self.softmax(self.binary_score(score_att_output))
