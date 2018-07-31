@@ -132,8 +132,8 @@ class BinaryClassifier(torch.nn.Module):
         for i, enc_layer in enumerate(self.layer_stack):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
-            enc_output = self.softmax(self.binary_classifier(enc_output))
-            enc_slf_outputs += [enc_output]
+            enc_slf_output = self.softmax(self.binary_classifier(enc_output))
+            enc_slf_outputs += [enc_slf_output]
 
         # enc_output = self.softmax(self.binary_classifier(enc_output))
         return enc_slf_outputs
