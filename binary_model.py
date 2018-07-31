@@ -112,7 +112,7 @@ class BinaryClassifier(torch.nn.Module):
         self.dilated_mask = args.dilated_mask
         # self.layer_norm = nn.LayerNorm(args.d_model)
         self.score_att_layer = EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                                            args.d_v, dropout=0.1, kernel_type='self_att')
+                                            args.d_v, dropout=0.1, kernel_type='self_attn')
         self.binary_score = nn.Linear(args.d_model, num_class)
 
     def forward(self, feature, pos_ind, feature_mask=None, return_attns=False):
