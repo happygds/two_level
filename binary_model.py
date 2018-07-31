@@ -22,7 +22,7 @@ def position_encoding_init(n_position, d_pos_vec):
 def score_embedding(position_mat, feat_dim, wave_length=1000):
     feat_range = torch.arange(0, feat_dim / 2)
     dim_mat = torch.pow(wave_length, (2. / feat_dim) * feat_range)
-    dim_mat = dim_mat.view(1, 1, -1)
+    dim_mat = dim_mat.view(1, 1, -1).cuda()
     position_mat = (100.0 * position_mat).unsqueeze(2)
     div_mat = torch.div(position_mat, dim_mat)
     sin_mat = torch.sin(div_mat)
