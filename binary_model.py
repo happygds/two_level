@@ -150,7 +150,7 @@ class BinaryClassifier(torch.nn.Module):
 
         # use scores embedding
         score_embed = score_embedding(score_output[:, :, 1], self.d_model)
-        print(score_embed[0])
+        print(score_embed[0], score_embed[4])
         import pdb
         pdb.set_trace()
         score_att_output, _ = self.score_att_layer(
