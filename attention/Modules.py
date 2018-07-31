@@ -15,11 +15,14 @@ class CE_Criterion(nn.Module):
         self.use_weight = use_weight
 
     def forward(self, inputs, target, weight=None, mask=None):
-        for i, x in enumerate(inputs):
-            if i == 0:
-                output = - target * torch.log(x)
-            else:
-                output += - target * torch.log(x) * self.l_step ** i
+        if isinstance(inputs, list):
+            for i, x in enumerate(inputs):
+                if i == 0:
+                    output = - target * torch.log(x)
+                else:
+                    output += - target * torch.log(x) * self.l_step ** i
+        else:
+            output = - target * torch.log(inputs)
         if self.use_weight:
             output *= weight.unsqueeze(1)
             output = torch.sum(output.mean(2) * mask, dim=1) / \
