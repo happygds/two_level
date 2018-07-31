@@ -9,9 +9,9 @@ from sparsemax import Sparsemax
 
 
 class CE_Criterion(nn.Module):
-    def __init__(self, use_weight=True, lambda=1.1):
+    def __init__(self, use_weight=True, l_step=1.):
         super(CE_Criterion, self).__init__()
-        self.lambda = lambda
+        self.l_step = l_step
         self.use_weight = use_weight
 
     def forward(self, inputs, target, weight=None, mask=None):
@@ -19,7 +19,7 @@ class CE_Criterion(nn.Module):
             if i == 0:
                 output = - target * torch.log(x)
             else:
-                output += - target * torch.log(x) * self.lambda ** i
+                output += - target * torch.log(x) * self.l_step ** i
         if self.use_weight:
             output *= weight.unsqueeze(1)
             output = torch.sum(output.mean(2) * mask, dim=1) / \
