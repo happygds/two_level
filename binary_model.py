@@ -148,13 +148,13 @@ class BinaryClassifier(torch.nn.Module):
             enc_slf_attns += [enc_slf_attn]
         score_output = self.softmax(self.binary_classifier(enc_output))
 
-        # use scores embedding
-        score_embed = score_embedding(score_output[:, :, 1], self.d_model)
-        score_att_output, _ = self.score_att_layer(
-                score_embed, slf_attn_mask=enc_slf_attn_mask)
-        score_att_output = self.softmax(self.binary_score(score_att_output))
+        # # use scores embedding
+        # score_embed = score_embedding(score_output[:, :, 1], self.d_model)
+        # score_att_output, _ = self.score_att_layer(
+        #         score_embed, slf_attn_mask=enc_slf_attn_mask)
+        # score_att_output = self.softmax(self.binary_score(score_att_output))
 
-        return [score_output, score_att_output]
+        return score_output
 
     def get_trainable_parameters(self):
         # ''' Avoid updating the position encoding '''
