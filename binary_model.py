@@ -150,7 +150,7 @@ class BinaryClassifier(torch.nn.Module):
         enc_output_diff = enc_output[:, 1:, :] - enc_output[:, :-1, :]
         if feature_mask is not None:
             enc_slf_attn_mask = (
-                1. - feature_mask[:, 1:]).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
+                1. - feature_mask[:, 1:]).unsqueeze(1).expand(mb_size, len_k-1, len_k-1).byte()
         else:
             enc_slf_attn_mask = torch.zeros((mb_size, len_k-1, len_k-1)).byte().cuda()
         local_attn_mask = None
