@@ -162,6 +162,7 @@ class BinaryClassifier(torch.nn.Module):
             enc_output_diff, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
         enc_output[:, 1:, :] = enc_output_diff
         enc_output = torch.cumsum(enc_output, 1)
+        print(enc_output_diff.mean(2), enc_output_diff.std(2))
 
         score_output = self.softmax(self.binary_classifier(enc_output))
 
