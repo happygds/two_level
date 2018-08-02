@@ -269,7 +269,7 @@ def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
     if args.n_cluster > 0:
         save_path = save_path + '_C' + str(args.n_cluster)
     if args.lambda_tv > 0:
-        save_path = save_path + '_TV' + str(args.lambda_tv)
+        save_path = save_path + '_TV'
         
     if not os.path.exists(save_path):
         os.makedirs(save_path)
