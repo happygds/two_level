@@ -23,11 +23,6 @@ class CE_Criterion(nn.Module):
                     output += - target * torch.log(x) * self.l_step ** i
         else:
             output = - target * torch.log(inputs)
-        inputs_diff = (inputs[:, 1:, :] - inputs[:, :-1, :]).abs().mean(2)
-        tmp = torch.zeros_like(inputs[:, :, 0]).cuda()
-        tmp[:, :-1] = inputs_diff
-        tmp[:, 1:] = torch.max(tmp[:, 1:], inputs_diff)
-        output *= tmp.unsqueeze(2).requires_grad_(False)
      
         if self.use_weight:
             output *= weight.unsqueeze(1)
