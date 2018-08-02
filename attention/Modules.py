@@ -34,7 +34,7 @@ class CE_Criterion(nn.Module):
         assert not isinstance(inputs, list)
         inputs_diff = (inputs[:, 1:, :] - inputs[:, :-1, :]).abs().mean(2)
         mask_diff = mask[:, :1]
-        diff_output = torch.sum(inputs_diff * mask_diff * target_diff, dim=1) / torch.sum(mask_diff, dim=1)
+        diff_output = torch.sum(inputs_diff * mask_diff * target_diff, dim=1) / torch.sum(mask_diff * target_diff, dim=1)
         diff_output = torch.mean(diff_output)
         return output, diff_output
 
