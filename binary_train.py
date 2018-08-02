@@ -135,6 +135,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
+    losses_tv = AverageMeter()
+    total_losses = AverageMeter()
 
     # switch to train model
     model.train()
@@ -160,11 +162,14 @@ def train(train_loader, model, criterion, optimizer, epoch):
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
 
-        loss = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
+        loss, loss_tv = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
         losses.update(loss.item(), feature.size(0))
+        losses_tv.update(loss_tv.item(), feature.size(0))
 
         # compute gradient and do SGD step
-        loss.backward()
+        total_loss = loss + loss_tv * args.lambda_tv
+        total_losses.update(total_loss.item(), feature.size(0))
+        total_loss.backward()
 
         if args.clip_gradient is not None:
             total_norm = clip_grad_norm_(
@@ -188,15 +193,20 @@ def train(train_loader, model, criterion, optimizer, epoch):
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                  'Loss_tv {loss_tv.val:.4f} ({loss_tv.avg:.4f})\t'
+                  'Total_loss {total_loss.val:.4f} ({total_loss.avg:.4f})\t'
                   .format(
-                      epoch, i, len(train_loader), batch_time=batch_time,
-                      data_time=data_time, loss=losses, lr=optimizer.param_groups[0]['lr'])
+                      epoch, i, len(train_loader), batch_time=batch_time, data_time=data_time, 
+                      loss=losses, loss_tv=losses_tv, total_loss=total_losses,
+                      lr=optimizer.param_groups[0]['lr'])
                   )
 
 
 def validate(val_loader, model, criterion, iter):
     batch_time = AverageMeter()
     losses = AverageMeter()
+    losses_tv = AverageMeter()
+    total_losses = AverageMeter()
 
     model.eval()
 
@@ -219,8 +229,11 @@ def validate(val_loader, model, criterion, iter):
             # compute output
             binary_score = model(feature, pos_ind, feature_mask=feature_mask)
 
-            loss = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
+            loss, loss_tv = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
         losses.update(loss.item(), feature.size(0))
+        losses_tv.update(loss_tv.item(), feature.size(0))
+        total_loss = loss + loss_tv * args.lambda_tv
+        total_losses.update(total_loss.item(), feature.size(0))
 
         batch_time.update(time.time() - end)
         end = time.time()
@@ -228,13 +241,16 @@ def validate(val_loader, model, criterion, iter):
         if i % args.print_freq == 0:
             print('Test: [{0}/{1}]\t'
                   'Time {batch_time.val:.4f} ({loss.avg:.4f})\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                      i, len(val_loader), batch_time=batch_time, loss=losses))
+                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                  'Loss_tv {loss_tv.val:.4f} ({loss_tv.avg:.4f})\t'
+                  'Total_loss {total_loss.val:.4f} ({total_loss.avg:.4f})\t'
+                  .format(i, len(val_loader), batch_time=batch_time, 
+                          loss=losses, loss_tv=losses_tv, total_loss=total_losses))
 
     print('Testing Results: Loss {loss.avg:.5f} \t'
-          .format(loss=losses))
+          .format(loss=total_losses))
 
-    return losses.avg
+    return total_losses.avg
 
 
 def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
@@ -252,6 +268,8 @@ def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
             save_path += '_dilated'
     if args.n_cluster > 0:
         save_path = save_path + '_C' + str(args.n_cluster)
+    if args.lambda_tv > 0:
+        save_path = save_path + '_TV'
         
     if not os.path.exists(save_path):
         os.makedirs(save_path)

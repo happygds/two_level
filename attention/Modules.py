@@ -23,12 +23,20 @@ class CE_Criterion(nn.Module):
                     output += - target * torch.log(x) * self.l_step ** i
         else:
             output = - target * torch.log(inputs)
+        
         if self.use_weight:
             output *= weight.unsqueeze(1)
             output = torch.sum(output.mean(2) * mask, dim=1) / \
                 torch.sum(mask, dim=1)
-                # output = torch.sum(output.mean(2) * mask) / torch.sum(mask)
-        return torch.mean(output)
+            output = torch.mean(output)
+
+        target_diff = (target[:, 1:, :] - target[:, :-1, :]).abs().max(2)
+        assert not isinstance(inputs, list)
+        inputs_diff = (inputs[:, 1:, :] - inputs[:, :-1, :]).abs().mean(2)
+        mask_diff = mask[:, :1]
+        diff_output = torch.sum(inputs_diff * mask_diff * target_diff, dim=1) / torch.sum(mask_diff, dim=1)
+        diff_output = torch.mean(diff_output)
+        return output, diff_output
 
 
 class ScaledDotProductAttention(nn.Module):
