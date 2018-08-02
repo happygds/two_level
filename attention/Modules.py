@@ -30,7 +30,7 @@ class CE_Criterion(nn.Module):
                 torch.sum(mask, dim=1)
             output = torch.mean(output)
 
-        target_diff = (target[:, 1:, :] - target[:, :-1, :]).abs().max(2)[0]
+        target_diff = 1. - (target[:, 1:, :] - target[:, :-1, :]).abs().max(2)[0]
         assert not isinstance(inputs, list)
         inputs_diff = (inputs[:, 1:, :] - inputs[:, :-1, :]).abs().mean(2)
         mask_diff = mask[:, :1]
