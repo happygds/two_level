@@ -23,7 +23,12 @@ class CE_Criterion(nn.Module):
                     output += - target * torch.log(x) * self.l_step ** i
         else:
             output = - target * torch.log(inputs)
-        
+        inputs_diff = (inputs[:, 1:, :] - inputs[:, :-1, :]).abs().mean(2)
+        tmp = torch.zeros_like(inputs[:, :, 0]).cuda()
+        tmp[:, :-1] = input_diff
+        tmp[:, 1:] = torch.max(tmp[:, 1:], input_diff)
+        output *= tmp.unsqueeze(2)
+     
         if self.use_weight:
             output *= weight.unsqueeze(1)
             output = torch.sum(output.mean(2) * mask, dim=1) / \
@@ -32,7 +37,6 @@ class CE_Criterion(nn.Module):
 
         target_diff = 1. - (target[:, 1:, :] - target[:, :-1, :]).abs().max(2)[0]
         assert not isinstance(inputs, list)
-        inputs_diff = (inputs[:, 1:, :] - inputs[:, :-1, :]).abs().mean(2)
         mask_diff = mask[:, :1]
         diff_output = torch.sum(inputs_diff * mask_diff * target_diff, dim=1) / torch.sum(mask_diff * target_diff, dim=1).clamp(0.001)
         diff_output += 1. - (torch.sum(inputs_diff * mask_diff * (1. - target_diff), dim=1) / torch.sum(mask_diff * (1. - target_diff), dim=1).clamp(0.001)).clamp(0.001)
