@@ -160,7 +160,8 @@ class BinaryClassifier(torch.nn.Module):
                 enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
         enc_output_diff, _ = self.score_att_layer(
             enc_output_diff, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
-        enc_output[:, 1:, :] = enc_output[:, :-1, :] + enc_output_diff
+        enc_output[:, 1:, :] = enc_output_diff
+        enc_output = torch.cumsum(enc_output, 1)
 
         score_output = self.softmax(self.binary_classifier(enc_output))
 
