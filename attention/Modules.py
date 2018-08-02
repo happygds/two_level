@@ -27,7 +27,7 @@ class CE_Criterion(nn.Module):
         tmp = torch.zeros_like(inputs[:, :, 0]).cuda()
         tmp[:, :-1] = inputs_diff
         tmp[:, 1:] = torch.max(tmp[:, 1:], inputs_diff)
-        output *= tmp.unsqueeze(2)
+        output *= tmp.unsqueeze(2).requires_grad_(False)
      
         if self.use_weight:
             output *= weight.unsqueeze(1)
