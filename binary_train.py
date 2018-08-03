@@ -228,13 +228,12 @@ def validate(val_loader, model, criterion, iter):
             print('Test: [{0}/{1}]\t'
                   'Time {batch_time.val:.4f} ({loss.avg:.4f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  .format(i, len(val_loader), batch_time=batch_time, 
-                          loss=losses))
+                  .format(i, len(val_loader), batch_time=batch_time, loss=losses))
 
     print('Testing Results: Loss {loss.avg:.5f} \t'
-          .format(loss=total_losses))
+          .format(loss=losses))
 
-    return total_losses.avg
+    return losses.avg
 
 
 def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
