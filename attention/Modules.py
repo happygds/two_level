@@ -42,7 +42,7 @@ class CE_Criterion(nn.Module):
         if diff_score is not None:
             target_ind = target.max(2)[1].float()
             diff_mask = mask[:, 1:]
-            target_diff = convert_categorical((target_ind[:, 1:] - target_ind[:, :-1] + 1).cpu().numpy(), n_classes=3)
+            target_diff = convert_categorical((target_ind[:, 1:] - target_ind[:, :-1] + 1).cpu().detach().numpy(), n_classes=3)
             target_diff *= diff_mask.unsqueeze(2)
             diff_weight = target_diff.sum(1) / diff_mask.sum(1).unsqueeze(1)
             diff_weight = 1./ 3 / diff_weight.clamp(0.001)
