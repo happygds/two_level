@@ -51,12 +51,13 @@ class CE_Criterion(nn.Module):
                 torch.sum(diff_mask, dim=1)
             diff_output = torch.mean(diff_output)
 
-"""         target_diff = 1. - (target[:, 1:, :] - target[:, :-1, :]).abs().max(2)[0]
-        assert not isinstance(inputs, list)
-        mask_diff = mask[:, 1:]
-        diff_output = torch.sum(inputs_diff * mask_diff * target_diff, dim=1) / torch.sum(mask_diff * target_diff, dim=1).clamp(0.001)
-        diff_output += 1. - (torch.sum(inputs_diff * mask_diff * (1. - target_diff), dim=1) / torch.sum(mask_diff * (1. - target_diff), dim=1).clamp(0.001)).clamp(0.001)
-        diff_output = torch.mean(diff_output) """
+        # target_diff = 1. - (target[:, 1:, :] - target[:, :-1, :]).abs().max(2)[0]
+        # assert not isinstance(inputs, list)
+        # mask_diff = mask[:, 1:]
+        # diff_output = torch.sum(inputs_diff * mask_diff * target_diff, dim=1) / torch.sum(mask_diff * target_diff, dim=1).clamp(0.001)
+        # diff_output += 1. - (torch.sum(inputs_diff * mask_diff * (1. - target_diff), dim=1) / torch.sum(mask_diff * (1. - target_diff), dim=1).clamp(0.001)).clamp(0.001)
+        # diff_output = torch.mean(diff_output)
+
         return output, diff_output
 
 
