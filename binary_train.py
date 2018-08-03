@@ -160,8 +160,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
         cls_weight = 0.5 / cls_weight.clamp(0.001)
 
         # compute output
-        binary_score, diff_score = model(feature, pos_ind, feature_mask=feature_mask)
-        loss, loss_tv = criterion(binary_score, target, weight=cls_weight, mask=feature_mask, diff_score=diff_score)
+        binary_score = model(feature, pos_ind, feature_mask=feature_mask)
+        loss, loss_tv = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
         losses.update(loss.item(), feature.size(0))
         losses_tv.update(loss_tv.item(), feature.size(0))
 
@@ -226,8 +226,8 @@ def validate(val_loader, model, criterion, iter):
             cls_weight = 0.5 / cls_weight.clamp(0.001)
 
             # compute output
-            binary_score, diff_score = model(feature, pos_ind, feature_mask=feature_mask)
-            loss, loss_tv = criterion(binary_score, target, weight=cls_weight, mask=feature_mask, diff_score=diff_score)
+            binary_score = model(feature, pos_ind, feature_mask=feature_mask)
+            loss, loss_tv = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
         losses.update(loss.item(), feature.size(0))
         losses_tv.update(loss_tv.item(), feature.size(0))
         total_loss = loss + loss_tv * args.lambda_tv
