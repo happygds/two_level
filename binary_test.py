@@ -129,7 +129,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
             output = output[0].cpu().numpy()[:num_feat]
             if args.use_diff_score and num_feat > 1:
                 output_diff = output_diff[0].cpu().numpy()[:(num_feat-1)]
-                output_diff = output_diff[:, 0] - output_diff[:, 2]
+                output_diff = output_diff.argmax(axis=1) - 1.
                 tmp, tmp_output = output[:, 1].copy(), output.copy()
                 tmp[1:] = tmp[:-1] + output_diff
                 tmp_output[:, 1] = tmp
