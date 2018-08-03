@@ -39,7 +39,7 @@ class CE_Criterion(nn.Module):
                 torch.sum(mask, dim=1)
             output = torch.mean(output)
         
-        if not diff_score:
+        if diff_score is not None:
             target_ind = target.max(2)[1].float()
             diff_mask = mask[:, 1:]
             target_diff = convert_categorical((target[:, 1:, :] - target[:, :-1, :] + 1).cpu().numpy(), n_classes=3)

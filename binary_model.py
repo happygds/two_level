@@ -149,7 +149,7 @@ class BinaryClassifier(torch.nn.Module):
         score_output = self.softmax(self.binary_classifier(enc_output))
 
         enc_output_diff = enc_output[:, 1:, :] - enc_output[:, :-1, :]
-        if not local_attn_mask:
+        if local_attn_mask is not None:
             local_attn_mask = local_attn_mask[:, 1:, 1:]
         enc_slf_attn_mask = enc_slf_attn_mask[:, 1:, 1:]
         enc_output_diff, _ = self.diff_att_layer(
