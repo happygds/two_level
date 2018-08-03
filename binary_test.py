@@ -134,7 +134,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
                 tmp[1:] = tmp[:-1] + output_diff
                 tmp_output[:, 1] = tmp
                 tmp_output[:, 0] = 1. - tmp_output[:, 1]
-                output = (tmp_output + output) / 2.
+                output = tmp_output
         # nframes = len(output) * args.frame_interval
         # output = np.interp(
         #     np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output[:, 1])
