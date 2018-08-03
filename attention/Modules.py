@@ -7,6 +7,15 @@ import numpy as np
 # from .torchsparseattn.fused import Fusedmax, FusedProxFunction
 from sparsemax import Sparsemax
 
+def convert_categorical(x_in, n_classes=3):
+    shp = x_in.shape
+    x = (x_in.ravel().astype('int'))
+    x_mask = (x >= 0).reshape(-1, 1)
+    x = x.clip(0)
+    y = np.diag(np.ones((n_classes,)))
+    y = y[x] * x_mask
+    y = y.reshape(shp + (n_classes,)).astype('float32')
+    return y
 
 class CE_Criterion(nn.Module):
     def __init__(self, use_weight=True, l_step=1.1):
@@ -14,7 +23,7 @@ class CE_Criterion(nn.Module):
         self.l_step = l_step
         self.use_weight = use_weight
 
-    def forward(self, inputs, target, weight=None, mask=None):
+    def forward(self, inputs, target, weight=None, mask=None, diff_score=None):
         if isinstance(inputs, list):
             for i, x in enumerate(inputs):
                 if i == 0:
@@ -29,13 +38,25 @@ class CE_Criterion(nn.Module):
             output = torch.sum(output.mean(2) * mask, dim=1) / \
                 torch.sum(mask, dim=1)
             output = torch.mean(output)
+        
+        if not diff_score:
+            target_ind = target.max(2)[1].float()
+            diff_mask = mask[:, 1:]
+            target_diff = convert_categorical((target[:, 1:, :] - target[:, :-1, :] + 1).cpu().numpy(), n_classes=3)
+            target_diff *= diff_mask.unsqueeze(2)
+            diff_weight = target_diff.sum(1) / diff_mask.sum(1).unsqueeze(1)
+            diff_weight = 1./ 3 / diff_weight.clamp(0.001)
+            diff_output = - target_diff * torch.log(diff_score) * diff_weight.unsqueeze(1)
+            diff_output = torch.sum(diff_output.mean(2) * diff_mask, dim=1) / \
+                torch.sum(diff_mask, dim=1)
+            diff_output = torch.mean(diff_output)
 
-        target_diff = 1. - (target[:, 1:, :] - target[:, :-1, :]).abs().max(2)[0]
+"""         target_diff = 1. - (target[:, 1:, :] - target[:, :-1, :]).abs().max(2)[0]
         assert not isinstance(inputs, list)
-        mask_diff = mask[:, :1]
+        mask_diff = mask[:, 1:]
         diff_output = torch.sum(inputs_diff * mask_diff * target_diff, dim=1) / torch.sum(mask_diff * target_diff, dim=1).clamp(0.001)
         diff_output += 1. - (torch.sum(inputs_diff * mask_diff * (1. - target_diff), dim=1) / torch.sum(mask_diff * (1. - target_diff), dim=1).clamp(0.001)).clamp(0.001)
-        diff_output = torch.mean(diff_output)
+        diff_output = torch.mean(diff_output) """
         return output, diff_output
 
 

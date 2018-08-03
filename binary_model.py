@@ -111,9 +111,9 @@ class BinaryClassifier(torch.nn.Module):
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
         # self.layer_norm = nn.LayerNorm(args.d_model)
-        self.score_att_layer = EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                                            args.d_v, dropout=0.1, kernel_type='self_attn')
-        self.binary_score = nn.Linear(args.d_model, num_class)
+        self.diff_att_layer = EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
+                                           args.d_v, dropout=0.1, kernel_type='self_attn')
+        self.diff_classifier = nn.Linear(args.d_model, 3)
 
     def forward(self, feature, pos_ind, feature_mask=None, return_attns=False):
         # Word embedding look up
@@ -146,10 +146,17 @@ class BinaryClassifier(torch.nn.Module):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
             enc_slf_attns += [enc_slf_attn]
-
         score_output = self.softmax(self.binary_classifier(enc_output))
 
-        return score_output
+        enc_output_diff = enc_output[:, 1:, :] - enc_output[:, :-1, :]
+        if not local_attn_mask:
+            local_attn_mask = local_attn_mask[:, 1:, 1:]
+        enc_slf_attn_mask = enc_slf_attn_mask[:, 1:, 1:]
+        enc_output_diff, _ = self.diff_att_layer(
+            enc_output_diff, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
+        score_output_diff = self.softmax(self.diff_classifier(enc_output_diff))
+
+        return score_output, score_output_diff
 
     def get_trainable_parameters(self):
         # ''' Avoid updating the position encoding '''

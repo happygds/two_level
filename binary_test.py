@@ -61,6 +61,7 @@ parser.add_argument('--num_local', type=int, default=0)
 parser.add_argument('--n_cluster', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
+parser.add_argument('--use_diff_score', type=int, default=False)
 
 args = parser.parse_args()
 
@@ -122,10 +123,17 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         feature_mask = feature_mask.cuda()
         pos_ind = pos_ind.cuda()
         with torch.no_grad():
-            output = net(feature, pos_ind, feature_mask=feature_mask)
+            output, output_diff = net(feature, pos_ind, feature_mask=feature_mask)
             if isinstance(output, list):
                 output = output[-1]
             output = output[0].cpu().numpy()[:num_feat]
+            if args.use_diff_score:
+                output_diff = output_diff[0].cpu().numpy()[:(num_feat-1)]
+                output_diff = output_diff[:, 0] - output_diff[:, 2]
+                tmp, tmp_output = output[:, 1].copy(), output.copy()
+                tmp[1:] = tmp[:-1] + output_diff
+                tmp_output[:, 1] = tmp
+                tmp_output[:, 0] = 1. - tmp_output[:, 1]
         # nframes = len(output) * args.frame_interval
         # output = np.interp(
         #     np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output[:, 1])
