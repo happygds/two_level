@@ -49,7 +49,7 @@ class CE_Criterion(nn.Module):
             diff_weight = 1./ 3 / diff_weight.clamp(0.001)
             diff_output = - target_diff * torch.log(diff_score) * diff_weight.unsqueeze(1)
             diff_output = torch.sum(diff_output.mean(2) * diff_mask, dim=1) / \
-                torch.sum(diff_mask, dim=1)
+                torch.sum(diff_mask, dim=1).clamp(0.001)
             diff_output = torch.mean(diff_output)
 
         # target_diff = 1. - (target[:, 1:, :] - target[:, :-1, :]).abs().max(2)[0]
