@@ -148,7 +148,8 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output = enc_input[:, (stride//2)::stride]
             else:
                 cur_output = enc_input[:, (stride//2)::stride]
-                enc_output = F.upsample_nearest(enc_output.transpose(1, 2), size=cur_output.size()[1]).transpose(1, 2)
+                enc_output = F.upsample(enc_output.transpose(1, 2), size=cur_output.size()[1], 
+                                        mode='nearest').transpose(1, 2)
                 assert cur_output.size()[1] - enc_output.size()[1] == 0, 'cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size())
                 enc_output += cur_output
             
@@ -168,7 +169,8 @@ class BinaryClassifier(torch.nn.Module):
         if test_mode:
             for scale, stride in enumerate(self.multi_stride):
                 if scale > 0:
-                    score_outputs[scale] = F.upsample_nearest(score_outputs[scale].transpose(1, 2), scale_factor=stride).transpose(1, 2)
+                    score_outputs[scale] = F.upsample(score_outputs[scale].transpose(1, 2), 
+                                                      scale_factor=stride, mode='nearest').transpose(1, 2)
 
         return score_outputs
 
