@@ -161,7 +161,7 @@ class BinaryClassifier(torch.nn.Module):
             for i, enc_layer in enumerate(layers):
                 enc_output, enc_slf_attn = enc_layer(
                     enc_output, local_attn_mask=slf_local_mask, slf_attn_mask=slf_attn_mask)
-            score_output = self.softmax(self.binary_classifier(enc_output))
+            score_output = self.softmax(binary_classifier(enc_output))
             score_outputs.append(score_output)
         score_outputs = score_outputs[::-1]
         if test_mode:
