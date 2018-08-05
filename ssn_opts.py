@@ -34,8 +34,8 @@ parser.add_argument('--n_cluster', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
 parser.add_argument('--seed', type=int, default=0)
-parser.add_argument('--lambda_tv', type=float, default=0,
-                    help='the weight parameter for total-variation loss')
+parser.add_argument('--multiscale', type=int, default=0,
+                    help='multiscale output')
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)

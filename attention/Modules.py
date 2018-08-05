@@ -7,7 +7,7 @@ import numpy as np
 # from .torchsparseattn.fused import Fusedmax, FusedProxFunction
 from sparsemax import Sparsemax
 
-def convert_categorical(x_in, n_classes=3):
+def convert_categorical(x_in, n_classes=2):
     shp = x_in.shape
     x = (x_in.ravel().astype('int'))
     x_mask = (x >= 0).reshape(-1, 1)
@@ -23,7 +23,15 @@ class CE_Criterion(nn.Module):
         self.l_step = l_step
         self.use_weight = use_weight
 
-    def forward(self, inputs, target, weight=None, mask=None):
+    def forward(self, inputs, target, mask=None):
+        if self.use_weight:
+            target = convert_categorical(target.cpu().numpy(), n_classes=2)
+            target = torch.from_numpy(target).cuda().requires_grad_(False)
+            target *= mask.unsqueeze(2)
+            # cls_weight = 1. / target.mean(0).mean(0)
+            weight = target.sum(1) / mask.sum(1).unsqueeze(1)
+            weight = 0.5 / weight.clamp(0.001)
+
         if isinstance(inputs, list):
             for i, x in enumerate(inputs):
                 if i == 0:

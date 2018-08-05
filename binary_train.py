@@ -63,6 +63,12 @@ def main():
         args.d_v = args.d_k
     args.d_model = args.n_head * args.d_k
 
+    multi_strides = [1]
+    if args.multiscale == 3:
+        multi_strides += [2, 4]
+    elif args.multiscale == 4:
+        multi_strides += [2, 4, 8]
+
     model = BinaryClassifier(
         num_class, args.num_body_segments, args, dropout=args.dropout)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()
@@ -150,16 +156,9 @@ def train(train_loader, model, criterion, optimizer, epoch):
         feature_mask = feature_mask.cuda().requires_grad_(False)
         pos_ind = pos_ind.cuda().requires_grad_(False)
 
-        target = convert_categorical(target.cpu().numpy(), n_classes=2)
-        target = torch.from_numpy(target).cuda().requires_grad_(False)
-        target *= feature_mask.unsqueeze(2)
-        # cls_weight = 1. / target.mean(0).mean(0)
-        cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-        cls_weight = 0.5 / cls_weight.clamp(0.001)
-
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
-        loss = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
+        loss = criterion(binary_score, target, mask=feature_mask, multi_strides=multi_strides)
         losses.update(loss.item(), feature.size(0))
 
         # compute gradient and do SGD step
@@ -209,16 +208,10 @@ def validate(val_loader, model, criterion, iter):
             feature_mask = feature_mask.cuda().requires_grad_(False)
             pos_ind = pos_ind.cuda().requires_grad_(False)
 
-            target = convert_categorical(target.cpu().numpy(), n_classes=2)
-            target = torch.from_numpy(target).cuda().requires_grad_(False)
-            target *= feature_mask.unsqueeze(2)
-            # cls_weight = 1. / target.mean(0).mean(0)
-            cls_weight = target.sum(1) / feature_mask.sum(1).unsqueeze(1)
-            cls_weight = 0.5 / cls_weight.clamp(0.001)
-
             # compute output
             binary_score = model(feature, pos_ind, feature_mask=feature_mask)
-            loss, loss_tv = criterion(binary_score, target, weight=cls_weight, mask=feature_mask)
+            loss = criterion(binary_score, target, mask=feature_mask, 
+                             multi_strides=multi_strides)
         losses.update(loss.item(), feature.size(0))
 
         batch_time.update(time.time() - end)
