@@ -37,7 +37,7 @@ class CE_Criterion(nn.Module):
                 weight = 0.5 / weight.clamp(0.001)
                 targets[i] = target
                 weights.append(weight)
-                
+                    
         for i, x in enumerate(inputs):
             tmp_output = - targets[i] * torch.log(x) * self.l_step ** i
             if self.use_weight:
@@ -50,7 +50,7 @@ class CE_Criterion(nn.Module):
             else:
                 output += tmp_output
 
-        return output
+        return output / len(inputs)
 
 
 class ScaledDotProductAttention(nn.Module):
