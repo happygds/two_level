@@ -63,12 +63,12 @@ def main():
         args.d_v = args.d_k
     args.d_model = args.n_head * args.d_k
 
+    global multi_strides
     multi_strides = [1]
     if args.multiscale == 3:
         multi_strides += [2, 4]
     elif args.multiscale == 4:
         multi_strides += [2, 4, 8]
-    global multi_strides
     args.multi_strides = multi_strides
 
     model = BinaryClassifier(
