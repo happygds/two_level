@@ -165,7 +165,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         losses.update(loss.item(), feature.size(0))
 
         # compute gradient and do SGD step
-        losses.update(total_loss.item(), feature.size(0))
+        losses.update(loss.item(), feature.size(0))
         total_loss.backward()
 
         if args.clip_gradient is not None:
