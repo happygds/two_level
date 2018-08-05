@@ -38,6 +38,7 @@ class CE_Criterion(nn.Module):
                 weights.append(weight)
                 
         for i, x in enumerate(inputs):
+            print(targets[i].size(), x.size())
             tmp_output = - targets[i] * torch.log(x) * self.l_step ** i
             if self.use_weight:
                 tmp_output *= weights[i].unsqueeze(1)
