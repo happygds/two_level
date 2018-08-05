@@ -142,7 +142,7 @@ class BinaryClassifier(torch.nn.Module):
         score_outputs = []
         size = enc_input.size()
         for scale, stride in enumerate(self.multi_strides[::-1]):
-            layers, binary_classifier = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiters[scale]
+            layers, binary_classifier = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale]
             if scale == 0:
                 enc_output = enc_input[(stride//2)::stride]
             else:
