@@ -45,7 +45,6 @@ class CE_Criterion(nn.Module):
                 tmp_output = torch.sum(tmp_output.mean(2) * masks[i], dim=1) / \
                     torch.sum(masks[i], dim=1).clamp(0.001)
                 tmp_output = torch.mean(tmp_output)
-            print(tmp_output.data)
             if i == 0:
                 output = tmp_output
             else:
