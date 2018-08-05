@@ -143,21 +143,21 @@ def gen_prop(v):
         vid = v.id
     else:
         vid = v.path.split('/')[-1].split('.')[0]
-    scores = score_dict[vid]
-    frm_duration = len(scores)
-    frm_interval = v.frame_interval
-    frm_cnt = v.frame_cnt
-    topk_cls = [0]
-    topk_labels = label_frame_by_threshold(scores, topk_cls, bw=3, thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95, ], multicrop=False)
-
+    scores_list = score_dict[vid]
     bboxes = []
-    tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
+    for scores in scores_list:
+        frm_duration = len(scores)
+        frm_interval = v.frame_interval
+        frm_cnt = v.frame_cnt
+        topk_cls = [0]
+        topk_labels = label_frame_by_threshold(scores, topk_cls, bw=3, thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95, ], multicrop=False)
 
-    bboxes.extend(build_box_by_search(topk_labels, np.array(tol_lst)))
-    if reg_score_dict:
-        reg_scores = reg_score_dict[score_id]
-        bboxes = regress_box(bboxes, reg_scores, len(scores))
+        tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
 
+        bboxes.extend(build_box_by_search(topk_labels, np.array(tol_lst)))
+        if reg_score_dict:
+            reg_scores = reg_score_dict[score_id]
+            bboxes = regress_box(bboxes, reg_scores, len(scores))
 
     # print len(bboxes)
     bboxes = temporal_nms(bboxes, 0.9)

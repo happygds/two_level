@@ -80,6 +80,8 @@ class BinaryClassifier(torch.nn.Module):
             self.dropout = args.dropout
         else:
             self.dropout = 0.
+        self.multi_strides = args.multi_strides
+        self.n_layers = args.n_layers
 
         n_position, d_word_vec = 1200, args.d_model
         self.position_enc = nn.Embedding(n_position, d_word_vec, padding_idx=0)
@@ -90,28 +92,29 @@ class BinaryClassifier(torch.nn.Module):
                 Local_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
                                    args.d_v, dropout=0.1, kernel_type=args.att_kernel_type, 
                                    local_type=args.local_type)
-                for _ in range(args.n_layers)])
+                for _ in range(args.n_layers * len(self.multi_strides))])
         elif args.n_cluster > 0:
             self.layer_stack = nn.ModuleList([
                 Cluster_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
                                      args.d_v, dropout=0.1, kernel_type=args.att_kernel_type, 
                                      n_cluster=args.n_cluster, local_type=args.local_type)
-                for _ in range(args.n_layers)])
+                for _ in range(args.n_layers * len(self.multi_strides))])
         else:
             self.layer_stack = nn.ModuleList([
                 EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
                             args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
-                for _ in range(args.n_layers)])
+                for _ in range(args.n_layers * len(self.multi_strides))])
 
         self.d_model = args.d_model
         self.dropout = dropout
         self.test_mode = test_mode
-        self.binary_classifier = nn.Linear(args.d_model, num_class)
+        self.binary_classifiers = nn.ModuleList([nn.Linear(args.d_model, num_class) 
+                                                for _ in range(len(self.multi_strides))])
         self.softmax = nn.Softmax(dim=-1)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
 
-    def forward(self, feature, pos_ind, feature_mask=None, return_attns=False):
+    def forward(self, feature, pos_ind, feature_mask=None, test_mode=False):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
@@ -122,9 +125,7 @@ class BinaryClassifier(torch.nn.Module):
         # if self.pos_enc:
         #     enc_input = enc_input + self.position_enc(pos_ind)
         # enc_input = self.layer_norm(enc_input)
-        enc_slf_attns = []
 
-        enc_output = enc_input
         mb_size, len_k = enc_input.size()[:2]
         if feature_mask is not None:
             enc_slf_attn_mask = (
@@ -138,13 +139,37 @@ class BinaryClassifier(torch.nn.Module):
                 enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
         enc_slf_attn_mask = torch.gt(enc_slf_attn_mask + enc_slf_attn_mask.transpose(1, 2), 0)
 
-        for i, enc_layer in enumerate(self.layer_stack):
-            enc_output, enc_slf_attn = enc_layer(
-                enc_output, local_attn_mask=local_attn_mask, slf_attn_mask=enc_slf_attn_mask)
-            enc_slf_attns += [enc_slf_attn]
-        score_output = self.softmax(self.binary_classifier(enc_output))
+        score_outputs = []
+        size = enc_input.size()
+        for scale, stride in enumerate(self.multi_strides[::-1]):
+            layers, binary_classifier = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiters[scale]
+            if scale == 0:
+                enc_output = enc_input[(stride//2)::stride]
+            else:
+                cur_output = enc_input[(stride//2)::stride]
+                enc_output = F.upsample_nearest(enc_output.transpose(1, 2), size=cur_output.size()[1]).transpose(1, 2)
+                assert cur_output.size()[1] - enc_output.size()[1], 'cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size())
+                enc_output += cur_output
+            
+            # obtain local and global mask
+            slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
+            if local_attn_mask is not None:
+                slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
+            else:
+                slf_local_mask = None
 
-        return score_output
+            for i, enc_layer in enumerate(layers):
+                enc_output, enc_slf_attn = enc_layer(
+                    enc_output, local_attn_mask=slf_local_mask, slf_attn_mask=slf_attn_mask)
+            score_output = self.softmax(self.binary_classifier(enc_output))
+            score_outputs.append(score_output)
+        score_outputs = score_outputs[::-1]
+        if test_mode:
+            for scale, stride in enumerate(self.multi_stride):
+                if scale > 0:
+                    score_outputs[scale] = F.upsample_nearest(score_outputs[scale].transpose(1, 2), scale_factor=stride).transpose(1, 2)
+
+        return score_outputs
 
     def get_trainable_parameters(self):
         # ''' Avoid updating the position encoding '''
