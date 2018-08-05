@@ -149,7 +149,7 @@ class BinaryClassifier(torch.nn.Module):
             else:
                 cur_output = enc_input[:, (stride//2)::stride]
                 enc_output = F.upsample_nearest(enc_output.transpose(1, 2), size=cur_output.size()[1]).transpose(1, 2)
-                assert cur_output.size()[1] - enc_output.size()[1], 'cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size())
+                assert cur_output.size()[1] - enc_output.size()[1] == 0, 'cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size())
                 enc_output += cur_output
             
             # obtain local and global mask
