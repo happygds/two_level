@@ -68,6 +68,7 @@ def main():
         multi_strides += [2, 4]
     elif args.multiscale == 4:
         multi_strides += [2, 4, 8]
+    global multi_strides
     args.multi_strides = multi_strides
 
     model = BinaryClassifier(
