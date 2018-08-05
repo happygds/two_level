@@ -144,9 +144,9 @@ class BinaryClassifier(torch.nn.Module):
         for scale, stride in enumerate(self.multi_strides[::-1]):
             layers, binary_classifier = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale]
             if scale == 0:
-                enc_output = enc_input[(stride//2)::stride]
+                enc_output = enc_input[:, (stride//2)::stride]
             else:
-                cur_output = enc_input[(stride//2)::stride]
+                cur_output = enc_input[:, (stride//2)::stride]
                 enc_output = F.upsample_nearest(enc_output.transpose(1, 2), size=cur_output.size()[1]).transpose(1, 2)
                 assert cur_output.size()[1] - enc_output.size()[1], 'cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size())
                 enc_output += cur_output
