@@ -110,7 +110,6 @@ class BinaryClassifier(torch.nn.Module):
         self.softmax = nn.Softmax(dim=-1)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
-        # self.layer_norm = nn.LayerNorm(args.d_model)
 
     def forward(self, feature, pos_ind, feature_mask=None, return_attns=False):
         # Word embedding look up

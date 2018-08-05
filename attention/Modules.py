@@ -18,36 +18,38 @@ def convert_categorical(x_in, n_classes=2):
     return y
 
 class CE_Criterion(nn.Module):
-    def __init__(self, use_weight=True, l_step=1.1):
+    def __init__(self, use_weight=True, l_step=1.):
         super(CE_Criterion, self).__init__()
         self.l_step = l_step
         self.use_weight = use_weight
 
-    def forward(self, inputs, target, mask=None):
+    def forward(self, inputs, target, mask=None, multi_strides=None):
+        targets = [target[(i//2)::i] for i in multi_strides]
+        masks = [mask[(i//2)::i] for i in multi_strides]
         if self.use_weight:
-            target = convert_categorical(target.cpu().numpy(), n_classes=2)
-            target = torch.from_numpy(target).cuda().requires_grad_(False)
-            target *= mask.unsqueeze(2)
-            # cls_weight = 1. / target.mean(0).mean(0)
-            weight = target.sum(1) / mask.sum(1).unsqueeze(1)
-            weight = 0.5 / weight.clamp(0.001)
+            weights = []
+            for target in targets:
+                target = convert_categorical(target.cpu().numpy(), n_classes=2)
+                target = torch.from_numpy(target).cuda().requires_grad_(False)
+                target *= mask.unsqueeze(2)
+                # cls_weight = 1. / target.mean(0).mean(0)
+                weight = target.sum(1) / mask.sum(1).unsqueeze(1)
+                weight = 0.5 / weight.clamp(0.001)
+                weights.append(weight)
+                
+        for i, x in enumerate(inputs):
+            tmp_output = - targets[i] * torch.log(x) * self.l_step ** i
+            if self.use_weight:
+                tmp_output *= weights[i].unsqueeze(1)
+                tmp_output = torch.sum(tmp_output.mean(2) * masks[i], dim=1) / \
+                    torch.sum(masks[i], dim=1).clamp(0.001)
+                tmp_output = torch.mean(tmp_output)
+            if i == 0:
+                output = tmp_output
+            else:
+                output += tmp_output
 
-        if isinstance(inputs, list):
-            for i, x in enumerate(inputs):
-                if i == 0:
-                    output = - target * torch.log(x)
-                else:
-                    output += - target * torch.log(x) * self.l_step ** i
-        else:
-            output = - target * torch.log(inputs)
-     
-        if self.use_weight:
-            output *= weight.unsqueeze(1)
-            output = torch.sum(output.mean(2) * mask, dim=1) / \
-                torch.sum(mask, dim=1)
-            output = torch.mean(output)
-
-        return output, diff_output
+        return output
 
 
 class ScaledDotProductAttention(nn.Module):

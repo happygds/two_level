@@ -158,7 +158,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         # compute output
         binary_score = model(feature, pos_ind, feature_mask=feature_mask)
-        loss = criterion(binary_score, target, mask=feature_mask, multi_strides=multi_strides)
+        loss = criterion(binary_score, target, mask=feature_mask, 
+                         multi_strides=multi_strides)
         losses.update(loss.item(), feature.size(0))
 
         # compute gradient and do SGD step
