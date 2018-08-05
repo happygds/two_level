@@ -61,8 +61,6 @@ parser.add_argument('--num_local', type=int, default=0)
 parser.add_argument('--n_cluster', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
-parser.add_argument('--multiscale', type=int, default=0,
-                    help='multiscale output')
 
 args = parser.parse_args()
 
@@ -106,12 +104,6 @@ else:
     args.d_k = int(args.input_dim // args.n_head)
     args.d_v = args.d_k
 args.d_model = args.n_head * args.d_k
-multi_strides = [1]
-if args.multiscale == 3:
-    multi_strides += [2, 4]
-elif args.multiscale == 4:
-    multi_strides += [2, 4, 8]
-args.multi_strides = multi_strides
 
 gpu_list = args.gpus if args.gpus is not None else range(2)
 
@@ -131,7 +123,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         pos_ind = pos_ind.cuda()
         with torch.no_grad():
             outputs = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
-            outputs = [output[0].cpu().numpy()[:num_feat] for _, (output, stride) in enumerate(zip(outputs, multi_strides))]
+            outputs = [output[0].cpu().numpy()[:num_feat] for _, output in enumerate(outputs)]
         # nframes = len(output) * args.frame_interval
         # output = np.interp(
         #     np.arange(nframes), np.arange(nframes)[::args.frame_interval] + args.frame_interval / 2 - 0.5, output[:, 1])

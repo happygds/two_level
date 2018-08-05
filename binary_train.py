@@ -246,8 +246,8 @@ def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
             save_path += '_dilated'
     if args.n_cluster > 0:
         save_path = save_path + '_C' + str(args.n_cluster)
-    if args.lambda_tv > 0:
-        save_path = save_path + '_TV'
+    if args.multiscale > 1:
+        save_path = save_path + '_S' + str(args.multiscale)
         
     if not os.path.exists(save_path):
         os.makedirs(save_path)
