@@ -28,12 +28,12 @@ class CE_Criterion(nn.Module):
         masks = [mask[:, (i//2)::i] for i in multi_strides]
         if self.use_weight:
             weights = []
-            for target in targets:
+            for i, target in enumerate(targets):
                 target = convert_categorical(target.cpu().numpy(), n_classes=2)
                 target = torch.from_numpy(target).cuda().requires_grad_(False)
-                target *= mask.unsqueeze(2)
+                target *= masks[i].unsqueeze(2)
                 # cls_weight = 1. / target.mean(0).mean(0)
-                weight = target.sum(1) / mask.sum(1).unsqueeze(1)
+                weight = target.sum(1) / masks[i].sum(1).unsqueeze(1).clamp(0.001)
                 weight = 0.5 / weight.clamp(0.001)
                 weights.append(weight)
                 
