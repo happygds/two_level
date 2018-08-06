@@ -148,15 +148,17 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output = enc_input[:, (stride//2)::stride]
             else:
                 cur_output = enc_input[:, (stride//2)::stride]
-                repeat = cur_output.size()[1] // enc_output.size()[1]
+                repeat = int(round(cur_output.size()[1] / enc_output.size()[1]))
                 if repeat < 2:
                     print('cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size()))
                 enc_output = F.upsample(enc_output.transpose(1, 2), scale_factor=repeat, 
                                         mode='nearest').transpose(1, 2)
                 diff_size = cur_output.size()[1] - enc_output.size()[1]
-                if diff_size > 0:
-                    assert diff_size < repeat, 'cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size())
-                    enc_output = F.pad(enc_output, (0, 0, 0, diff_size))
+                if diff_size != 0:
+                    if diff_size > 0:
+                        enc_output = F.pad(enc_output, (0, 0, 0, diff_size))
+                    else:
+                        enc_output = enc_output[:, :diff_size, :]
                 enc_output += cur_output
             
             # obtain local and global mask
