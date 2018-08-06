@@ -108,7 +108,7 @@ class BinaryClassifier(torch.nn.Module):
         
         self.pool_stack = nn.ModuleList([
                 nn.AvgPool1d(stride, stride=stride)
-                for stride in self.multi_strides])
+                for stride in self.multi_strides[::-1]])
 
         self.d_model = args.d_model
         self.dropout = dropout
@@ -149,7 +149,7 @@ class BinaryClassifier(torch.nn.Module):
         for scale, stride in enumerate(self.multi_strides[::-1]):
             layers, binary_classifier, pool = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale], self.pool_stack[scale]
             if scale == 0:
-                enc_output = enc_input
+                enc_output = pool(enc_input)
             else:
                 cur_output = pool(enc_input)
                 repeat = int(round(cur_output.size()[1] / enc_output.size()[1]))
