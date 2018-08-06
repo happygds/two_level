@@ -98,7 +98,7 @@ def dump_window_list(video_info, named_proposals, frame_path, name_pattern, allo
 
     # first count frame numbers
     video_name = video_info.path.split('/')[-1].split('.')[0]
-    print(video_name, frame_path)
+    print(video_info.path, frame_path)
     try:
         video_name = video_info.path.split('/')[-1].split('.')[0]
         print(video_name, frame_path)
