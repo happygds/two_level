@@ -145,8 +145,9 @@ class BinaryClassifier(torch.nn.Module):
         for scale, stride in enumerate(self.multi_strides[::-1]):
             layers, binary_classifier = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale]
             if stride > 1:
-                cur_output = F.avg_pool1d(enc_input.transpose(1, 2), stride, 
-                                        stride=stride, padding=(0, stride//2)).transpose(1, 2)
+                cur_output = F.pad(enc_input, (0, 0, 0, stride//2))
+                cur_output = F.avg_pool1d(cur_output.transpose(1, 2), stride, 
+                                          stride=stride).transpose(1, 2)
             else:
                 cur_output = enc_input
             if scale == 0:
