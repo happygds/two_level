@@ -97,10 +97,8 @@ def parse_directory(path, key_func=lambda x: x[-11:],
 def dump_window_list(video_info, named_proposals, frame_path, name_pattern, allow_empty=False, score=None):
 
     # first count frame numbers
-    video_name = video_info.path.split('/')[-1].split('.')[0]
-    print(video_info.path, frame_path)
     try:
-        video_name = video_info.path.split('/')[-1].split('.')[0]
+        video_name = video_info.id
         print(video_name, frame_path)
         files = glob.glob(os.path.join(frame_path, video_name, name_pattern))
         frame_cnt = len(files)
