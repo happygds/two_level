@@ -153,8 +153,6 @@ class BinaryClassifier(torch.nn.Module):
             else:
                 cur_output = pool(enc_input)
                 repeat = int(round(cur_output.size()[1] / enc_output.size()[1]))
-                if repeat < 2:
-                    print('cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size()))
                 enc_output = F.upsample(enc_output.transpose(1, 2), scale_factor=repeat, 
                                         mode='nearest').transpose(1, 2)
                 diff_size = cur_output.size()[1] - enc_output.size()[1]
