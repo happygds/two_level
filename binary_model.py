@@ -148,9 +148,13 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output = enc_input[:, (stride//2)::stride]
             else:
                 cur_output = enc_input[:, (stride//2)::stride]
-                enc_output = F.upsample(enc_output.transpose(1, 2), size=cur_output.size()[1], 
+                repeat = cur_output.size()[1] / enc_output.size()[1]
+                enc_output = F.upsample(enc_output.transpose(1, 2), scale_factor=repeat, 
                                         mode='nearest').transpose(1, 2)
-                assert cur_output.size()[1] - enc_output.size()[1] == 0, 'cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size())
+                diff_size = cur_output.size()[1] - enc_output.size()[1]
+                if diff_size > 0:
+                    assert diff_size < repeat, 'cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size())
+                    enc_output = F.pad(enc_output, (0, 0, 0, diff_size))
                 enc_output += cur_output
             
             # obtain local and global mask
@@ -167,7 +171,7 @@ class BinaryClassifier(torch.nn.Module):
             score_outputs.append(score_output)
         score_outputs = score_outputs[::-1]
         if test_mode:
-            for scale, stride in enumerate(self.multi_stride):
+            for scale, stride in enumerate(self.multi_strides):
                 if scale > 0:
                     score_outputs[scale] = F.upsample(score_outputs[scale].transpose(1, 2), 
                                                       scale_factor=stride, mode='nearest').transpose(1, 2)
