@@ -105,6 +105,10 @@ class BinaryClassifier(torch.nn.Module):
                 EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
                             args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
                 for _ in range(args.n_layers * len(self.multi_strides))])
+        
+        self.pool_stack = nn.ModuleList([
+                nn.AvgPool1d(stride, stride=stride)
+                for stride in self.multi_strides])
 
         self.d_model = args.d_model
         self.dropout = dropout
@@ -143,11 +147,11 @@ class BinaryClassifier(torch.nn.Module):
         score_outputs = []
         size = enc_input.size()
         for scale, stride in enumerate(self.multi_strides[::-1]):
-            layers, binary_classifier = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale]
+            layers, binary_classifier, pool = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale], self.pool_stack[scale]
             if scale == 0:
-                enc_output = enc_input[:, (stride//2)::stride]
+                enc_output = enc_input
             else:
-                cur_output = enc_input[:, (stride//2)::stride]
+                cur_output = pool(enc_input)
                 repeat = int(round(cur_output.size()[1] / enc_output.size()[1]))
                 if repeat < 2:
                     print('cur_output {} enc_output {}'.format(cur_output.size(), enc_output.size()))
