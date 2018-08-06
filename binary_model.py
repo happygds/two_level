@@ -105,10 +105,6 @@ class BinaryClassifier(torch.nn.Module):
                 EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
                             args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
                 for _ in range(args.n_layers * len(self.multi_strides))])
-        
-        self.pool_stack = nn.ModuleList([
-                nn.AvgPool1d(stride, stride=stride)
-                for stride in self.multi_strides[::-1]])
 
         self.d_model = args.d_model
         self.dropout = dropout
@@ -147,11 +143,15 @@ class BinaryClassifier(torch.nn.Module):
         score_outputs = []
         size = enc_input.size()
         for scale, stride in enumerate(self.multi_strides[::-1]):
-            layers, binary_classifier, pool = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale], self.pool_stack[scale]
-            if scale == 0:
-                enc_output = pool(enc_input)
+            layers, binary_classifier = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale]
+            if stride > 1:
+                cur_output = F.avg_pool1d(enc_input.transpose(1, 2), stride, 
+                                        stride=stride, padding=(0, stride//2)).transpose(1, 2)
             else:
-                cur_output = pool(enc_input)
+                cur_output = enc_input
+            if scale == 0:
+                enc_output = cur_output
+            else:
                 repeat = int(round(cur_output.size()[1] / enc_output.size()[1]))
                 enc_output = F.upsample(enc_output.transpose(1, 2), scale_factor=repeat, 
                                         mode='nearest').transpose(1, 2)
@@ -164,9 +164,9 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output += cur_output
             
             # obtain local and global mask
-            slf_attn_mask = enc_slf_attn_mask[:, ::stride, ::stride]
+            slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
             if local_attn_mask is not None:
-                slf_local_mask = local_attn_mask[:, ::stride, ::stride]
+                slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
             else:
                 slf_local_mask = None
 
