@@ -2,6 +2,7 @@ import torch.utils.data as data
 
 import os, glob
 import h5py
+import pywt
 from numpy.random import randint
 from ops.io import load_proposal_file
 from transforms import *
@@ -32,7 +33,8 @@ class BinaryInstance:
 
 class BinaryVideoRecord:
     def __init__(self, video_record, frame_path, flow_h5_path, rgb_h5_path,
-                 flow_feat_key, rgb_feat_key, frame_counts, use_flow=True, feat_stride=8):
+                 flow_feat_key, rgb_feat_key, frame_counts, use_flow=True, 
+                 feat_stride=8, sample_duration=100):
         self._data = video_record
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
@@ -56,12 +58,22 @@ class BinaryVideoRecord:
             rgb_feat = rgb_feat[:-1]
         shp = rgb_feat.shape
         rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
+
+        # use linear interpolation to resize the feature into a fixed length
+        xgrids = (np.arange(sample_duration) + 0.5) / sample_duration * shp[0] - 0.5
+        xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
+        pad = int(max(xgrids_ceil.max() - shp[0] + 1, -xgrids_floor.min()))
+        rgb_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
+        output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor)
+        rgb_feat = output.astype('float32')
         self.feat = rgb_feat
+        assert rgb_feat.shape[0] == sample_duration
         
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
-            begin_ind, end_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
+            # begin_ind, end_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
+            begin_ind, end_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[begin_ind:end_ind] = 1.
 
 
@@ -72,7 +84,7 @@ class BinaryDataSet(data.Dataset):
                  test_mode=False, feat_stride=16, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
-                 bg_coverage_thresh=0.02, sample_duration=8196,
+                 bg_coverage_thresh=0.02, sample_duration=1600,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True, num_local=8, 
@@ -138,7 +150,8 @@ class BinaryDataSet(data.Dataset):
             vid_name = os.path.split(vid_info[0])[1]
             frame_counts[vid_name] = int(vid_info[1])
         self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
-                                             frame_counts, use_flow=use_flow, feat_stride=feat_stride) for x in subset_videos]
+                                             frame_counts, use_flow=use_flow, feat_stride=feat_stride, 
+                                             sample_duration=self.sample_duration) for x in subset_videos]
 
 
     def __getitem__(self, index):
@@ -174,6 +187,8 @@ class BinaryDataSet(data.Dataset):
         out_mask = np.zeros_like(out_label).astype('float32')
         out_mask[:min_len] = 1.
 
+        # convert label using haar wavelet decomposition
+
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
         out_label = torch.from_numpy(out_label)
@@ -192,8 +207,8 @@ class BinaryDataSet(data.Dataset):
         pos_ind = torch.from_numpy(frame_ticks).long()
 
         num_feat = feat.shape[0]
-        if num_feat < 8:
-            feat = np.concatenate([feat, np.zeros((8-num_feat, feat.shape[1]), dtype='float32')], axis=0)
+        # if num_feat < 8:
+        #     feat = np.concatenate([feat, np.zeros((8-num_feat, feat.shape[1]), dtype='float32')], axis=0)
         feat_mask = (np.abs(feat).mean(axis=1) > 0.).astype('float32')
 
         return torch.from_numpy(np.expand_dims(feat, axis=0)), torch.from_numpy(np.expand_dims(feat_mask, axis=0)), num_feat, pos_ind
