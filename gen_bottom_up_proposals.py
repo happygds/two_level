@@ -162,7 +162,7 @@ def gen_prop(v):
     # print len(bboxes)
     bboxes = temporal_nms(bboxes, 0.9)
 
-    # pr_box = [(x[0] * / float(frm_duration) * v.duration, x[1] / float(frm_duration) * v.duration) for x in bboxes]
+    # pr_box = [(x[0] / float(frm_duration) * v.duration, x[1] / float(frm_duration) * v.duration) for x in bboxes]
     pr_box = [(x[0] * frm_interval / float(frm_cnt) * v.duration, x[1] * frm_interval / float(frm_cnt) * v.duration) for x in bboxes]
 
     # filter out too short proposals
