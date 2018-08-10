@@ -62,8 +62,9 @@ class BinaryVideoRecord:
         # use linear interpolation to resize the feature into a fixed length
         xgrids = (np.arange(sample_duration) + 0.5) / sample_duration * shp[0] - 0.5
         xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
-        pad = int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 3
+        pad = int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 1
         rgb_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
+        print(rgb_feat.shape, xgrids_ceil.max(), xgrids_floor.min())
         output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor)
         rgb_feat = output.astype('float32')
 
