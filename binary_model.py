@@ -78,7 +78,7 @@ def get_attn_pos(attn_mask, num_local=16):
     pos_ind = torch.from_numpy(pos_ind).unsqueeze(0).expand(attn_shape + (2,))
     if attn_mask.is_cuda:
         pos_ind = pos_ind.cuda().float()
-        print(type(pos_ind))
+        import pdb; pdb.set_trace()
     return pos_ind
 
 
