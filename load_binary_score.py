@@ -56,15 +56,14 @@ class BinaryVideoRecord:
                     (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
         if rgb_feat.shape[0] % 2 != 0:
             rgb_feat = rgb_feat[:-1]
-        shp = rgb_feat.shape
         rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
+        shp = rgb_feat.shape
 
         # use linear interpolation to resize the feature into a fixed length
         xgrids = (np.arange(sample_duration) + 0.5) / sample_duration * shp[0] - 0.5
         xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
         pad = int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 1
         rgb_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
-        print(rgb_feat.shape, xgrids_ceil.max(), xgrids_floor.min(), shp)
         output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor)
         rgb_feat = output.astype('float32')
 
