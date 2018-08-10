@@ -19,8 +19,9 @@ class EncoderLayer(nn.Module):
 
     def forward(self, enc_input, local_attn_mask=None, 
                 slf_attn_mask=None, attn_pos_emb=None):
-        enc_output, enc_slf_attn = self.slf_attn(enc_input, enc_input, enc_input,
-                                                 attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
+        enc_output, enc_slf_attn = self.slf_attn(
+            enc_input, enc_input, enc_input,
+            attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
         enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn
 
@@ -45,8 +46,9 @@ class Local_EncoderLayer(nn.Module):
 
     def forward(self, enc_input, local_attn_mask=None, 
                 slf_attn_mask=None, attn_pos_emb=None):
-        local_output, local_attn = self.local_attn(enc_input, enc_input, enc_input,
-                                                   attn_mask=local_attn_mask, attn_pos_emb=attn_pos_emb)
+        local_output, local_attn = self.local_attn(
+            enc_input, enc_input, enc_input,
+            attn_mask=local_attn_mask, attn_pos_emb=attn_pos_emb)
 
         if self.local_type == 'qkv':
             enc_output, enc_slf_attn = self.slf_attn(

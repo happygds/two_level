@@ -177,7 +177,7 @@ class MultiHeadAttention(nn.Module):
         init.xavier_normal_(self.w_ks)
         init.xavier_normal_(self.w_vs)
 
-    def forward(self, q, k, v, attn_mask=None, pos_emb=None):
+    def forward(self, q, k, v, attn_mask=None, attn_pos_emb=None):
 
         d_k, d_v = self.d_k, self.d_v
         n_head = self.n_head
@@ -205,8 +205,8 @@ class MultiHeadAttention(nn.Module):
         v_s = torch.bmm(v_s, self.w_vs).view(-1, len_v, d_v)
 
         if pos_emb is not None:
-            pos_emb = torch.cat(torch.split(pos_emb, d_k, dim=3), dim=0)
-            k_s += pos_emb
+            attn_pos_emb = torch.cat(torch.split(attn_pos_emb, d_k, dim=3), dim=0)
+            k_s += attn_pos_emb
 
         # perform attention, result size = (n_head * mb_size) x len_q x d_v
         if attn_mask is not None:
