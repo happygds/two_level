@@ -150,7 +150,7 @@ class ScaledDotProductAttention(nn.Module):
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
         if attn_pos_emb is not None:
-            output += torch.sum(attn.unsqueeze(3) * k_pos_emb, dim=2)
+            output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
 
         return output, attn
 
