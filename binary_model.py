@@ -122,7 +122,7 @@ class BinaryClassifier(torch.nn.Module):
         self.softmax = nn.Softmax(dim=-1)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
-        self.pos_layers = nn.ModuleList([nn.Linear(args.d_model, args.d_model) 
+        self.pos_layers = nn.ModuleList([nn.Linear(args.d_model, args.d_k * 2) 
                                         for _ in range(len(self.multi_strides))])
 
     def forward(self, feature, pos_ind, feature_mask=None, test_mode=False):
