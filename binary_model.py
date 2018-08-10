@@ -78,7 +78,6 @@ def get_attn_pos(attn_mask, num_local=16):
     pos_ind = torch.from_numpy(pos_ind).unsqueeze(0).expand(attn_shape + (2,))
     if attn_mask.is_cuda:
         pos_ind = pos_ind.cuda().float().requires_grad_(False)
-    print(pos_ind.size())
     return pos_ind
 
 
@@ -183,7 +182,7 @@ class BinaryClassifier(torch.nn.Module):
             
             # obtain local and global mask
             slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
-            attn_pos_emb = pos_embedding(pos_ind[:, ::stride, ::stride] / stride, self.d_model)
+            attn_pos_emb = pos_embedding(enc_pos_ind[:, ::stride, ::stride, :] / stride, self.d_model)
             attn_pos_emb = self.pos_layers[scale](attn_pos_emb)
             if local_attn_mask is not None:
                 slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
