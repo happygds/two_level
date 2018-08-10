@@ -192,8 +192,6 @@ class BinaryClassifier(torch.nn.Module):
                 slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
             else:
                 slf_local_mask = None
-            import pdb
-            pdb.set_trace()
 
             for i, enc_layer in enumerate(layers):
                 enc_output, enc_slf_attn = enc_layer(
