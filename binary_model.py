@@ -155,6 +155,7 @@ class BinaryClassifier(torch.nn.Module):
             enc_pos_ind = get_attn_pos(enc_slf_attn_mask, num_local=16)
         else:
             enc_pos_ind = None
+            assert enc_pos_ind is not None
 
         score_outputs = []
         size = enc_input.size()
