@@ -73,13 +73,13 @@ def get_attn_pos(attn_mask, num_local=16):
     xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
     local_ind = np.expand_dims((yy - xx) % num_local, axis=2)
     mod_ind = np.expand_dims((yy - xx) // num_local, axis=2)
-    pos_ind = np.concatenate((local_ind, mod_ind), axis=2)
+    pos_ind = np.concatenate((local_ind, mod_ind), axis=2).astype('float32')
     # pos_emb = pos_embedding(pos_ind, d_word_vec, wave_length=10000)
     pos_ind = torch.from_numpy(pos_ind).unsqueeze(0).expand(attn_shape + (2,))
     if attn_mask.is_cuda:
         pos_ind = pos_ind.cuda()
         print(type(pos_ind))
-    return pos_ind.float()
+    return pos_ind
 
 
 class BinaryClassifier(torch.nn.Module):
