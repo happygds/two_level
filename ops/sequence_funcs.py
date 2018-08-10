@@ -23,7 +23,7 @@ def label_frame_by_threshold(score_mat, cls_lst, bw=None, thresh=list([0.05]), m
     else:
         f_score = score_mat
 
-    ss = softmax(f_score)
+    # ss = softmax(f_score)
 
     rst = []
     for cls in cls_lst:
