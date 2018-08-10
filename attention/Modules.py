@@ -92,7 +92,7 @@ class ScaledDotProductAttention(nn.Module):
                 nn.Conv2d(8*self.n_head, self.n_head, (1, 3), padding=(0, 1)),
                 nn.BatchNorm2d(self.n_head))
 
-    def forward(self, q, k, v, attn_mask=None):
+    def forward(self, q, k, v, attn_mask=None, attn_pos_emb=None):
         if self.kernel_type == 'self_attn':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
         elif self.kernel_type == 'dot':
@@ -121,6 +121,10 @@ class ScaledDotProductAttention(nn.Module):
                 0, 1).contiguous().view(attn.size()) + attn
         else:
             raise NotImplementedError()
+        
+        if attn_pos_emb is not None:
+            k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
+            attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3)
 
         # attn /= 0.1
         if attn_mask is not None:
@@ -145,6 +149,8 @@ class ScaledDotProductAttention(nn.Module):
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
+        if attn_pos_emb is not None:
+            output += torch.sum(attn.unsqueeze(3) * k_pos_emb, dim=2)
 
         return output, attn
 
@@ -205,14 +211,12 @@ class MultiHeadAttention(nn.Module):
         v_s = torch.bmm(v_s, self.w_vs).view(-1, len_v, d_v)
 
         if attn_pos_emb is not None:
-            k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, d_k, dim=3)
-            k_s += k_pos_emb.repeat(n_head, 1, 1)
-            v_s += v_pos_emb.repeat(n_head, 1, 1)
+            attn_pos_emb = attn_pos_emb.repeat(n_head, 1, 1, 1)
 
         # perform attention, result size = (n_head * mb_size) x len_q x d_v
         if attn_mask is not None:
             attn_mask = attn_mask.repeat(n_head, 1, 1)
-        outputs, attns = self.attention(q_s, k_s, v_s, attn_mask=attn_mask)
+        outputs, attns = self.attention(q_s, k_s, v_s, attn_mask=attn_mask, attn_pos_emb=attn_pos_emb)
 
         # back to original mb_size batch, result size = mb_size x len_v x (n_head*d_v)
         # outputs = outputs - v_s
