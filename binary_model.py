@@ -152,7 +152,7 @@ class BinaryClassifier(torch.nn.Module):
 
         # Position Encoding addition
         if self.pos_enc:
-            enc_pos_ind = get_attn_pos(enc_slf_attn_mask, num_local=10)
+            enc_pos_ind = get_attn_pos(enc_slf_attn_mask, num_local=16)
         else:
             enc_pos_ind = None
 
