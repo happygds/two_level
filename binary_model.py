@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 
 import torchvision.models
-from attention import EncoderLayer, Local_EncoderLayer, Cluster_EncoderLayer
+from attention import EncoderLayer, Local_EncoderLayer
 
 
 def position_encoding_init(n_position, d_pos_vec):
@@ -107,12 +107,6 @@ class BinaryClassifier(torch.nn.Module):
                 Local_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
                                    args.d_v, dropout=0.1, kernel_type=args.att_kernel_type, 
                                    local_type=args.local_type)
-                for _ in range(args.n_layers * len(self.multi_strides))])
-        elif args.n_cluster > 0:
-            self.layer_stack = nn.ModuleList([
-                Cluster_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                                     args.d_v, dropout=0.1, kernel_type=args.att_kernel_type, 
-                                     n_cluster=args.n_cluster, local_type=args.local_type)
                 for _ in range(args.n_layers * len(self.multi_strides))])
         else:
             self.layer_stack = nn.ModuleList([
