@@ -30,7 +30,7 @@ def pos_embedding(position_mat, feat_dim, wave_length=10000):
     sin_mat = torch.sin(div_mat)
     cos_mat = torch.cos(div_mat)
     embedding = torch.cat([sin_mat, cos_mat], dim=4)
-    return embedding.view(pos_size[:3] + (feat_dim,))
+    return embedding.view(pos_size[:3] + (feat_dim,)).float()
 
 def get_attn_dilated_mask(attn_mask, num_local=16):
     ''' get the dilated mask to utilize the global information '''
@@ -73,12 +73,11 @@ def get_attn_pos(attn_mask, num_local=16):
     xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
     local_ind = np.expand_dims((yy - xx) % num_local, axis=2)
     mod_ind = np.expand_dims((yy - xx) // num_local, axis=2)
-    pos_ind = np.concatenate((local_ind, mod_ind), axis=2).astype('float32')
+    pos_ind = np.concatenate((local_ind, mod_ind), axis=2)
     # pos_emb = pos_embedding(pos_ind, d_word_vec, wave_length=10000)
     pos_ind = torch.from_numpy(pos_ind).unsqueeze(0).expand(attn_shape + (2,))
     if attn_mask.is_cuda:
-        pos_ind = pos_ind.cuda().float()
-        import pdb; pdb.set_trace()
+        pos_ind = pos_ind.cuda().float().requires_grad_(False)
     return pos_ind
 
 
@@ -183,7 +182,7 @@ class BinaryClassifier(torch.nn.Module):
             
             # obtain local and global mask
             slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
-            attn_pos_emb = pos_embedding((pos_ind / stride).floor(), self.d_model)
+            attn_pos_emb = pos_embedding(pos_ind[:, (stride//2)::stride, (stride//2)::stride], self.d_model)
             attn_pos_emb = self.pos_layers[scale](attn_pos_emb)
             if local_attn_mask is not None:
                 slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
