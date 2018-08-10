@@ -73,7 +73,7 @@ def get_attn_pos(attn_mask, num_local=16):
     xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
     local_ind = np.expand_dims((yy - xx) % num_local, axis=2)
     mod_ind = np.expand_dims((yy - xx) // num_local, axis=2)
-    pos_ind = np.concatenate((local_ind, mod_ind), axis=2)
+    pos_ind = np.concatenate((local_ind, mod_ind), axis=2).clip(-15, 15)
     # pos_emb = pos_embedding(pos_ind, d_word_vec, wave_length=10000)
     pos_ind = torch.from_numpy(pos_ind).unsqueeze(0).expand(attn_shape + (2,))
     if attn_mask.is_cuda:
@@ -122,7 +122,7 @@ class BinaryClassifier(torch.nn.Module):
         self.softmax = nn.Softmax(dim=-1)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
-        self.pos_layers = nn.ModuleList([nn.Sequential(nn.Linear(args.d_model, args.d_k * 2), nn.ReLU())
+        self.pos_layers = nn.ModuleList([nn.Linear(args.d_model, args.d_k * 2)
                                         for _ in range(len(self.multi_strides))])
 
     def forward(self, feature, pos_ind, feature_mask=None, test_mode=False):
