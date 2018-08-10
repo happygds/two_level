@@ -65,7 +65,7 @@ class BinaryVideoRecord:
         xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
         pad = int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 1
         rgb_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
-        output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor)
+        output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
         rgb_feat = output.astype('float32')
 
         self.feat = rgb_feat
