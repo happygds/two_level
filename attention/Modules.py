@@ -95,6 +95,9 @@ class ScaledDotProductAttention(nn.Module):
     def forward(self, q, k, v, attn_mask=None, attn_pos_emb=None):
         if self.kernel_type == 'self_attn':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            if attn_pos_emb is not None:
+                k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
+                attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
         elif self.kernel_type == 'dot':
             attn = torch.bmm(q, k.transpose(1, 2))
         elif self.kernel_type == 'concat':
@@ -110,6 +113,9 @@ class ScaledDotProductAttention(nn.Module):
                 (q * q).sum(2).unsqueeze(1)
         elif self.kernel_type in ['highorder', 'highorder-causal']:
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            if attn_pos_emb is not None:
+                k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
+                attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
             # print(attn.mean(), attn.std())
             attn.data.masked_fill_(attn_mask, 0)
             attn_reshape = attn.view(
@@ -121,14 +127,9 @@ class ScaledDotProductAttention(nn.Module):
                 0, 1).contiguous().view(attn.size()) + attn
         else:
             raise NotImplementedError()
-        
-        if attn_pos_emb is not None:
-            k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
-            attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3)
 
         # attn /= 0.1
         if attn_mask is not None:
-
             assert attn_mask.size() == attn.size(), \
                 'Attention mask shape {} mismatch ' \
                 'with Attention logit tensor shape ' \
