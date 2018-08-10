@@ -182,7 +182,7 @@ class BinaryClassifier(torch.nn.Module):
             
             # obtain local and global mask
             slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
-            attn_pos_emb = pos_embedding(pos_ind[:, (stride//2)::stride, (stride//2)::stride], self.d_model)
+            attn_pos_emb = pos_embedding(pos_ind[:, ::stride, ::stride] / stride, self.d_model)
             attn_pos_emb = self.pos_layers[scale](attn_pos_emb)
             if local_attn_mask is not None:
                 slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
