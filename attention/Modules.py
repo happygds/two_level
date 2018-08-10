@@ -71,24 +71,26 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type == 'addition':
             self.fc = nn.Sequential(nn.Tanh(), nn.Linear(d_k, 1))
         elif self.kernel_type == 'highorder':
-            self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(
-                                                 8*self.n_head), nn.ReLU(),
-                                             #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
-                                             #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
-                                             nn.Conv2d(
-                                                 8*self.n_head, self.n_head, 3, padding=1),
-                                             nn.BatchNorm2d(self.n_head))
+            self.conv_layers = nn.Sequential(
+                nn.Conv2d(self.n_head, 8*self.n_head, 3, padding=1),
+                nn.BatchNorm2d(
+                    8*self.n_head), nn.ReLU(),
+                #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
+                #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
+                nn.Conv2d(
+                    8*self.n_head, self.n_head, 3, padding=1),
+                nn.BatchNorm2d(self.n_head))
         elif self.kernel_type == 'highorder-causal':
-            self.conv_layers = nn.Sequential(nn.Conv2d(self.n_head, 8*self.n_head, (3, 1), padding=(1, 0)),
-                                             nn.Conv2d(8*self.n_head, 8*self.n_head, (1, 3), padding=(0, 1)),
-                                             nn.BatchNorm2d(
-                                                 8*self.n_head), nn.ReLU(),
-                                             #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
-                                             #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
-                                             nn.Conv2d(8*self.n_head, 8*self.n_head, (3, 1), padding=(1, 0)),
-                                             nn.Conv2d(8*self.n_head, self.n_head, (1, 3), padding=(0, 1)),
-                                             nn.BatchNorm2d(self.n_head))
+            self.conv_layers = nn.Sequential(
+                nn.Conv2d(self.n_head, 8*self.n_head, (3, 1), padding=(1, 0)),
+                nn.Conv2d(8*self.n_head, 8*self.n_head, (1, 3), padding=(0, 1)),
+                nn.BatchNorm2d(
+                    8*self.n_head), nn.ReLU(),
+                #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
+                #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
+                nn.Conv2d(8*self.n_head, 8*self.n_head, (3, 1), padding=(1, 0)),
+                nn.Conv2d(8*self.n_head, self.n_head, (1, 3), padding=(0, 1)),
+                nn.BatchNorm2d(self.n_head))
 
     def forward(self, q, k, v, attn_mask=None):
         if self.kernel_type == 'self_attn':
@@ -150,7 +152,8 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_model, d_k, d_v, d_out=None, dropout=0.1, kernel_type='self_attn'):
+    def __init__(self, n_head, d_model, d_k, d_v, d_out=None, 
+                 dropout=0.1, kernel_type='self_attn'):
         super(MultiHeadAttention, self).__init__()
         self.d_out = d_out
         self.n_head = n_head
@@ -174,7 +177,7 @@ class MultiHeadAttention(nn.Module):
         init.xavier_normal_(self.w_ks)
         init.xavier_normal_(self.w_vs)
 
-    def forward(self, q, k, v, attn_mask=None):
+    def forward(self, q, k, v, attn_mask=None, pos_emb=None):
 
         d_k, d_v = self.d_k, self.d_v
         n_head = self.n_head
@@ -200,6 +203,10 @@ class MultiHeadAttention(nn.Module):
         k_s = torch.bmm(k_s, self.w_ks).view(-1, len_k, d_k)
         # (n_head*mb_size) x len_v x d_v
         v_s = torch.bmm(v_s, self.w_vs).view(-1, len_v, d_v)
+
+        if pos_emb is not None:
+            pos_emb = torch.cat(torch.split(pos_emb, d_k, dim=3), dim=0)
+            k_s += pos_emb
 
         # perform attention, result size = (n_head * mb_size) x len_q x d_v
         if attn_mask is not None:

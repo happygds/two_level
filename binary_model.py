@@ -20,16 +20,17 @@ def position_encoding_init(n_position, d_pos_vec):
     position_enc[1:, 1::2] = np.cos(position_enc[1:, 1::2])  # dim 2i+1
     return torch.from_numpy(position_enc).type(torch.FloatTensor)
 
-def score_embedding(position_mat, feat_dim, wave_length=1000):
-    feat_range = torch.arange(0, feat_dim / 2)
-    dim_mat = torch.pow(wave_length, (2. / feat_dim) * feat_range)
-    dim_mat = dim_mat.view(1, 1, -1).cuda()
-    position_mat = (100.0 * torch.log(position_mat / 0.5)).unsqueeze(2)
+def pos_embedding(position_mat, feat_dim, wave_length=10000):
+    feat_range = torch.arange(0, feat_dim / 4)
+    dim_mat = torch.pow(wave_length, (4. / feat_dim) * feat_range)
+    dim_mat = dim_mat.view(1, 1, 1, 1, -1).cuda()
+    pos_size = position_mat.size()
+    position_mat = position_mat.unsqueeze(4)
     div_mat = torch.div(position_mat, dim_mat)
     sin_mat = torch.sin(div_mat)
     cos_mat = torch.cos(div_mat)
-    embedding = torch.cat([sin_mat, cos_mat], dim=2)
-    return embedding
+    embedding = torch.cat([sin_mat, cos_mat], dim=4)
+    return embedding.view(pos_size[:3] + (feat_dim,))
 
 def get_attn_dilated_mask(attn_mask, num_local=16):
     ''' get the dilated mask to utilize the global information '''
@@ -65,6 +66,19 @@ def get_attn_local_mask(attn_mask, num_local=16):
         # local_ind = local_ind.cuda().long()
     local_mask = torch.gt(attn_mask + local_mask, 0).requires_grad_(False)
     return local_mask
+
+def get_attn_pos(attn_mask, num_local=16):
+    ''' Get an attention with relative position embedding.'''
+    attn_shape = attn_mask.size()
+    xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
+    local_ind = np.expand_dims((yy - xx) % num_local, axis=2)
+    mod_ind = np.expand_dims((yy - xx) // num_local, axis=2)
+    pos_ind = np.concatenate((local_ind, mod_ind), axis=2)
+    # pos_emb = pos_embedding(pos_ind, d_word_vec, wave_length=10000)
+    pos_ind = torch.from_numpy(pos_ind).unsqueeze(0).expand(attn_shape + (2,))
+    if attn_mask.is_cuda:
+        pos_ind = pos_ind.cuda()
+    return pos_ind
 
 
 class BinaryClassifier(torch.nn.Module):
@@ -114,6 +128,8 @@ class BinaryClassifier(torch.nn.Module):
         self.softmax = nn.Softmax(dim=-1)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
+        self.pos_layers = nn.ModuleList([nn.Linear(args.d_model, args.d_model) 
+                                        for _ in range(len(self.multi_strides))])
 
     def forward(self, feature, pos_ind, feature_mask=None, test_mode=False):
         # Word embedding look up
@@ -139,6 +155,12 @@ class BinaryClassifier(torch.nn.Module):
             if self.dilated_mask:
                 enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
         enc_slf_attn_mask = torch.gt(enc_slf_attn_mask + enc_slf_attn_mask.transpose(1, 2), 0)
+
+        # Position Encoding addition
+        if self.pos_enc:
+            enc_pos_ind = get_attn_pos(attn_mask, num_local=16)
+        else:
+            enc_pos_ind = None
 
         score_outputs = []
         size = enc_input.size()
@@ -166,14 +188,16 @@ class BinaryClassifier(torch.nn.Module):
             
             # obtain local and global mask
             slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
+            attn_pos_emb = pos_embedding(pos_ind // stride, self.d_model)
+            attn_pos_emb = self.pos_layers[scale](attn_pos_emb)
             if local_attn_mask is not None:
                 slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
             else:
                 slf_local_mask = None
 
             for i, enc_layer in enumerate(layers):
-                enc_output, enc_slf_attn = enc_layer(
-                    enc_output, local_attn_mask=slf_local_mask, slf_attn_mask=slf_attn_mask)
+                enc_output, enc_slf_attn = enc_layer(enc_output, local_attn_mask=slf_local_mask, 
+                                                     slf_attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
             score_output = self.softmax(binary_classifier(enc_output))
             score_outputs.append(score_output)
         score_outputs = score_outputs[::-1]
