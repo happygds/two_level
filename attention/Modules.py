@@ -206,8 +206,8 @@ class MultiHeadAttention(nn.Module):
 
         if attn_pos_emb is not None:
             k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, d_k, dim=3)
-            k_s += attn_pos_emb
-            v_s += attn_pos_emb
+            k_s += k_pos_emb.repeat(n_head, 1, 1)
+            v_s += v_pos_emb.repeat(n_head, 1, 1)
 
         # perform attention, result size = (n_head * mb_size) x len_q x d_v
         if attn_mask is not None:
