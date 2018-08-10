@@ -182,16 +182,21 @@ class BinaryClassifier(torch.nn.Module):
             
             # obtain local and global mask
             slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
-            attn_pos_emb = pos_embedding(enc_pos_ind[:, ::stride, ::stride, :] / stride, self.d_model)
-            attn_pos_emb = self.pos_layers[scale](attn_pos_emb)
+            if self.pos_enc:
+                attn_pos_emb = pos_embedding(enc_pos_ind[:, ::stride, ::stride, :] / stride, self.d_model)
+                attn_pos_emb = self.pos_layers[scale](attn_pos_emb)
+            else:
+                attn_pos_emb = None
+                
             if local_attn_mask is not None:
                 slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
             else:
                 slf_local_mask = None
 
             for i, enc_layer in enumerate(layers):
-                enc_output, enc_slf_attn = enc_layer(enc_output, local_attn_mask=slf_local_mask, 
-                                                     slf_attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
+                enc_output, enc_slf_attn = enc_layer(
+                    enc_output, local_attn_mask=slf_local_mask, 
+                    slf_attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
             score_output = self.softmax(binary_classifier(enc_output))
             score_outputs.append(score_output)
         score_outputs = score_outputs[::-1]
