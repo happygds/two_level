@@ -98,7 +98,8 @@ class ScaledDotProductAttention(nn.Module):
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             if attn_pos_emb is not None:
                 k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
-                attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
+                k_pos_gate = F.sigmoid(torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper)
+                attn *=  k_pos_gate
         elif self.kernel_type == 'dot':
             attn = torch.bmm(q, k.transpose(1, 2))
         elif self.kernel_type == 'concat':
