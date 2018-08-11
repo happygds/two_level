@@ -125,7 +125,7 @@ def main():
                             (epoch + 1) * len(train_loader))
 
         # remember best prec@1 and save checkpoint
-            is_best = loss < best_loss
+            is_best = 1.0001 * loss < best_loss
             if is_best:
                 patience = 0
             else:
