@@ -101,8 +101,8 @@ class BinaryClassifier(torch.nn.Module):
         # self.position_enc = nn.Embedding(n_position, d_word_vec, padding_idx=0)
         # self.position_enc.weight.data = position_encoding_init(
         #     n_position, d_word_vec)
-        self.position_loc = nn.Embedding(16, args.d_model//2)
-        self.position_mod = nn.Embedding(16, args.d_model//2)
+        self.position_loc = nn.Embedding(16, args.d_k)
+        self.position_mod = nn.Embedding(16, args.d_k)
 
         if args.num_local > 0:
             self.layer_stack = nn.ModuleList([
@@ -124,7 +124,7 @@ class BinaryClassifier(torch.nn.Module):
         self.softmax = nn.Softmax(dim=-1)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
-        self.pos_layers = nn.ModuleList([nn.Linear(args.d_model//2, 2*args.d_k)
+        self.pos_layers = nn.ModuleList([nn.Linear(2*args.d_k, 2*args.d_k)
                                         for _ in range(len(self.multi_strides))])
 
     def forward(self, feature, pos_ind, feature_mask=None, test_mode=False):
