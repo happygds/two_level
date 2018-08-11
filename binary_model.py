@@ -212,8 +212,8 @@ class BinaryClassifier(torch.nn.Module):
 
         return score_outputs
 
-    def get_trainable_parameters(self):
-        # ''' Avoid updating the position encoding '''
-        enc_freezed_param_ids = set(map(id, self.position_enc.parameters()))
-        freezed_param_ids = enc_freezed_param_ids
-        return (p for p in self.parameters() if id(p) not in freezed_param_ids)
+    # def get_trainable_parameters(self):
+    #     # ''' Avoid updating the position encoding '''
+    #     enc_freezed_param_ids = set(map(id, self.position_enc.parameters()))
+    #     freezed_param_ids = enc_freezed_param_ids
+    #     return (p for p in self.parameters() if id(p) not in freezed_param_ids)
