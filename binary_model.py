@@ -155,8 +155,6 @@ class BinaryClassifier(torch.nn.Module):
         # Position Encoding addition
         if self.pos_enc:
             enc_loc_ind, enc_mod_ind = get_attn_pos(enc_slf_attn_mask, num_local=16)
-        else:
-            enc_loc_ind, enc_mod_ind = None, None
 
         score_outputs = []
         size = enc_input.size()
@@ -187,7 +185,7 @@ class BinaryClassifier(torch.nn.Module):
             if self.pos_enc:
                 attn_loc_emb = self.position_loc((enc_loc_ind[::stride, ::stride, :] / stride).long())
                 attn_mod_emb = self.position_mod((enc_mod_ind[::stride, ::stride, :] / stride).long())
-                attn_mod_emb = torch.cat([attn_loc_emb, attn_mod_emb], dim=2)
+                attn_pos_emb = torch.cat([attn_loc_emb, attn_mod_emb], dim=2)
                 attn_pos_emb = self.pos_layers[scale](attn_pos_emb).unsqueeze(0).expand(size[0], -1, -1, -1)
             else:
                 attn_pos_emb = None
