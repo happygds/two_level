@@ -72,7 +72,7 @@ def get_attn_pos(attn_mask, num_local=16):
     attn_shape = attn_mask.size()
     xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
     loc_ind = (yy - xx) % num_local
-    mod_ind = (yy - xx) // num_local
+    mod_ind = (yy - xx) // num_local + num_local
     loc_ind, mod_ind = torch.from_numpy(loc_ind), torch.from_numpy(mod_ind)
     if attn_mask.is_cuda:
         loc_ind = loc_ind.cuda().float().requires_grad_(False)
