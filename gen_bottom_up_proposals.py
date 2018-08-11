@@ -82,7 +82,8 @@ if args.cls_scores:
     cls_scores = cPickle.load(open(args.cls_scores, 'rb'))
 else:
     cls_scores = None
-print('done')
+print('loading clasification score done')
+import pdb ; pdb.set_trace()
 
 # load regression scores
 if args.reg_score_files is not None:
@@ -151,7 +152,6 @@ def gen_prop(v):
         frm_cnt = v.frame_cnt
         topk_cls = [0]
         topk_labels = label_frame_by_threshold(scores, topk_cls, bw=3, thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95, ], multicrop=False)
-        import pdb ; pdb.set_trace()
 
         tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
 
