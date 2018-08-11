@@ -132,9 +132,6 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         with torch.no_grad():
             outputs = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             outputs = [output[0].cpu().numpy()[:num_feat] for _, output in enumerate(outputs)]
-        import time
-        print(outputs[0][:, 1])
-        time.sleep(100)
 
         result_queue.put((dataset.video_list[index].id.split('/')[-1], outputs))
         
