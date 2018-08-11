@@ -71,8 +71,8 @@ def get_attn_pos(attn_mask, num_local=16):
     ''' Get an attention with relative position embedding.'''
     attn_shape = attn_mask.size()
     xx, yy = np.mgrid[0:attn_shape[1], 0:attn_shape[2]]
-    loc_ind = np.expand_dims((yy - xx) % num_local, axis=2)
-    mod_ind = np.expand_dims((yy - xx) // num_local, axis=2)
+    loc_ind = (yy - xx) % num_local
+    mod_ind = (yy - xx) // num_local
     loc_ind, mod_ind = torch.from_numpy(loc_ind), torch.from_numpy(mod_ind)
     if attn_mask.is_cuda:
         loc_ind = loc_ind.cuda().float().requires_grad_(False)
@@ -102,7 +102,7 @@ class BinaryClassifier(torch.nn.Module):
         self.position_enc.weight.data = position_encoding_init(
             n_position, d_word_vec)
         self.position_loc = nn.Embedding(16, args.d_k)
-        self.position_mod = nn.Embedding(16, args.d_k)
+        self.position_mod = nn.Embedding(32, args.d_k)
 
         if args.num_local > 0:
             self.layer_stack = nn.ModuleList([
@@ -183,8 +183,8 @@ class BinaryClassifier(torch.nn.Module):
             # obtain local and global mask
             slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
             if self.pos_enc:
-                attn_loc_emb = self.position_loc((enc_loc_ind[::stride, ::stride, :] / stride).long())
-                attn_mod_emb = self.position_mod((enc_mod_ind[::stride, ::stride, :] / stride).long())
+                attn_loc_emb = self.position_loc((enc_loc_ind[::stride, ::stride] / stride).long())
+                attn_mod_emb = self.position_mod((enc_mod_ind[::stride, ::stride] / stride).long())
                 attn_pos_emb = torch.cat([attn_loc_emb, attn_mod_emb], dim=2)
                 attn_pos_emb = self.pos_layers[scale](attn_pos_emb).unsqueeze(0).expand(size[0], -1, -1, -1)
             else:
