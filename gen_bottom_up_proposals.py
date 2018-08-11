@@ -83,7 +83,6 @@ if args.cls_scores:
 else:
     cls_scores = None
 print('loading clasification score done')
-import pdb ; pdb.set_trace()
 
 # load regression scores
 if args.reg_score_files is not None:
@@ -192,6 +191,7 @@ score_list = [score_dict[v.id] for v in video_list if v.id in pr_dict]
 duration_list = [v.duration for v in video_list if v.id in pr_dict]
 proposal_score_list = [pr_score_dict[v.id] for v in video_list if v.id in pr_dict]
 print('{} groundtruth boxes from'.format(sum(map(len, gt_spans))))
+import pdb ; pdb.set_trace()
 
 print('average # of proposals: {}'.format(np.mean(list(map(len, proposal_list)))))
 IOU_thresh = np.arange(0.5, 1.0, 0.05)
