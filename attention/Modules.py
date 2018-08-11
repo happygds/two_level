@@ -155,10 +155,10 @@ class ScaledDotProductAttention(nn.Module):
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
-        # if attn_pos_emb is not None:
-        #     # v_gate = F.sigmoid(torch.mean(v_pos_emb + v.unsqueeze(1), dim=2))
-        #     # output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
-        #     output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
+        if attn_pos_emb is not None:
+            # v_gate = F.sigmoid(torch.mean(v_pos_emb + v.unsqueeze(1), dim=2))
+            # output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
+            output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
 
         return output, attn
 
