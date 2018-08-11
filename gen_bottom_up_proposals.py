@@ -169,7 +169,7 @@ def gen_prop(v):
 
     # filter out too short proposals
     pr_box = list(filter(lambda b: b[1] - b[0] > args.minimum_len, pr_box))
-    return v.id, pr_box, [x[3] / float(x[1] - x[0]) for x in bboxes]
+    return v.id, pr_box, [x[3] for x in bboxes]
 
 
 def call_back(rst):
