@@ -145,6 +145,8 @@ def gen_prop(v):
         vid = v.path.split('/')[-1].split('.')[0]
     scores_list = score_dict[vid]
     bboxes = []
+    if not isinstance(scores_list, list):
+        scores_list = [scores_list]
     for scores in scores_list:
         frm_duration = len(scores)
         frm_interval = v.frame_interval
