@@ -20,7 +20,7 @@ def position_encoding_init(n_position, d_pos_vec):
     position_enc[1:, 1::2] = np.cos(position_enc[1:, 1::2])  # dim 2i+1
     return torch.from_numpy(position_enc).type(torch.FloatTensor)
 
-def pos_embedding(position_mat, feat_dim, wave_length=10000):
+def pos_embedding(position_mat, feat_dim, wave_length=1000):
     feat_range = torch.arange(0, feat_dim / 4)
     dim_mat = torch.pow(wave_length, (4. / feat_dim) * feat_range)
     dim_mat = dim_mat.view(1, 1, 1, -1).cuda()
