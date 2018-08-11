@@ -97,10 +97,10 @@ class BinaryClassifier(torch.nn.Module):
         self.multi_strides = args.multi_strides
         self.n_layers = args.n_layers
 
-        # n_position, d_word_vec = 1200, args.d_model
-        # self.position_enc = nn.Embedding(n_position, d_word_vec, padding_idx=0)
-        # self.position_enc.weight.data = position_encoding_init(
-        #     n_position, d_word_vec)
+        n_position, d_word_vec = 1200, args.d_model
+        self.position_enc = nn.Embedding(n_position, d_word_vec, padding_idx=0)
+        self.position_enc.weight.data = position_encoding_init(
+            n_position, d_word_vec)
         self.position_loc = nn.Embedding(16, args.d_k)
         self.position_mod = nn.Embedding(16, args.d_k)
 
@@ -212,8 +212,8 @@ class BinaryClassifier(torch.nn.Module):
 
         return score_outputs
 
-    # def get_trainable_parameters(self):
-    #     # ''' Avoid updating the position encoding '''
-    #     enc_freezed_param_ids = set(map(id, self.position_enc.parameters()))
-    #     freezed_param_ids = enc_freezed_param_ids
-    #     return (p for p in self.parameters() if id(p) not in freezed_param_ids)
+    def get_trainable_parameters(self):
+        # ''' Avoid updating the position encoding '''
+        enc_freezed_param_ids = set(map(id, self.position_enc.parameters()))
+        freezed_param_ids = enc_freezed_param_ids
+        return (p for p in self.parameters() if id(p) not in freezed_param_ids)
