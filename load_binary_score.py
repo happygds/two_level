@@ -60,22 +60,22 @@ class BinaryVideoRecord:
         rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
         shp = rgb_feat.shape
 
-        # # use linear interpolation to resize the feature into a fixed length
-        # xgrids = (np.arange(sample_duration) + 0.5) / sample_duration * shp[0] - 0.5
-        # xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
-        # pad = max(int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 1, 0)
-        # rgb_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
-        # output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
-        # rgb_feat = output.astype('float32')
+        # use linear interpolation to resize the feature into a fixed length
+        xgrids = (np.arange(sample_duration) + 0.5) / sample_duration * shp[0] - 0.5
+        xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
+        pad = max(int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 1, 0)
+        rgb_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
+        output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
+        rgb_feat = output.astype('float32')
 
         self.feat = rgb_feat
-        # assert rgb_feat.shape[0] == sample_duration
+        assert rgb_feat.shape[0] == sample_duration
         
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
-            begin_ind, end_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
-            # begin_ind, end_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
+            # begin_ind, end_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
+            begin_ind, end_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[begin_ind:end_ind] = 1.
 
 
