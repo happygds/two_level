@@ -97,10 +97,10 @@ class ScaledDotProductAttention(nn.Module):
         if self.kernel_type == 'self_attn':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             if attn_pos_emb is not None:
-                k_pos_emb, v_pos_emb, k_pos_gate, v_pos_gate = torch.split(attn_pos_emb, q.size(2), dim=3)
-                k_gate = F.sigmoid(torch.mean(k.unsqueeze(1) + k_pos_gate, dim=3))
-                attn = k_gate * attn + (1. - k_gate) * torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
-                # attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
+                k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
+                # k_gate = F.sigmoid(torch.mean(k.unsqueeze(1) + k_pos_gate, dim=3))
+                # attn = k_gate * attn + (1. - k_gate) * torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
+                attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
         elif self.kernel_type == 'dot':
             attn = torch.bmm(q, k.transpose(1, 2))
         elif self.kernel_type == 'concat':
@@ -117,10 +117,10 @@ class ScaledDotProductAttention(nn.Module):
         elif self.kernel_type in ['highorder', 'highorder-causal']:
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             if attn_pos_emb is not None:
-                k_pos_emb, v_pos_emb, k_pos_gate, v_pos_gate = torch.split(attn_pos_emb, q.size(2), dim=3)
-                k_gate = F.sigmoid(torch.mean(k.unsqueeze(1) + k_pos_gate, dim=3))
-                attn = k_gate * attn + (1. - k_gate) * torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
-                # attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
+                k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
+                # k_gate = F.sigmoid(torch.mean(k.unsqueeze(1) + k_pos_gate, dim=3))
+                # attn = k_gate * attn + (1. - k_gate) * torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
+                attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
 
             attn.data.masked_fill_(attn_mask, 0)
             attn_reshape = attn.view(
@@ -156,9 +156,9 @@ class ScaledDotProductAttention(nn.Module):
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
         if attn_pos_emb is not None:
-            v_gate = F.sigmoid(torch.mean(v_pos_emb + v.unsqueeze(1), dim=2))
-            output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
-            # output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
+            # v_gate = F.sigmoid(torch.mean(v_pos_emb + v.unsqueeze(1), dim=2))
+            # output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
+            output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
 
         return output, attn
 
