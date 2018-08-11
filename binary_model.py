@@ -101,8 +101,8 @@ class BinaryClassifier(torch.nn.Module):
         self.position_enc = nn.Embedding(n_position, d_word_vec, padding_idx=0)
         self.position_enc.weight.data = position_encoding_init(
             n_position, d_word_vec)
-        self.position_loc = nn.Embedding(16, args.d_k)
-        self.position_mod = nn.Embedding(32, args.d_k)
+        self.position_loc = nn.Embedding(17, args.d_k)
+        self.position_mod = nn.Embedding(33, args.d_k)
 
         if args.num_local > 0:
             self.layer_stack = nn.ModuleList([
