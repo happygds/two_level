@@ -35,7 +35,7 @@ class CE_Criterion(nn.Module):
                 # cls_weight = 1. / target.mean(0).mean(0)
                 weight = target.sum(1) / masks[i].sum(1).unsqueeze(1).clamp(0.001)
                 weight = 0.5 / weight.clamp(0.001)
-                weight = weight / weight.sum(1).unsqueeze(1)
+                # weight = weight / weight.sum(1).unsqueeze(1)
                 targets[i] = target
                 weights.append(weight)
                     
