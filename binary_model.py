@@ -199,10 +199,7 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output, enc_slf_attn = enc_layer(
                     enc_output, local_attn_mask=slf_local_mask, 
                     slf_attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
-            if test_mode:
-                score_output = binary_classifier(enc_output)
-            else:
-                score_output = self.softmax(binary_classifier(enc_output))
+            score_output = self.softmax(binary_classifier(enc_output))
             score_outputs.append(score_output)
         score_outputs = score_outputs[::-1]
         if test_mode:
