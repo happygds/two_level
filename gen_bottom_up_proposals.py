@@ -157,9 +157,10 @@ def gen_prop(v):
         tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
 
         bboxes.extend(build_box_by_search(topk_labels, np.array(tol_lst)))
-        if reg_score_dict:
-            reg_scores = reg_score_dict[score_id]
-            bboxes = regress_box(bboxes, reg_scores, len(scores))
+    if reg_score_dict:
+        reg_scores = reg_score_dict[score_id]
+        bboxes = regress_box(bboxes, reg_scores, len(scores))
+    bboxes = [(x[0], x[1], x[2], x[3] / float(x[1] - x[0])) for x in bboxes]
 
     # print len(bboxes)
     bboxes = temporal_nms(bboxes, 0.9)
