@@ -233,7 +233,8 @@ prediction = pd.DataFrame({'video-id': video_lst,
                             't-start': t_start_lst,
                             't-end': t_end_lst,
                             'score': score_lst})
-# prediction.to_csv('val.csv')
+dir_path = os.path.split(args.score_files[0])[1]
+prediction.to_csv(os.path.join(dir_path, 'val.csv'))
 
 # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
 ground_truth, cls_to_idx = grd_activity('/data1/matheguo/important/data/activitynet/activity_net.v1-3.min_save.json', subset='validation')
