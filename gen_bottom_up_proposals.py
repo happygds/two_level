@@ -233,7 +233,7 @@ prediction = pd.DataFrame({'video-id': video_lst,
                             't-start': t_start_lst,
                             't-end': t_end_lst,
                             'score': score_lst})
-dir_path = os.path.split(args.score_files[0])[1]
+dir_path = os.path.split(args.score_files[0])[0]
 prediction.to_csv(os.path.join(dir_path, 'val.csv'))
 
 # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
