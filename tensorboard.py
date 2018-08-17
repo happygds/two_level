@@ -46,7 +46,8 @@ class Logger(object):
         """Log a histogram of the tensor of values."""
 
         # Create a histogram using numpy
-        print(np.min(values), np.max(values))
+        if np.isnan(values).any():
+            import pdb; pdb.set_trace()
         counts, bin_edges = np.histogram(values, bins=bins)
 
         # Fill the fields of the histogram proto
