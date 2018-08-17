@@ -167,6 +167,7 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
+    attn_losses = AverageMeter() 
 
     # switch to train model
     model.train()
@@ -184,8 +185,10 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
 
         # compute output
         binary_score, out_attns = model(feature, pos_ind, feature_mask=feature_mask)
-        loss = criterion(binary_score, target, attns=out_attns, mask=feature_mask, 
+        loss, attn_loss = criterion(binary_score, target, attns=out_attns, mask=feature_mask, 
                          multi_strides=multi_strides)
+        loss += attn_loss * 0.1
+        attn_losses.update(attn_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
 
         # compute gradient and do SGD step
@@ -213,13 +216,15 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+                  'Attn_Loss {attn_loss.val:.4f} ({attn_loss.avg:.4f})\t'
                   .format(
                       epoch, i, len(train_loader), batch_time=batch_time, data_time=data_time, 
-                      loss=losses, lr=optimizer.param_groups[0]['lr'])
+                      loss=losses, attn_loss=attn_losses)
                   )
 
         # 1. Log scalar values (scalar summary)
-        info = { 'train_loss': loss.item()}
+        info = {'train_loss': loss.item(),
+                'train_attn_loss':, attn_loss.item()}
         for tag, value in info.items():
             logger.scalar_summary(tag, value, i+epoch*len(train_loader)+1)
         # 2. Log values and gradients of the parameters (histogram summary)
@@ -231,6 +236,7 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
 
 def validate(val_loader, model, criterion, iter):
     batch_time = AverageMeter()
+    attn_losses = AverageMeter()
     losses = AverageMeter()
 
     model.eval()
@@ -246,8 +252,10 @@ def validate(val_loader, model, criterion, iter):
 
             # compute output
             binary_score, out_attns = model(feature, pos_ind, feature_mask=feature_mask)
-            loss = criterion(binary_score, target, attns=out_attns, mask=feature_mask, 
-                             multi_strides=multi_strides)
+            loss, attn_loss = criterion(binary_score, target, attns=out_attns, mask=feature_mask, 
+                                        multi_strides=multi_strides)
+            loss += attn_loss * 0.1
+        attn_losses.update(attn_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
 
         batch_time.update(time.time() - end)
@@ -257,7 +265,9 @@ def validate(val_loader, model, criterion, iter):
             print('Test: [{0}/{1}]\t'
                   'Time {batch_time.val:.4f} ({loss.avg:.4f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  .format(i, len(val_loader), batch_time=batch_time, loss=losses))
+                  'Attn_Loss {attn_loss.val:.4f} ({attn_loss.avg:.4f})\t'
+                  .format(i, len(val_loader), batch_time=batch_time, 
+                  loss=losses, attn_loss=attn_losses))
 
     print('Testing Results: Loss {loss.avg:.5f} \t'
           .format(loss=losses))
