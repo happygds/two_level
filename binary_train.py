@@ -224,7 +224,7 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
 
         # 1. Log scalar values (scalar summary)
         info = {'train_loss': loss.item(),
-                'train_attn_loss':, attn_loss.item()}
+                'train_attn_loss': attn_loss.item()}
         for tag, value in info.items():
             logger.scalar_summary(tag, value, i+epoch*len(train_loader)+1)
         # 2. Log values and gradients of the parameters (histogram summary)
