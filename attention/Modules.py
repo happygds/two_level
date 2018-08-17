@@ -32,7 +32,7 @@ class CE_Criterion(nn.Module):
             target_cov = target.unsqueeze(2) * target.unsqueeze(1)
             attn = attn - attn.mean(2, keepdim=True) - attn.mean(3, keepdim=True) + attn.mean(3, keepdim=True).mean(2, keepdim=True)
             attn_output = (attn * target_cov.unsqueeze(1)).sum(3).sum(2) / torch.sqrt((attn * attn).sum(3).sum(2)).clamp(1e-3)
-            tmp_output = (0. - attn_output).mean()
+            tmp_output = (1. / attn_output.clamp(1e-3)).mean()
             if i == 0:
                 attn_output = tmp_output
             else:
