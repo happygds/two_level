@@ -134,6 +134,8 @@ class BinaryClassifier(torch.nn.Module):
         else:
             enc_input = feature
 
+        import pdb
+        pdb.set_trace()
         # # Position Encoding addition
         # if self.pos_enc:
         #     enc_input = enc_input + self.position_enc(pos_ind)
