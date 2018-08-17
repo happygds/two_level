@@ -34,7 +34,7 @@ class CE_Criterion(nn.Module):
             attn = attn.mean(1)
             attn = attn - attn.mean(1, keepdim=True) - attn.mean(2, keepdim=True) + attn.mean(2, keepdim=True).mean(1, keepdim=True)
             tmp_output = (attn * target_cov).sum(2).sum(1) / torch.sqrt((attn * attn).sum(2).sum(1)).clamp(1e-3)
-            tmp_output =  -tmp_output.mean()
+            tmp_output =  - tmp_output.mean()
             if i == 0:
                 attn_output = tmp_output
             else:
@@ -110,7 +110,6 @@ class ScaledDotProductAttention(nn.Module):
     def forward(self, q, k, v, attn_mask=None, attn_pos_emb=None):
         if self.kernel_type == 'self_attn':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
-            out_attn = attn
             if attn_pos_emb is not None:
                 k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
                 # k_gate = F.sigmoid(torch.mean(k.unsqueeze(1) + k_pos_gate, dim=3))
@@ -168,6 +167,7 @@ class ScaledDotProductAttention(nn.Module):
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
+        out_attn = attn
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
         if attn_pos_emb is not None:
