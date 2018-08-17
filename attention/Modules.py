@@ -28,6 +28,7 @@ class CE_Criterion(nn.Module):
         masks = [mask[:, (i//2)::i] for i in multi_strides]
         
         for i, (target, attn) in enumerate(zip(targets, attns)):
+            target = target.cuda().requires_grad_(False)
             target_cov = target.unsqueeze(2) * target.unsqueeze(1)
             attn = attn - attn.mean(2, keepdim=True) - attn.mean(3, keepdim=True) + attn.mean(2, keepdim=True).mean(3, keepdim=True)
             print(attn.size(), target_cov.size())
