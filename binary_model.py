@@ -134,7 +134,7 @@ class BinaryClassifier(torch.nn.Module):
         else:
             enc_input = feature
 
-        values = self.reduce_layer.weight.data.cpu().numpy()
+        values = self.reduce_layer[0].weight.data.cpu().numpy()
         if np.isnan(values).any():
             import pdb; pdb.set_trace()
         # # Position Encoding addition
