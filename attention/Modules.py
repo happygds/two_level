@@ -26,7 +26,14 @@ class CE_Criterion(nn.Module):
     def forward(self, inputs, target, attns=None, mask=None, multi_strides=None):
         targets = [target[:, (i//2)::i] for i in multi_strides]
         masks = [mask[:, (i//2)::i] for i in multi_strides]
-        intargets = targets
+        
+        for i, (target, attn) in enumerate(zip(targets, attns)):
+            target_cov = target.unsqueeze(2) * target.unsqueeze(1)
+            attn = attn - attn.mean(2, keepdim=True) - attn.mean(3, keepdim=True) + attn.mean(2, keepdim=True).mean(3, keepdim=True)
+            print(attn.size(), target_cov.size())
+            attn_output = (attn * target_cov.unsqueeze(1)).sum(2).sum(3) / torch.sqrt((target_cov * target_cov).sum(1).sum(2)).unsqueeze(1).clamp(1e-3)
+            output = (1. - attn_output).mean() * 0.1
+
         if self.use_weight:
             weights = []
             for i, target in enumerate(targets):
@@ -51,13 +58,6 @@ class CE_Criterion(nn.Module):
                 output = tmp_output
             else:
                 output += tmp_output
-        
-        for i, (target, attn) in enumerate(zip(intargets, attns)):
-            target_cov = target.unsqueeze(2) * target.unsqueeze(1)
-            attn = attn - attn.mean(2, keepdim=True) - attn.mean(3, keepdim=True) + attn.mean(2, keepdim=True).mean(3, keepdim=True)
-            print(attn.size(), target_cov.size())
-            attn_output = (attn * target_cov.unsqueeze(1)).sum(2).sum(3) / torch.sqrt((target_cov * target_cov).sum(1).sum(2)).unsqueeze(1).clamp(1e-3)
-            output += (1. - attn_output).mean() * 0.1
 
         return output / len(inputs)
 
