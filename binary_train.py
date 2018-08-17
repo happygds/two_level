@@ -228,10 +228,10 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
         for tag, value in info.items():
             logger.scalar_summary(tag, value, i+epoch*len(train_loader)+1)
         # 2. Log values and gradients of the parameters (histogram summary)
-        for tag, value in model.named_parameters():
-            tag_ = tag.replace('.', '/')
-            logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
-            logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
+        # for tag, value in model.named_parameters():
+        #     tag_ = tag.replace('.', '/')
+        #     logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
+        #     logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
 
 
 def validate(val_loader, model, criterion, iter):
