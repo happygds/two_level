@@ -129,7 +129,8 @@ def main():
         save_path = save_path + '_C' + str(args.n_cluster)
     if args.multiscale > 1:
         save_path = save_path + '_S' + str(args.multiscale)
-    logger = Logger(os.path.join(save_path, './logs'))
+    model_name = os.path.split(save_path)[1]
+    logger = Logger('./logs/{}'.format(model_name))
 
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):
