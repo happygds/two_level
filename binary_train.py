@@ -137,12 +137,16 @@ def main():
         # train for one epoch
         if patience > 3:
             break
-        train(train_loader, model, binary_criterion, optimizer, epoch)
+        train(train_loader, model, binary_criterion, optimizer, epoch, logger)
 
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
             loss = validate(val_loader, model, binary_criterion,
                             (epoch + 1) * len(train_loader))
+            # 1. Log scalar values (scalar summary)
+            info = { 'val_loss': loss}
+            for tag, value in info.items():
+                logger.scalar_summary(tag, value, epoch+1)
 
         # remember best prec@1 and save checkpoint
             is_best = 1.0001 * loss < best_loss
@@ -159,7 +163,7 @@ def main():
             }, is_best, save_path)
 
 
-def train(train_loader, model, criterion, optimizer, epoch):
+def train(train_loader, model, criterion, optimizer, epoch, logger):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -213,6 +217,16 @@ def train(train_loader, model, criterion, optimizer, epoch):
                       epoch, i, len(train_loader), batch_time=batch_time, data_time=data_time, 
                       loss=losses, lr=optimizer.param_groups[0]['lr'])
                   )
+
+        # 1. Log scalar values (scalar summary)
+        info = { 'train_loss': loss.item()}
+        for tag, value in info.items():
+            logger.scalar_summary(tag, value, i+epoch*len(train_loader)+1)
+        # 2. Log values and gradients of the parameters (histogram summary)
+        for tag, value in model.named_parameters():
+            tag = tag.replace('.', '/')
+            logger.histo_summary(tag, value.data.cpu().numpy(), step+1)
+            logger.histo_summary(tag+'/grad', value.grad.data.cpu().numpy(), step+1)
 
 
 def validate(val_loader, model, criterion, iter):
