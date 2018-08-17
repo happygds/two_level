@@ -159,7 +159,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         pos_ind = pos_ind.cuda().requires_grad_(False)
 
         # compute output
-        binary_score = model(feature, pos_ind, feature_mask=feature_mask)
+        binary_score, out_attns = model(feature, pos_ind, feature_mask=feature_mask)
         loss = criterion(binary_score, target, mask=feature_mask, 
                          multi_strides=multi_strides)
         losses.update(loss.item(), feature.size(0))
@@ -211,8 +211,8 @@ def validate(val_loader, model, criterion, iter):
             pos_ind = pos_ind.cuda().requires_grad_(False)
 
             # compute output
-            binary_score = model(feature, pos_ind, feature_mask=feature_mask)
-            loss = criterion(binary_score, target, mask=feature_mask, 
+            binary_score, out_attns = model(feature, pos_ind, feature_mask=feature_mask)
+            loss = criterion(binary_score, target, out_attns, mask=feature_mask, 
                              multi_strides=multi_strides)
         losses.update(loss.item(), feature.size(0))
 

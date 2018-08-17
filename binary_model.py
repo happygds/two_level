@@ -156,7 +156,7 @@ class BinaryClassifier(torch.nn.Module):
         if self.pos_enc:
             enc_loc_ind, enc_mod_ind = get_attn_pos(enc_slf_attn_mask, num_local=16)
 
-        score_outputs = []
+        score_outputs, enc_slf_attns = [], []
         size = enc_input.size()
         for scale, stride in enumerate(self.multi_strides[::-1]):
             layers, binary_classifier = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale]
@@ -199,6 +199,7 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output, enc_slf_attn = enc_layer(
                     enc_output, local_attn_mask=slf_local_mask, 
                     slf_attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
+                enc_slf_attns.append(enc_slf_attn)
             score_output = self.softmax(binary_classifier(enc_output))
             score_outputs.append(score_output)
         score_outputs = score_outputs[::-1]
@@ -208,7 +209,7 @@ class BinaryClassifier(torch.nn.Module):
                     score_outputs[scale] = F.upsample(score_outputs[scale].transpose(1, 2), 
                                                       scale_factor=stride, mode='nearest').transpose(1, 2)
 
-        return score_outputs
+        return score_outputs, enc_slf_attns
 
     def get_trainable_parameters(self):
         # ''' Avoid updating the position encoding '''

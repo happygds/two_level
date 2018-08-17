@@ -23,7 +23,7 @@ class CE_Criterion(nn.Module):
         self.l_step = l_step
         self.use_weight = use_weight
 
-    def forward(self, inputs, target, mask=None, multi_strides=None):
+    def forward(self, inputs, target, attns=None, mask=None, multi_strides=None):
         targets = [target[:, (i//2)::i] for i in multi_strides]
         masks = [mask[:, (i//2)::i] for i in multi_strides]
         if self.use_weight:
@@ -50,6 +50,12 @@ class CE_Criterion(nn.Module):
                 output = tmp_output
             else:
                 output += tmp_output
+        
+        for i, (target, attn) in enumerate(zip(targets, attns)):
+            target_cov = target.unsqueeze(2) * target.unsqueeze(1)
+            attn = attn - attn.mean(2, keepdims=True) - attn.mean(3, keepdims=True) + attn.mean(2, keepdims=True).mean(3, keepdims=True)
+            attn_output = (attn * target_cov.unsqueeze(1)).sum(2).sum(3) / torch.sqrt((target_cov * target_cov).sum(2).sum(3)).clamp(1e-3)
+            output += (1. - attn_output).mean() * 0.1
 
         return output / len(inputs)
 
@@ -96,6 +102,7 @@ class ScaledDotProductAttention(nn.Module):
     def forward(self, q, k, v, attn_mask=None, attn_pos_emb=None):
         if self.kernel_type == 'self_attn':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            out_attn = attn
             if attn_pos_emb is not None:
                 k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
                 # k_gate = F.sigmoid(torch.mean(k.unsqueeze(1) + k_pos_gate, dim=3))
@@ -160,7 +167,7 @@ class ScaledDotProductAttention(nn.Module):
             # output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
             output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
 
-        return output, attn
+        return output, out_attn
 
 
 class MultiHeadAttention(nn.Module):
@@ -229,8 +236,9 @@ class MultiHeadAttention(nn.Module):
         # back to original mb_size batch, result size = mb_size x len_v x (n_head*d_v)
         # outputs = outputs - v_s
         outputs = torch.cat(torch.split(outputs, mb_size, dim=0), dim=-1)
-        # # (n_head*mb_size) x len_q x len_k -> (n_head*mb_size) x len_k -> mb_size x len_k x n_head
-        # attns = torch.cat(torch.split(attns.mean(1), mb_size, dim=0), dim=-1).view(-1, len_k, n_head)
+        # (n_head*mb_size) x len_q x len_k -> mb_size x n_head x len_q x len_k
+        attns = [x.unsqueeze(1) for x in torch.split(attns, mb_size, dim=0)]
+        attns = torch.cat(attns, dim=1)
 
         # project back to residual size
         if self.d_out is not None:
