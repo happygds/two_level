@@ -31,7 +31,7 @@ class CE_Criterion(nn.Module):
             target = target.cuda().requires_grad_(False)
             target = 2. * target - 1.
             target_cov = torch.gt(target.unsqueeze(2) * target.unsqueeze(1), 0).float()
-            attn = attn.sum(1)
+            attn = attn.mean(1)
             attn = attn - attn.mean(1, keepdim=True) - attn.mean(2, keepdim=True) + attn.mean(2, keepdim=True).mean(1, keepdim=True)
             attn_output = (attn * target_cov).sum(2).sum(1)
             tmp_output =  -attn_output.mean()
