@@ -111,6 +111,7 @@ class ScaledDotProductAttention(nn.Module):
     def forward(self, q, k, v, attn_mask=None, attn_pos_emb=None):
         if self.kernel_type == 'self_attn':
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            out_attn = attn
             if attn_pos_emb is not None:
                 k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
                 # k_gate = F.sigmoid(torch.mean(k.unsqueeze(1) + k_pos_gate, dim=3))
@@ -168,7 +169,7 @@ class ScaledDotProductAttention(nn.Module):
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
-        out_attn = attn
+        # out_attn = attn
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
         if attn_pos_emb is not None:
