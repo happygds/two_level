@@ -30,9 +30,10 @@ class CE_Criterion(nn.Module):
         for i, (target, attn) in enumerate(zip(targets, attns)):
             target = target.cuda().requires_grad_(False)
             target_cov = target.unsqueeze(2) * target.unsqueeze(1)
-            attn = attn - attn.mean(2, keepdim=True) - attn.mean(3, keepdim=True) + attn.mean(3, keepdim=True).mean(2, keepdim=True)
-            attn_output = (attn * target_cov.unsqueeze(1)).sum(3).sum(2) / torch.sqrt((attn * attn).sum(3).sum(2)).clamp(1e-3)
-            tmp_output = (1. / attn_output.clamp(1e-3)).mean()
+            attn = attn.mean(1)
+            attn = attn - attn.mean(1, keepdim=True) - attn.mean(2, keepdim=True) + attn.mean(2, keepdim=True).mean(1, keepdim=True)
+            attn_output = (attn * target_cov).sum(2).sum(1) / torch.sqrt((attn * attn).sum(2).sum(1)).clamp(1e-3)
+            tmp_output = (1. - attn_output.clamp(1e-3)).mean()
             if i == 0:
                 attn_output = tmp_output
             else:
