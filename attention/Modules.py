@@ -53,7 +53,7 @@ class CE_Criterion(nn.Module):
         
         for i, (target, attn) in enumerate(zip(targets, attns)):
             target_cov = target.unsqueeze(2) * target.unsqueeze(1)
-            attn = attn - attn.mean(2, keepdims=True) - attn.mean(3, keepdims=True) + attn.mean(2, keepdims=True).mean(3, keepdims=True)
+            attn = attn - attn.mean(2, keepdim=True) - attn.mean(3, keepdim=True) + attn.mean(2, keepdim=True).mean(3, keepdim=True)
             attn_output = (attn * target_cov.unsqueeze(1)).sum(2).sum(3) / torch.sqrt((target_cov * target_cov).sum(2).sum(3)).clamp(1e-3)
             output += (1. - attn_output).mean() * 0.1
 
