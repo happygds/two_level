@@ -219,7 +219,7 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
                   'Attn_Loss {attn_loss.val:.4f} ({attn_loss.avg:.4f})\t'
                   .format(
                       epoch, i, len(train_loader), batch_time=batch_time, data_time=data_time, 
-                      loss=losses, attn_loss=attn_losses)
+                      loss=losses, attn_loss=attn_losses, lr=optimizer.param_groups[0]['lr'])
                   )
 
         # 1. Log scalar values (scalar summary)
