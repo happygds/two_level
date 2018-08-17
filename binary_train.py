@@ -17,6 +17,7 @@ from ops.utils import get_actionness_configs, ScheduledOptim
 from ops.anet_db import ANetDB
 from torch.utils import model_zoo
 from attention.Modules import CE_Criterion
+from tensorboard import Logger
 best_loss = 100
 
 
@@ -111,6 +112,25 @@ def main():
     #                             args.lr,
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay, nesterov=False)
+
+    if not os.path.exists(args.result_path):
+        os.makedirs(args.result_path)
+    if args.pos_enc:
+        save_path = os.path.join(args.result_path, '_'.join(
+            (args.att_kernel_type, 'N'+str(args.n_layers))))
+    else:
+        save_path = os.path.join(args.result_path, '_'.join(
+            (args.att_kernel_type, 'N'+str(args.n_layers)))) + '_nopos'
+    if args.num_local > 0:
+        save_path = save_path + '_loc' + str(args.num_local) + args.local_type
+        if args.dilated_mask:
+            save_path += '_dilated'
+    if args.n_cluster > 0:
+        save_path = save_path + '_C' + str(args.n_cluster)
+    if args.multiscale > 1:
+        save_path = save_path + '_S' + str(args.multiscale)
+    logger = Logger(os.path.join(save_path, './logs'))
+
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):
         # adjust_learning_rate(optimizer, epoch, args.lr_steps)
@@ -136,7 +156,7 @@ def main():
                 'arch': args.model,
                 'state_dict': model.state_dict(),
                 'best_loss': best_loss,
-            }, is_best)
+            }, is_best, save_path)
 
 
 def train(train_loader, model, criterion, optimizer, epoch):
@@ -231,23 +251,7 @@ def validate(val_loader, model, criterion, iter):
     return losses.avg
 
 
-def save_checkpoint(state, is_best, filename='/checkpoint.pth.tar'):
-    if not os.path.exists(args.result_path):
-        os.makedirs(args.result_path)
-    if args.pos_enc:
-        save_path = os.path.join(args.result_path, '_'.join(
-            (args.att_kernel_type, 'N'+str(args.n_layers))))
-    else:
-        save_path = os.path.join(args.result_path, '_'.join(
-            (args.att_kernel_type, 'N'+str(args.n_layers)))) + '_nopos'
-    if args.num_local > 0:
-        save_path = save_path + '_loc' + str(args.num_local) + args.local_type
-        if args.dilated_mask:
-            save_path += '_dilated'
-    if args.n_cluster > 0:
-        save_path = save_path + '_C' + str(args.n_cluster)
-    if args.multiscale > 1:
-        save_path = save_path + '_S' + str(args.multiscale)
+def save_checkpoint(state, is_best, save_path, filename='/checkpoint.pth.tar'):
         
     if not os.path.exists(save_path):
         os.makedirs(save_path)
