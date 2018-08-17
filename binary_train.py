@@ -225,7 +225,7 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
         # 2. Log values and gradients of the parameters (histogram summary)
         for tag, value in model.named_parameters():
             tag = tag.replace('.', '/')
-            logger.histo_summary(tag, value.data.cpu().numpy(), step+1)
+            logger.histo_summary(tag, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
             logger.histo_summary(tag+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
 
 
