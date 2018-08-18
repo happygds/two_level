@@ -64,7 +64,7 @@ class CE_Criterion(nn.Module):
             target_cov = torch.bmm(target, target.transpose(1, 2))
             target_cov = torch.bmm(torch.bmm(H, target_cov), H)
             
-            attn = attn.mean(1)
+            attn = attn.mean(1) * mask.unsqueeze(2) * mask.unsqueeze(1)
             # attn_size = attn.size()
             # H = H.unsqueeze(1).expand(-1, attn_size[1], -1, -1).contiguous().view((-1,) + attn_size[2:])
             # attn = attn.view(H.size())
