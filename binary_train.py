@@ -205,8 +205,6 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
             total_norm = 0
 
         optimizer.step()
-        # optimizer.update_learning_rate()
-        optimizer.zero_grad()
 
         # 1. Log scalar values (scalar summary)
         info = {'train_loss': loss.item(),
@@ -219,6 +217,8 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
             logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
             logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
 
+        # optimizer.update_learning_rate()
+        optimizer.zero_grad()
         # measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
