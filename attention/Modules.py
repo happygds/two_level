@@ -26,20 +26,6 @@ class CE_Criterion(nn.Module):
     def forward(self, inputs, target, attns=None, mask=None, multi_strides=None):
         targets = [target[:, (i//2)::i] for i in multi_strides]
         masks = [mask[:, (i//2)::i] for i in multi_strides]
-        
-        for i, (target, attn) in enumerate(zip(targets, attns)):
-            target = target.cuda().requires_grad_(False)
-            target = 2. * target - 1.
-            target_cov = torch.gt(target.unsqueeze(2) * target.unsqueeze(1), 0).float()
-            target_cov = target_cov * mask.unsqueeze(2) * mask.unsqueeze(1)
-            # attn = attn.mean(1)
-            attn = attn - attn.mean(2, keepdim=True) - attn.mean(3, keepdim=True) + attn.mean(3, keepdim=True).mean(2, keepdim=True)
-            tmp_output = (attn * target_cov.unsqueeze(1)).sum(3).sum(2) / torch.sqrt((attn * attn).sum(3).sum(2)).clamp(1e-3) / torch.sqrt((target_cov * target_cov).sum(2).sum(1, keepdim=True)).clamp(1e-3)
-            tmp_output =  1. - tmp_output.mean()
-            if i == 0:
-                attn_output = tmp_output
-            else:
-                attn_output += tmp_output
 
         if self.use_weight:
             weights = []
@@ -65,6 +51,26 @@ class CE_Criterion(nn.Module):
                 output = tmp_output
             else:
                 output += tmp_output
+
+        for i, (target, attn) in enumerate(zip(targets, attns)):
+            # generate centered matrix
+            tsize = target.size()
+            H1, H2 = torch.eye(tsize[1], tsize[1]).unsqueeze(0).expand(tsize[0], -1, -1), \
+                (torch.ones((tsize[1], 1)) * torch.ones((1, tsize[1]))).unsqueeze(0).expand(tsize[0], -1, -1)
+            H1, H2 = H1.cuda().requires_grad_(False), H2.cuda().requires_grad_(False)
+            H = (H1 - H2 / target.sum(1, keepdim=True).unsqueeze(2)) * mask.unsqueeze(2) * mask.unsqueeze(1)
+            target_cov = torch.bmm(target, target.transpose(1, 2))
+            target_cov = torch.bmm(H, target), H
+            
+            attn = attn.mean(1)
+            attn = torch.bmm(H, attn), H
+            tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
+            tmp_output = (attn * target_cov).sum(2).sum(1) / tmp.clamp(1e-3)
+            tmp_output =  (1. - tmp_output).mean()
+            if i == 0:
+                attn_output = tmp_output
+            else:
+                attn_output += tmp_output
 
         return output / len(inputs), attn_output / len(inputs)
 
