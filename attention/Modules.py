@@ -177,8 +177,6 @@ class ScaledDotProductAttention(nn.Module):
 
         if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal']:
             attn = self.softmax(attn)
-            attn_mask = (1 - torch.isnan(attn)).float()
-            attn *= attn_mask
             attn.data.masked_fill_(torch.isnan(attn), 0)
             # shp = attn.size()
             # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
