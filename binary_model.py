@@ -185,6 +185,7 @@ class BinaryClassifier(torch.nn.Module):
             
             # obtain local and global mask
             slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
+            slf_attn_mask[:, 0, 0] = 1.
             if self.pos_enc:
                 attn_loc_emb = self.position_loc((enc_loc_ind[::stride, ::stride] / stride).long())
                 attn_mod_emb = self.position_mod((enc_mod_ind[::stride, ::stride] / stride).long())
