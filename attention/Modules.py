@@ -24,10 +24,10 @@ class CE_Criterion(nn.Module):
         self.use_weight = use_weight
 
     def forward(self, inputs, target, attns=None, mask=None, multi_strides=None):
-        # targets = [target[:, (i//2)::i] for i in multi_strides]
-        # masks = [mask[:, (i//2)::i] for i in multi_strides]
-        targets = [target] * len(inputs)
-        masks = [mask] * len(inputs)
+        targets = [target[:, (i//2)::i] for i in multi_strides]
+        masks = [mask[:, (i//2)::i] for i in multi_strides]
+        # targets = [target] * len(inputs)
+        # masks = [mask] * len(inputs)
 
         if self.use_weight:
             weights = []

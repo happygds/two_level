@@ -202,10 +202,10 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output, enc_slf_attn = enc_layer(
                     enc_output, local_attn_mask=slf_local_mask, 
                     slf_attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
-                enc_slf_attns.append(enc_slf_attn)
-                score_output = self.softmax(cls_layers[i](enc_output))
-                score_outputs.append(score_output)
-        # score_outputs = score_outputs[::-1]
+            enc_slf_attns.append(enc_slf_attn)
+            score_output = self.softmax(cls_layers[i](enc_output))
+            score_outputs.append(score_output)
+        score_outputs = score_outputs[::-1]
         if test_mode:
             for scale, stride in enumerate(self.multi_strides):
                 if scale > 0:
