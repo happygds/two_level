@@ -71,7 +71,7 @@ class CE_Criterion(nn.Module):
             attn = torch.bmm(torch.bmm(H, attn), H)
             tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
             tmp_output = (attn * target_cov).sum(2).sum(1) / tmp.clamp(1e-3)
-            tmp_output =  (1. - tmp_output).mean()
+            tmp_output =  (1. - tmp_output).mean() * self.l_step ** i
             if i == 0:
                 attn_output = tmp_output
             else:

@@ -206,6 +206,7 @@ class BinaryClassifier(torch.nn.Module):
             score_output = self.softmax(cls_layers[i](enc_output))
             score_outputs.append(score_output)
         score_outputs = score_outputs[::-1]
+        enc_slf_attns = enc_slf_attns[::-1]
         if test_mode:
             for scale, stride in enumerate(self.multi_strides):
                 if scale > 0:
