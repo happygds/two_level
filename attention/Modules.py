@@ -62,13 +62,13 @@ class CE_Criterion(nn.Module):
             H1, H2 = H1.cuda().requires_grad_(False), H2.cuda().requires_grad_(False)
             H = (H1 - H2 / target.sum(2, keepdim=True).sum(1, keepdim=True).clamp(1e-3)) * mask.unsqueeze(2) * mask.unsqueeze(1)
             target_cov = torch.bmm(target, target.transpose(1, 2))
-            target_cov = torch.bmm(torch.bmm(H, target_cov), H)
+            target_cov = torch.bmm(torch.bmm(H, target_cov), H) * mask.unsqueeze(2) * mask.unsqueeze(1)
             
-            attn = attn.mean(1) * mask.unsqueeze(2) * mask.unsqueeze(1)
+            attn = attn.mean(1)
             # attn_size = attn.size()
             # H = H.unsqueeze(1).expand(-1, attn_size[1], -1, -1).contiguous().view((-1,) + attn_size[2:])
             # attn = attn.view(H.size())
-            attn = torch.bmm(torch.bmm(H, attn), H)
+            attn = torch.bmm(torch.bmm(H, attn), H) * mask.unsqueeze(2) * mask.unsqueeze(1)
             tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
             tmp_output = 1. - (attn * target_cov).sum(2).sum(1) / tmp.clamp(1e-3)
             tmp_output = (tmp_output * mask[:, 0]).mean() * self.l_step ** i
