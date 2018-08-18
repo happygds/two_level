@@ -215,10 +215,10 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
         for tag, value in model.named_parameters():
             tag_ = tag.replace('.', '/')
             values = value.data.cpu().numpy()
-            if np.isnan(values).any():
+            if np.isnan(value.grad.data.cpu().numpy()).any():
                 import pdb; pdb.set_trace()
-            logger.histo_summary(tag_, values, i+epoch*len(train_loader)+1)
-            logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
+            # logger.histo_summary(tag_, values, i+epoch*len(train_loader)+1)
+            # logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
 
         # optimizer.update_learning_rate()
         optimizer.zero_grad()
