@@ -170,8 +170,8 @@ class ScaledDotProductAttention(nn.Module):
                 'with Attention logit tensor shape ' \
                 '{}.'.format(attn_mask.size(), attn.size())
             if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal']:
-                # attn.data.masked_fill_(attn_mask, -float('inf'))
-                attn.data.masked_fill_(attn_mask, -1e+32)
+                attn.data.masked_fill_(attn_mask, -float('inf'))
+                # attn.data.masked_fill_(attn_mask, -1e+32)
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
