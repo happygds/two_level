@@ -61,10 +61,10 @@ class CE_Criterion(nn.Module):
             print(H1.size(), H2.size())
             H = (H1 - H2 / target.sum(2, keepdim=True).sum(1, keepdim=True)) * mask.unsqueeze(2) * mask.unsqueeze(1)
             target_cov = torch.bmm(target, target.transpose(1, 2))
-            target_cov = torch.bmm(H, target), H
+            target_cov = torch.bmm(torch.bmm(H, target), H)
             
             attn = attn.mean(1)
-            attn = torch.bmm(H, attn), H
+            attn = torch.bmm(torch.bmm(H, attn), H)
             tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
             tmp_output = (attn * target_cov).sum(2).sum(1) / tmp.clamp(1e-3)
             tmp_output =  (1. - tmp_output).mean()
