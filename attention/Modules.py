@@ -60,7 +60,7 @@ class CE_Criterion(nn.Module):
             H1, H2 = torch.eye(tsize[1], tsize[1]).unsqueeze(0).expand(tsize[0], -1, -1), \
                 (torch.ones((tsize[1], 1)) * torch.ones((1, tsize[1]))).unsqueeze(0).expand(tsize[0], -1, -1)
             H1, H2 = H1.cuda().requires_grad_(False), H2.cuda().requires_grad_(False)
-            H = (H1 - H2 / target.sum(2, keepdim=True).sum(1, keepdim=True)) * mask.unsqueeze(2) * mask.unsqueeze(1)
+            H = (H1 - H2 / target.sum(2, keepdim=True).sum(1, keepdim=True).clamp(0.001)) * mask.unsqueeze(2) * mask.unsqueeze(1)
             target_cov = torch.bmm(target, target.transpose(1, 2))
             target_cov = torch.bmm(torch.bmm(H, target_cov), H)
             
