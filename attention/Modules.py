@@ -7,6 +7,8 @@ import numpy as np
 # from .torchsparseattn.fused import Fusedmax, FusedProxFunction
 from sparsemax import Sparsemax
 
+eps = 1e-10
+
 def convert_categorical(x_in, n_classes=2):
     shp = x_in.shape
     x = (x_in.ravel().astype('int'))
@@ -36,18 +38,18 @@ class CE_Criterion(nn.Module):
                 target = torch.from_numpy(target).cuda().requires_grad_(False)
                 target *= masks[i].unsqueeze(2)
                 # cls_weight = 1. / target.mean(0).mean(0)
-                weight = target.sum(1) / masks[i].sum(1).unsqueeze(1).clamp(0.001)
-                weight = 0.5 / weight.clamp(0.001)
+                weight = target.sum(1) / masks[i].sum(1).unsqueeze(1).clamp(eps)
+                weight = 0.5 / weight.clamp(eps)
                 # weight = weight / weight.mean(1).unsqueeze(1)
                 targets[i] = target
                 weights.append(weight)
 
         for i, x in enumerate(inputs):
-            tmp_output = - targets[i] * torch.log(x.clamp(1e-14)) * self.l_step ** i
+            tmp_output = - targets[i] * torch.log(x.clamp(eps)) * self.l_step ** i
             if self.use_weight:
                 tmp_output *= weights[i].unsqueeze(1)
                 tmp_output = torch.sum(tmp_output.mean(2) * masks[i], dim=1) / \
-                    torch.sum(masks[i], dim=1).clamp(0.001)
+                    torch.sum(masks[i], dim=1).clamp(eps)
                 tmp_output = torch.mean(tmp_output)
             if i == 0:
                 output = tmp_output
@@ -60,7 +62,7 @@ class CE_Criterion(nn.Module):
             H1, H2 = torch.eye(tsize[1], tsize[1]).unsqueeze(0).expand(tsize[0], -1, -1), \
                 (torch.ones((tsize[1], 1)) * torch.ones((1, tsize[1]))).unsqueeze(0).expand(tsize[0], -1, -1)
             H1, H2 = H1.cuda().requires_grad_(False), H2.cuda().requires_grad_(False)
-            H = (H1 - H2 / target.sum(2, keepdim=True).sum(1, keepdim=True).clamp(1e-3)) * mask.unsqueeze(2) * mask.unsqueeze(1)
+            H = (H1 - H2 / target.sum(2, keepdim=True).sum(1, keepdim=True).clamp(eps)) * mask.unsqueeze(2) * mask.unsqueeze(1)
             target_cov = torch.bmm(target, target.transpose(1, 2))
             target_cov = torch.bmm(torch.bmm(H, target_cov), H) * mask.unsqueeze(2) * mask.unsqueeze(1)
             
@@ -71,7 +73,7 @@ class CE_Criterion(nn.Module):
             # attn = attn.view(H.size())
             attn = torch.bmm(torch.bmm(H, attn), H) * mask.unsqueeze(2) * mask.unsqueeze(1)
             tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
-            tmp_output = 1. - (attn * target_cov).sum(2).sum(1).clamp(1e-3) / tmp.clamp(1e-3)
+            tmp_output = 1. - (attn * target_cov).sum(2).sum(1).clamp(eps) / tmp.clamp(eps)
             tmp_output = (tmp_output * mask[:, 0]).mean() * self.l_step ** i
             if i == 0:
                 attn_output = tmp_output
