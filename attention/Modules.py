@@ -62,10 +62,13 @@ class CE_Criterion(nn.Module):
             target_cov = torch.bmm(target, target.transpose(1, 2))
             target_cov = torch.bmm(torch.bmm(H, target_cov), H)
             
-            attn = attn.mean(1)
-            attn = torch.bmm(torch.bmm(H, attn), H)
-            tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
-            tmp_output = (attn * target_cov).sum(2).sum(1) / tmp.clamp(1e-3)
+            # attn = attn.mean(1)
+            attn_size = attn.size()
+            H = H.unsqueeze(1).expand(-1, attn.size(1), -1, -1).view((-1,) + attn_size[2:])
+            attn = attn.view(H.size())
+            attn = torch.bmm(torch.bmm(H, attn), H).view(attn_size)
+            tmp = torch.sqrt((attn * attn).sum(3).sum(2)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1)).unsqueeze(1)
+            tmp_output = (attn * target_cov.unsqueeze(1)).sum(3).sum(2) / tmp.clamp(1e-3)
             tmp_output =  (1. - tmp_output).mean()
             if i == 0:
                 attn_output = tmp_output
