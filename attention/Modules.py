@@ -54,7 +54,7 @@ class CE_Criterion(nn.Module):
             else:
                 output += tmp_output
 
-        for i, (target, attn) in enumerate(zip(targets, attns)):
+        for i, (target, attn, mask) in enumerate(zip(targets, attns, masks)):
             # generate centered matrix
             tsize = target.size()
             H1, H2 = torch.eye(tsize[1], tsize[1]).unsqueeze(0).expand(tsize[0], -1, -1), \
