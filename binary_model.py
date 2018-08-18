@@ -120,7 +120,7 @@ class BinaryClassifier(torch.nn.Module):
         self.dropout = dropout
         self.test_mode = test_mode
         self.binary_classifiers = nn.ModuleList([nn.Linear(args.d_model, num_class) 
-                                                for _ in range(len(self.multi_strides))])
+                                                for _ in range(args.n_layers * len(self.multi_strides))])
         self.softmax = nn.Softmax(dim=-1)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
@@ -162,7 +162,7 @@ class BinaryClassifier(torch.nn.Module):
         score_outputs, enc_slf_attns = [], []
         size = enc_input.size()
         for scale, stride in enumerate(self.multi_strides[::-1]):
-            layers, binary_classifier = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale]
+            layers, cls_layers = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.binary_classifiers[scale*self.n_layers:(scale+1)*self.n_layers]
             if stride > 1:
                 cur_output = F.pad(enc_input, (0, 0, 0, stride//2-1))
                 cur_output = F.avg_pool1d(cur_output.transpose(1, 2), stride, 
@@ -203,9 +203,9 @@ class BinaryClassifier(torch.nn.Module):
                     enc_output, local_attn_mask=slf_local_mask, 
                     slf_attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
                 enc_slf_attns.append(enc_slf_attn)
-            score_output = self.softmax(binary_classifier(enc_output))
-            score_outputs.append(score_output)
-        score_outputs = score_outputs[::-1]
+                score_output = self.softmax(cls_layers[i](enc_output))
+                score_outputs.append(score_output)
+        # score_outputs = score_outputs[::-1]
         if test_mode:
             for scale, stride in enumerate(self.multi_strides):
                 if scale > 0:
