@@ -184,6 +184,10 @@ class BinaryDataSet(data.Dataset):
         video = self.video_list[index]
         feat = video.feat
         label = video.label
+        num_feat = feat.shape[0]
+        if num_feat < 8:
+            feat = np.concatenate([feat, np.zeros((8-num_feat, feat.shape[1]), dtype='float32')], axis=0)
+            label = np.concatenate([label, np.zeros((8-num_feat,), dtype='float32')], axis=0)
 
         out_feat, out_label, begin_ind, end_ind, min_len = self._sample_feat(feat, label)
         out_mask = np.zeros_like(out_label).astype('float32')
