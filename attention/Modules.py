@@ -257,17 +257,17 @@ class MultiHeadAttention(nn.Module):
             q_s4 = F.avg_pool1d(F.pad(q_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel, stride=1).transpose(1, 2)
             q_s = torch.cat([q_s1, q_s2, q_s3, q_s4], dim=0)
 
-            k_s1, k_s2, k_s3, k_s4 = torch.split(k_s, k_head, dim=0)
-            k_s2 = F.avg_pool1d(F.pad(k_s2.transpose(1, 2), (trn_kernel-1, 0)), trn_kernel, stride=1).transpose(1, 2)
-            k_s3 = F.avg_pool1d(F.pad(k_s3.transpose(1, 2), (0, trn_kernel-1)), trn_kernel, stride=1).transpose(1, 2)
-            k_s4 = F.avg_pool1d(F.pad(k_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel, stride=1).transpose(1, 2)
-            k_s = torch.cat([k_s1, k_s2, k_s3, k_s4], dim=0)
+            # k_s1, k_s2, k_s3, k_s4 = torch.split(k_s, k_head, dim=0)
+            # k_s2 = F.avg_pool1d(F.pad(k_s2.transpose(1, 2), (trn_kernel-1, 0)), trn_kernel, stride=1).transpose(1, 2)
+            # k_s3 = F.avg_pool1d(F.pad(k_s3.transpose(1, 2), (0, trn_kernel-1)), trn_kernel, stride=1).transpose(1, 2)
+            # k_s4 = F.avg_pool1d(F.pad(k_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel, stride=1).transpose(1, 2)
+            # k_s = torch.cat([k_s1, k_s2, k_s3, k_s4], dim=0)
 
-            v_s1, v_s2, v_s3, v_s4 = torch.split(v_s, k_head, dim=0)
-            v_s2 = F.avg_pool1d(F.pad(v_s2.transpose(1, 2), (trn_kernel-1, 0)), trn_kernel, stride=1).transpose(1, 2)
-            v_s3 = F.avg_pool1d(F.pad(v_s3.transpose(1, 2), (0, trn_kernel-1)), trn_kernel, stride=1).transpose(1, 2)
-            v_s4 = F.avg_pool1d(F.pad(v_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel, stride=1).transpose(1, 2)
-            v_s = torch.cat([v_s1, v_s2, v_s3, v_s4], dim=0)
+            # v_s1, v_s2, v_s3, v_s4 = torch.split(v_s, k_head, dim=0)
+            # v_s2 = F.avg_pool1d(F.pad(v_s2.transpose(1, 2), (trn_kernel-1, 0)), trn_kernel, stride=1).transpose(1, 2)
+            # v_s3 = F.avg_pool1d(F.pad(v_s3.transpose(1, 2), (0, trn_kernel-1)), trn_kernel, stride=1).transpose(1, 2)
+            # v_s4 = F.avg_pool1d(F.pad(v_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel, stride=1).transpose(1, 2)
+            # v_s = torch.cat([v_s1, v_s2, v_s3, v_s4], dim=0)
 
         if attn_pos_emb is not None:
             attn_pos_emb = attn_pos_emb.repeat(n_head, 1, 1, 1)
