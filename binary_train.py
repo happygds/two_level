@@ -190,7 +190,7 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
         binary_score, out_attns = model(feature, pos_ind, feature_mask=feature_mask)
         loss, attn_loss = criterion(binary_score, target, attns=out_attns, mask=feature_mask, 
                          multi_strides=multi_strides)
-        loss += attn_loss * 0.1
+        loss += attn_loss * 0.
         attn_losses.update(attn_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
 
@@ -260,7 +260,7 @@ def validate(val_loader, model, criterion, iter):
             binary_score, out_attns = model(feature, pos_ind, feature_mask=feature_mask)
             loss, attn_loss = criterion(binary_score, target, attns=out_attns, mask=feature_mask, 
                                         multi_strides=multi_strides)
-            loss += attn_loss * 0.1
+            loss += attn_loss * 0.
         attn_losses.update(attn_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
 
