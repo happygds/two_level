@@ -219,8 +219,8 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
             values = value.data.cpu().numpy()
             if np.isnan(value.grad.data.cpu().numpy()).any():
                 import pdb; pdb.set_trace()
-            # logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
-            # logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
+            logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
+            logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
 
         # optimizer.update_learning_rate()
         optimizer.zero_grad()
