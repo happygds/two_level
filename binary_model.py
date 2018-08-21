@@ -113,7 +113,8 @@ class BinaryClassifier(torch.nn.Module):
         else:
             self.layer_stack = nn.ModuleList([
                 EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                            args.d_v, dropout=0.1, kernel_type=args.att_kernel_type)
+                            args.d_v, dropout=0.1, kernel_type=args.att_kernel_type, 
+                            groupwise_heads=args.groupwise_heads)
                 for _ in range(args.n_layers * len(self.multi_strides))])
 
         self.d_model = args.d_model

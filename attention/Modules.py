@@ -107,8 +107,7 @@ class ScaledDotProductAttention(nn.Module):
                     8*self.n_head), nn.ReLU(),
                 #  nn.Conv2d(8*self.n_head, 8*self.n_head, 3, padding=1),
                 #  nn.BatchNorm2d(8*self.n_head), nn.ReLU(),
-                nn.Conv2d(
-                    8*self.n_head, self.n_head, 3, padding=1),
+                nn.Conv2d(8*self.n_head, self.n_head, 3, padding=1),
                 nn.BatchNorm2d(self.n_head))
         elif self.kernel_type == 'highorder-causal':
             self.conv_layers = nn.Sequential(
@@ -198,8 +197,9 @@ class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
     def __init__(self, n_head, d_model, d_k, d_v, d_out=None, 
-                 dropout=0.1, kernel_type='self_attn'):
+                 dropout=0.1, kernel_type='self_attn', groupwise_heads=0):
         super(MultiHeadAttention, self).__init__()
+        self.groupwise_heads = groupwise_heads
         self.d_out = d_out
         self.n_head = n_head
         self.d_k = d_k
@@ -223,7 +223,6 @@ class MultiHeadAttention(nn.Module):
         init.xavier_normal_(self.w_vs)
 
     def forward(self, q, k, v, attn_mask=None, attn_pos_emb=None):
-
         d_k, d_v = self.d_k, self.d_v
         n_head = self.n_head
 
@@ -248,6 +247,14 @@ class MultiHeadAttention(nn.Module):
         k_s = torch.bmm(k_s, self.w_ks).view(-1, len_k, d_k)
         # (n_head*mb_size) x len_v x d_v
         v_s = torch.bmm(v_s, self.w_vs).view(-1, len_v, d_v)
+        if self.groupwise_heads > 0:
+            trn_kernel = self.groupwise_heads
+            assert self.n_head % 4 == 0
+            k_head = self.n_head // 4
+            q_s = q_s.view(n_head, mb_size, len_q, d_k)
+            q_s[k_head:2*k_head] = F.avg_pool1d(q_s[k_head:2*k_head].transpose(1, 2), trn_kernel, padding=(trn_kernel-1, 0)).transpose(1, 2)
+            q_s[2*k_head:3*k_head] = F.avg_pool1d(q_s[2*k_head:3*k_head].transpose(1, 2), trn_kernel, padding=(0, trn_kernel-1)).transpose(1, 2)
+            q_s[3*k_head:4*k_head] = F.avg_pool1d(q_s[3*k_head:4*k_head].transpose(1, 2), trn_kernel, padding=((trn_kernel-1)//2, (trn_kernel-1)//2)).transpose(1, 2)
 
         if attn_pos_emb is not None:
             attn_pos_emb = attn_pos_emb.repeat(n_head, 1, 1, 1)

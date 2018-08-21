@@ -10,10 +10,11 @@ class EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
     def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, 
-                 dropout=0.1, kernel_type='self_attn'):
+                 dropout=0.1, kernel_type='self_attn', groupwise_heads=0):
         super(EncoderLayer, self).__init__()
         self.slf_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
+            n_head, d_model, d_k, d_v, dropout=dropout, 
+            kernel_type=kernel_type, groupwise_heads=groupwise_heads)
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
 
@@ -30,7 +31,8 @@ class Local_EncoderLayer(nn.Module):
     ''' Compose with two layers '''
 
     def __init__(self, d_model, d_inner_hid, n_head, d_k, d_v, 
-                 dropout=0.1, kernel_type='self_attn', local_type=None):
+                 dropout=0.1, kernel_type='self_attn', 
+                 local_type=None):
         super(Local_EncoderLayer, self).__init__()
         self.local_type = local_type
         self.local_attn = MultiHeadAttention(n_head//4, d_model, d_k*4, d_v*4, 
