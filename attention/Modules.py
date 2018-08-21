@@ -252,10 +252,10 @@ class MultiHeadAttention(nn.Module):
             assert self.n_head % 4 == 0
             k_head = self.n_head // 4 * mb_size
             q_s1, q_s2, q_s3, q_s4 = torch.split(q_s, k_head, dim=0)
-            q_s2 = F.avg_pool1d(F.pad(q_s2.transpose(1, 2), (trn_kernel-1, 0)), trn_kernel).transpose(1, 2)
-            q_s3 = F.avg_pool1d(F.pad(q_s3.transpose(1, 2), (0, trn_kernel-1)), trn_kernel).transpose(1, 2)
-            q_s4 = F.avg_pool1d(F.pad(q_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel).transpose(1, 2)
-            print(q_s1.size(), q_s2.size(), q_s3.size(), q_s4.size())
+            q_s2 = F.avg_pool1d(F.pad(q_s2.transpose(1, 2), (trn_kernel-1, 0)), trn_kernel, stride=trn_kernel).transpose(1, 2)
+            q_s3 = F.avg_pool1d(F.pad(q_s3.transpose(1, 2), (0, trn_kernel-1)), trn_kernel, stride=trn_kernel).transpose(1, 2)
+            q_s4 = F.avg_pool1d(F.pad(q_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel, stride=trn_kernel).transpose(1, 2)
+            # print(q_s1.size(), q_s2.size(), q_s3.size(), q_s4.size())
             q_s = torch.cat([q_s1, q_s2, q_s3, q_s4], dim=0)
 
         if attn_pos_emb is not None:
