@@ -250,7 +250,7 @@ class MultiHeadAttention(nn.Module):
         if self.groupwise_heads > 0:
             trn_kernel = self.groupwise_heads
             assert self.n_head % 4 == 0
-            nums_head = self.n_head // 4 * mb_size
+            k_head = self.n_head // 4 * mb_size
             q_s[k_head:2*k_head] = F.avg_pool1d(q_s[k_head:2*k_head].transpose(1, 2), trn_kernel, padding=(trn_kernel-1, 0)).transpose(1, 2)
             q_s[2*k_head:3*k_head] = F.avg_pool1d(q_s[2*k_head:3*k_head].transpose(1, 2), trn_kernel, padding=(0, trn_kernel-1)).transpose(1, 2)
             q_s[3*k_head:4*k_head] = F.avg_pool1d(q_s[3*k_head:4*k_head].transpose(1, 2), trn_kernel, padding=((trn_kernel-1)//2, (trn_kernel-1)//2)).transpose(1, 2)
