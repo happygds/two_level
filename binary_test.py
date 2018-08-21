@@ -63,6 +63,7 @@ parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
 parser.add_argument('--multiscale', type=int, default=0,
                     help='multiscale output')
+parser.add_argument('--groupwise_heads', type=int, default=0)
 
 args = parser.parse_args()
 
