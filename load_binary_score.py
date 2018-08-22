@@ -185,9 +185,9 @@ class BinaryDataSet(data.Dataset):
         feat = video.feat
         label = video.label
         num_feat = feat.shape[0]
-        if num_feat < 8:
-            feat = np.concatenate([feat, np.zeros((8-num_feat, feat.shape[1]), dtype='float32')], axis=0)
-            label = np.concatenate([label, np.zeros((8-num_feat,), dtype='float32')], axis=0)
+        if num_feat < 16:
+            feat = np.concatenate([feat, np.zeros((16-num_feat, feat.shape[1]), dtype='float32')], axis=0)
+            label = np.concatenate([label, np.zeros((16-num_feat,), dtype='float32')], axis=0)
 
         out_feat, out_label, begin_ind, end_ind, min_len = self._sample_feat(feat, label)
         out_mask = np.zeros_like(out_label).astype('float32')
@@ -213,8 +213,8 @@ class BinaryDataSet(data.Dataset):
         pos_ind = torch.from_numpy(frame_ticks).long()
 
         num_feat = feat.shape[0]
-        if num_feat < 8:
-            feat = np.concatenate([feat, np.zeros((8-num_feat, feat.shape[1]), dtype='float32')], axis=0)
+        if num_feat < 16:
+            feat = np.concatenate([feat, np.zeros((16-num_feat, feat.shape[1]), dtype='float32')], axis=0)
         feat_mask = (np.abs(feat).mean(axis=1) > 0.).astype('float32')
 
         return torch.from_numpy(np.expand_dims(feat, axis=0)), torch.from_numpy(np.expand_dims(feat_mask, axis=0)), num_feat, pos_ind
