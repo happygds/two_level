@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 
 # from .torchsparseattn.fused import Fusedmax, FusedProxFunction
-from sparsemax import Sparsemax
+# from sparsemax import Sparsemax
 
 eps = 1e-10
 
