@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.init as init
-from .sparsemax import Sparsemax
+# from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
 
 
