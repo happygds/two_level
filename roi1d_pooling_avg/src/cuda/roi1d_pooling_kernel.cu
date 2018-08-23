@@ -30,11 +30,11 @@ __global__ void ROI1DPoolForward(const int nthreads, const float* bottom_data,
         // [start, end) interval for spatial sampling
         bottom_rois += n * 3;
         int roi_batch_ind = bottom_rois[0];
-        if (roi_batch_ind != roi_b)
-        {
-            fprintf("roi_batch_ind is not right !!!\n");
-            exit( -1 );
-        }
+        // if (roi_batch_ind != roi_b)
+        // {
+        //     fprintf("roi_batch_ind is not right !!!\n");
+        //     exit( -1 );
+        // }
 
         // int roi_batch_ind = n / num_rois;
         int roi_start_d = round(bottom_rois[1] * temporal_scale);
@@ -118,11 +118,11 @@ __global__ void ROI1DPoolBackward(const int nthreads, const float* top_diff,
         // [start, end) interval for spatial sampling
         bottom_rois += n * 3;
         int roi_batch_ind = bottom_rois[0];
-        if (roi_batch_ind != roi_b)
-        {
-            fprintf("roi_batch_ind is not right !!!\n");
-            exit( -1 );
-        }
+        // if (roi_batch_ind != roi_b)
+        // {
+        //     fprintf("roi_batch_ind is not right !!!\n");
+        //     exit( -1 );
+        // }
 
         // int roi_batch_ind = n / num_rois;
         int roi_start_d = round(bottom_rois[1] * temporal_scale);
