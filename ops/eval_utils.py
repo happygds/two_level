@@ -46,6 +46,7 @@ def wrapper_segment_iou(target_segments, candidate_segments):
     Note: It assumes that candidate-segments are more scarce that target-segments
     """
     if candidate_segments.ndim != 2 or target_segments.ndim != 2:
+        print("target_size {}, candidate_size {}".format(target_segments.shape, candidate_segments.shape))
         raise ValueError('Dimension of arguments is incorrect')
 
     n, m = candidate_segments.shape[0], target_segments.shape[0]
