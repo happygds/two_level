@@ -194,8 +194,9 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         # compute output
         score_outputs, enc_slf_attns, roi_scores, labels, rois_mask = model(
             feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
-        loss, score_loss, attn_loss, roi_loss = criterion_stage1(score_outputs, target, roi_scores, labels, rois_mask, 
-                                                           attns=enc_slf_attns, mask=feature_mask, multi_strides=multi_strides)
+        loss, score_loss, attn_loss, roi_loss = criterion_stage1(
+            score_outputs, target, roi_scores, labels, rois_mask, 
+            attns=enc_slf_attns, mask=feature_mask, multi_strides=multi_strides)
         score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
