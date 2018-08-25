@@ -46,7 +46,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
             ends = np.nonzero(tmp < -std_value)[0] + 1
             props = [(x, y, scores[x:y].mean()) for x in starts for y in ends if x < y]
             bboxes.extend(props)
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_pos_nms_top]
         rois = [(x[0], x[1]) for x in bboxes]
         rpn_rois[k, :, 0] = k
