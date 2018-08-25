@@ -81,7 +81,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
     rois_relative_pos[:, :, :, 1] = rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos = np.log(rois_relative_pos.clip(1e-3)) * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
-    device_id = score_outputs.device
+    device_id = score_outputs[0].device
     import pdb; pdb.set_trace()
     # convert numpy to pytorch
     rpn_rois = torch.from_numpy(rpn_rois.astype('float32')).cuda().requires_grad_(False).to(device_id)
