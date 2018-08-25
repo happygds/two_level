@@ -91,6 +91,8 @@ class ScaledDotProductAttention(nn.Module):
             attn = torch.exp(attn - attn_max)
             attn.data.masked_fill_(attn_mask, 0)
             attn = attn_pos_emb * attn / torch.sum(attn_pos_emb * attn, 2, keepdim=True).clamp(1e-14)
+            import pdb; pdb.set_trace()
+            print(attn)
         else:
             raise NotImplementedError()
 
