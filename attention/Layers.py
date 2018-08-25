@@ -85,7 +85,7 @@ class ROI_Relation(nn.Module):
     def __init__(self, d_model, roipool_size, d_inner_hid, n_head, 
                  d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
         super(ROI_Relation, self).__init__()
-        self.roi_pool = ROI1DPool(roipool_size, 1.)
+        self.roi_pool = RoI1DPool(roipool_size, 1.)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
