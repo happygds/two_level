@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.init as init
 # from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
-from roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool
+from ..roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool
 
 
 class EncoderLayer(nn.Module):
