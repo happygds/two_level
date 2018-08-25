@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 
 import torchvision.models
-from attention.Layers import EncoderLayer, Local_EncoderLayer, ROI_relation
+from attention.Layers import EncoderLayer, Local_EncoderLayer, ROI_Relation
 from attention.proposal import proposal_layer
 from attention.utils import *
 
