@@ -98,6 +98,7 @@ class ROI_Relation(nn.Module):
         roi_feats = roi_feats.view(roi_feat_size[:2] + (-1,))
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
+        print(rois_mask.size(), roi_feats.size())
         rois_attn_mask = (1. - rois_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
         rois_attn_mask = torch.gt(rois_attn_mask + rois_attn_mask.transpose(1, 2), 0)
 
