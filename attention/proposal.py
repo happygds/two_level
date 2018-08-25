@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from scipy.ndimage import gaussian_filter
 
 from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, temporal_nms
