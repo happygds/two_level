@@ -16,7 +16,7 @@ from transforms import *
 from ops.utils import get_actionness_configs, ScheduledOptim
 from ops.anet_db import ANetDB
 from torch.utils import model_zoo
-from attention.Modules import CE_Criterion
+from attention.utils import CE_Criterion
 from tensorboard import Logger
 best_loss = 100
 
@@ -103,8 +103,6 @@ def main():
         batch_size=args.batch_size * 3 // 2, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
-    binary_criterion = CE_Criterion(use_weight=True)
-
     optimizer = torch.optim.Adam(
             model.module.get_trainable_parameters(),
             args.lr, weight_decay=args.weight_decay)
@@ -140,14 +138,16 @@ def main():
         # train for one epoch
         if patience > 3:
             break
-        train(train_loader, model, binary_criterion, optimizer, epoch, logger)
+        train(train_loader, model, optimizer, epoch, logger)
 
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
-            loss = validate(val_loader, model, binary_criterion,
-                            (epoch + 1) * len(train_loader))
+            loss, score_loss, roi_loss = validate(val_loader, model,
+                                                 (epoch + 1) * len(train_loader))
             # 1. Log scalar values (scalar summary)
-            info = { 'val_loss': loss}
+            info = {'val_loss': loss,
+                    'val_score_loss': score_loss,
+                    'val_roi_loss': roi_loss}
             for tag, value in info.items():
                 logger.scalar_summary(tag, value, epoch+1)
 
@@ -166,11 +166,12 @@ def main():
             }, is_best, save_path)
 
 
-def train(train_loader, model, criterion, optimizer, epoch, logger):
+def train(train_loader, model, optimizer, epoch, logger):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
-    attn_losses = AverageMeter() 
+    score_losses = AverageMeter()
+    roi_losses = AverageMeter()
 
     # switch to train model
     model.train()
@@ -187,11 +188,10 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
         pos_ind = pos_ind.cuda().requires_grad_(False)
 
         # compute output
-        binary_score, out_attns = model(feature, pos_ind, feature_mask=feature_mask)
-        loss, attn_loss = criterion(binary_score, target, attns=out_attns, mask=feature_mask, 
-                         multi_strides=multi_strides)
-        # loss += attn_loss * 0.
-        attn_losses.update(attn_loss.item(), feature.size(0))
+        score_loss, roi_loss = model(feature, pos_ind, target, feature_mask=feature_mask)
+        loss = score_loss + 0.5 * roi_loss
+        score_losses.update(score_loss.item(), feature.size(0))
+        roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
 
         # compute gradient and do SGD step
@@ -210,7 +210,8 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
 
         # 1. Log scalar values (scalar summary)
         info = {'train_loss': loss.item(),
-                'train_attn_loss': attn_loss.item()}
+                'train_score_loss': score_loss.item(),
+                'train_roi_loss': roi_loss.item()}
         for tag, value in info.items():
             logger.scalar_summary(tag, value, i+epoch*len(train_loader)+1)
         # 2. Log values and gradients of the parameters (histogram summary)
@@ -233,17 +234,20 @@ def train(train_loader, model, criterion, optimizer, epoch, logger):
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Attn_Loss {attn_loss.val:.4f} ({attn_loss.avg:.4f})\t'
+                  'Score_Loss {score_loss.val:.4f} ({score_loss.avg:.4f})\t'
+                  'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
                   .format(
                       epoch, i, len(train_loader), batch_time=batch_time, data_time=data_time, 
-                      loss=losses, attn_loss=attn_losses, lr=optimizer.param_groups[0]['lr'])
+                      loss=losses, score_loss=score_losses, roi_loss=roi_losses, lr=optimizer.param_groups[0]['lr'])
                   )
 
 
-def validate(val_loader, model, criterion, iter):
+def validate(val_loader, model, iter):
     batch_time = AverageMeter()
     attn_losses = AverageMeter()
     losses = AverageMeter()
+    score_losses = AverageMeter()
+    roi_losses = AverageMeter()
 
     model.eval()
 
@@ -256,12 +260,10 @@ def validate(val_loader, model, criterion, iter):
             feature_mask = feature_mask.cuda().requires_grad_(False)
             pos_ind = pos_ind.cuda().requires_grad_(False)
 
-            # compute output
-            binary_score, out_attns = model(feature, pos_ind, feature_mask=feature_mask)
-            loss, attn_loss = criterion(binary_score, target, attns=out_attns, mask=feature_mask, 
-                                        multi_strides=multi_strides)
-            # loss += attn_loss * 0.
-        attn_losses.update(attn_loss.item(), feature.size(0))
+            score_loss, roi_loss = model(feature, pos_ind, target, feature_mask=feature_mask)
+        loss = score_loss + 0.5 * roi_loss
+        score_losses.update(score_loss.item(), feature.size(0))
+        roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
 
         batch_time.update(time.time() - end)
@@ -271,14 +273,15 @@ def validate(val_loader, model, criterion, iter):
             print('Test: [{0}/{1}]\t'
                   'Time {batch_time.val:.4f} ({loss.avg:.4f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Attn_Loss {attn_loss.val:.4f} ({attn_loss.avg:.4f})\t'
+                  'Score_Loss {score_loss.val:.4f} ({score_loss.avg:.4f})\t'
+                  'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
                   .format(i, len(val_loader), batch_time=batch_time, 
-                  loss=losses, attn_loss=attn_losses))
+                  loss=losses, score_loss=score_losses, roi_loss=roi_losses))
 
     print('Testing Results: Loss {loss.avg:.5f} \t'
           .format(loss=losses))
 
-    return losses.avg
+    return losses.avg, score_losses.avg, roi_losses.avg
 
 
 def save_checkpoint(state, is_best, save_path, filename='/checkpoint.pth.tar'):

@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.init as init
 # from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
+from roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool
 
 
 class EncoderLayer(nn.Module):
@@ -77,3 +78,29 @@ class Local_EncoderLayer(nn.Module):
         enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn
 
+
+class ROI_Relation(nn.Module):
+    ''' Compose with two layers '''
+
+    def __init__(self, d_model, roipool_size, d_inner_hid, n_head, 
+                 d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
+        super(ROI_Relation, self).__init__()
+        self.roi_pool = ROI1DPool(roipool_size, 1.)
+        # for non-local operation
+        self.slf_attn = MultiHeadAttention(
+            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
+        self.pos_ffn = PositionwiseFeedForward(
+            d_model, d_inner_hid, dropout=dropout)
+
+    def forward(self, features, rois, rois_mask, rois_pos_emb):
+        roi_feats = self.roi_pool(features, rois)
+        # compute mask
+        mb_size, len_k = roi_feats.size()[:2]
+        rois_attn_mask = (1. - rois_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
+        rois_attn_mask = torch.gt(rois_attn_mask + rois_attn_mask.transpose(1, 2), 0)
+
+        enc_output, _ = self.slf_attn(
+            roi_feats, roi_feats, roi_feats,
+            attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
+        enc_output = self.pos_ffn(enc_output)
+        return enc_output

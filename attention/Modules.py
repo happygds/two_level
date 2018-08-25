@@ -7,82 +7,6 @@ import numpy as np
 # from .torchsparseattn.fused import Fusedmax, FusedProxFunction
 # from sparsemax import Sparsemax
 
-eps = 1e-10
-
-def convert_categorical(x_in, n_classes=2):
-    shp = x_in.shape
-    x = (x_in.ravel().astype('int'))
-    x_mask = (x >= 0).reshape(-1, 1)
-    x = x.clip(0)
-    y = np.diag(np.ones((n_classes,)))
-    y = y[x] * x_mask
-    y = y.reshape(shp + (n_classes,)).astype('float32')
-    return y
-
-class CE_Criterion(nn.Module):
-    def __init__(self, use_weight=True, l_step=1.):
-        super(CE_Criterion, self).__init__()
-        self.l_step = l_step
-        self.use_weight = use_weight
-
-    def forward(self, inputs, target, attns=None, mask=None, multi_strides=None):
-        targets = [target[:, (i//2)::i] for i in multi_strides]
-        masks = [mask[:, (i//2)::i] for i in multi_strides]
-        # targets = [target] * len(inputs)
-        # masks = [mask] * len(inputs)
-
-        if self.use_weight:
-            weights = []
-            for i, target in enumerate(targets):
-                target = convert_categorical(target.cpu().numpy(), n_classes=2)
-                target = torch.from_numpy(target).cuda().requires_grad_(False)
-                target *= masks[i].unsqueeze(2)
-                # cls_weight = 1. / target.mean(0).mean(0)
-                weight = target.sum(1) / masks[i].sum(1).unsqueeze(1).clamp(eps)
-                weight = 0.5 / weight.clamp(eps)
-                # weight = weight / weight.mean(1).unsqueeze(1)
-                targets[i] = target
-                weights.append(weight)
-
-        for i, x in enumerate(inputs):
-            tmp_output = - targets[i] * torch.log(x.clamp(eps)) * self.l_step ** i
-            if self.use_weight:
-                tmp_output *= weights[i].unsqueeze(1)
-                tmp_output = torch.sum(tmp_output.mean(2) * masks[i], dim=1) / \
-                    torch.sum(masks[i], dim=1).clamp(eps)
-                tmp_output = torch.mean(tmp_output)
-            if i == 0:
-                output = tmp_output
-            else:
-                output += tmp_output
-
-        for i, (target, attn, mask) in enumerate(zip(targets, attns, masks)):
-            # generate centered matrix
-            tsize = target.size()
-            H1, H2 = torch.eye(tsize[1], tsize[1]).unsqueeze(0).expand(tsize[0], -1, -1), \
-                (torch.ones((tsize[1], 1)) * torch.ones((1, tsize[1]))).unsqueeze(0).expand(tsize[0], -1, -1)
-            H1, H2 = H1.cuda().requires_grad_(False), H2.cuda().requires_grad_(False)
-            H = (H1 - H2 / target.sum(2, keepdim=True).sum(1, keepdim=True).clamp(eps)) * mask.unsqueeze(2) * mask.unsqueeze(1)
-            target_cov = torch.bmm(target, target.transpose(1, 2))
-            target_cov = torch.bmm(torch.bmm(H, target_cov), H) * mask.unsqueeze(2) * mask.unsqueeze(1)
-            
-            attn = attn.mean(1)
-            # attn = (attn + attn.transpose(1, 2)) / 2.
-            # attn_size = attn.size()
-            # H = H.unsqueeze(1).expand(-1, attn_size[1], -1, -1).contiguous().view((-1,) + attn_size[2:])
-            # attn = attn.view(H.size())
-            attn = torch.bmm(torch.bmm(H, attn), H) * mask.unsqueeze(2) * mask.unsqueeze(1)
-            tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
-            tmp_output = 1. - (attn * target_cov).sum(2).sum(1).clamp(eps) / tmp.clamp(eps)
-            tmp_output = (tmp_output * mask[:, 0]).mean() * self.l_step ** i
-            if i == 0:
-                attn_output = tmp_output
-            else:
-                attn_output += tmp_output
-
-        return output / len(inputs), attn_output / len(inputs)
-
-
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
 
@@ -159,6 +83,13 @@ class ScaledDotProductAttention(nn.Module):
             conv_attn = self.conv_layers(attn_reshape)
             attn = conv_attn.transpose(
                 0, 1).contiguous().view(attn.size()) + attn
+        elif self.kernel_type in ['roi_remov']:
+            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            assert attn_pos_emb is not None
+            attn.data.masked_fill_(attn_mask, -1e+32)
+            attn_max = torch.max(attn, 2, keepdim=True)
+            attn = attn_pos_emb * torch.exp(attn - attn_max) / torch.sum(attn_pos_emb * torch.exp(attn - attn_max), 2, keepdim=True).clamp(1e-14)
+            attn.data.masked_fill_(attn_mask, 0)
         else:
             raise NotImplementedError()
 
@@ -185,7 +116,7 @@ class ScaledDotProductAttention(nn.Module):
         out_attn = attn
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
-        if attn_pos_emb is not None:
+        if attn_pos_emb is not None and self.kernel_type not in ['roi_remov']:
             # v_gate = F.sigmoid(torch.mean(v_pos_emb + v.unsqueeze(1), dim=2))
             # output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
             output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
@@ -221,6 +152,12 @@ class MultiHeadAttention(nn.Module):
         init.xavier_normal_(self.w_qs)
         init.xavier_normal_(self.w_ks)
         init.xavier_normal_(self.w_vs)
+        if kernel_type == 'roi_remov':
+            self.w_rs = nn.Parameter(torch.FloatTensor(n_head, d_model, 1))
+            init.xavier_normal_(self.w_rs)
+            self.b_rs = nn.Parameter(torch.FloatTensor(n_head, 1, 1))
+            init.xavier_normal_(self.b_rs)
+        self.kernel_type = kernel_type
 
     def forward(self, q, k, v, attn_mask=None, attn_pos_emb=None):
         d_k, d_v = self.d_k, self.d_v
@@ -231,6 +168,12 @@ class MultiHeadAttention(nn.Module):
         mb_size, len_q, d_model = q.size()
         mb_size, len_k, d_model = k.size()
         mb_size, len_v, d_model = v.size()
+
+        if attn_pos_emb is not None:
+            attn_pos_emb = attn_pos_emb.repeat(n_head, 1, 1, 1)
+        if self.kernel_type == 'roi_remov':
+            attn_pos_emb = attn_pos_emb.view(n_head, -1, d_model)
+            attn_pos_emb = F.relu((torch.bmm(attn_pos_emb, self.w_rs) + self.b_rs).view(-1, len_q, len_k))
 
         # treat as a (n_head) size batch
         # n_head x (mb_size*len_q) x d_model
@@ -256,21 +199,6 @@ class MultiHeadAttention(nn.Module):
             q_s3 = F.avg_pool1d(F.pad(q_s3.transpose(1, 2), (0, trn_kernel-1)), trn_kernel, stride=1).transpose(1, 2)
             q_s4 = F.avg_pool1d(F.pad(q_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel, stride=1).transpose(1, 2)
             q_s = torch.cat([q_s1, q_s2, q_s3, q_s4], dim=0)
-
-            # k_s1, k_s2, k_s3, k_s4 = torch.split(k_s, k_head, dim=0)
-            # k_s2 = F.avg_pool1d(F.pad(k_s2.transpose(1, 2), (trn_kernel-1, 0)), trn_kernel, stride=1).transpose(1, 2)
-            # k_s3 = F.avg_pool1d(F.pad(k_s3.transpose(1, 2), (0, trn_kernel-1)), trn_kernel, stride=1).transpose(1, 2)
-            # k_s4 = F.avg_pool1d(F.pad(k_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel, stride=1).transpose(1, 2)
-            # k_s = torch.cat([k_s1, k_s2, k_s3, k_s4], dim=0)
-
-            # v_s1, v_s2, v_s3, v_s4 = torch.split(v_s, k_head, dim=0)
-            # v_s2 = F.avg_pool1d(F.pad(v_s2.transpose(1, 2), (trn_kernel-1, 0)), trn_kernel, stride=1).transpose(1, 2)
-            # v_s3 = F.avg_pool1d(F.pad(v_s3.transpose(1, 2), (0, trn_kernel-1)), trn_kernel, stride=1).transpose(1, 2)
-            # v_s4 = F.avg_pool1d(F.pad(v_s4.transpose(1, 2), ((trn_kernel-1)//2, (trn_kernel-1)//2)), trn_kernel, stride=1).transpose(1, 2)
-            # v_s = torch.cat([v_s1, v_s2, v_s3, v_s4], dim=0)
-
-        if attn_pos_emb is not None:
-            attn_pos_emb = attn_pos_emb.repeat(n_head, 1, 1, 1)
 
         # perform attention, result size = (n_head * mb_size) x len_q x d_v
         if attn_mask is not None:
