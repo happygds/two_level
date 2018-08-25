@@ -267,9 +267,9 @@ def validate(val_loader, model, iter):
             ngpu = loss_list.size(0) // 2
             score_loss, roi_loss = loss_list[::ngpu].mean(), loss_list[1::ngpu].mean()
             loss = score_loss + 0.1 * roi_loss
-        score_losses.update(score_loss.item(), feature.size(0))
-        roi_losses.update(roi_loss.item(), feature.size(0))
-        losses.update(loss.item(), feature.size(0))
+            score_losses.update(score_loss.item(), feature.size(0))
+            roi_losses.update(roi_loss.item(), feature.size(0))
+            losses.update(loss.item(), feature.size(0))
 
         batch_time.update(time.time() - end)
         end = time.time()
