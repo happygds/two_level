@@ -55,6 +55,7 @@ class CE_Criterion_multi(nn.Module):
                 output = tmp_output
             else:
                 output += tmp_output
+        output = output / len(inputs)
 
         if attns is not None:
             for i, (target, attn, mask) in enumerate(zip(targets, attns, masks)):
@@ -76,6 +77,7 @@ class CE_Criterion_multi(nn.Module):
                     attn_output = tmp_output
                 else:
                     attn_output += tmp_output
+            attn_output = attn_output / len(inputs)
 
         if self.use_weight:
             labels *= rois_mask.unsqueeze(2)
@@ -89,7 +91,7 @@ class CE_Criterion_multi(nn.Module):
                 torch.sum(rois_mask, dim=1).clamp(eps)
             rois_output = torch.mean(rois_output)
     
-            return output / len(inputs), attn_output / len(inputs), rois_output
+            return output + 0.2*rois_output, output, attn_output, rois_output
 
 
 class CE_Criterion(nn.Module):
