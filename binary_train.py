@@ -217,9 +217,9 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         optimizer.step()
 
         # 1. Log scalar values (scalar summary)
-        info = {'train_loss': losses.value,
-                'train_score_loss': score_losses.value,
-                'train_roi_loss': roi_losses.value}
+        info = {'train_loss': losses.val,
+                'train_score_loss': score_losses.val,
+                'train_roi_loss': roi_losses.val}
         for tag, value in info.items():
             logger.scalar_summary(tag, value, i+epoch*len(train_loader)+1)
         # 2. Log values and gradients of the parameters (histogram summary)
