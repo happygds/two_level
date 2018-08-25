@@ -40,7 +40,7 @@ class BinaryClassifier(torch.nn.Module):
         self.d_model = args.d_model
         self.dropout = dropout
         self.test_mode = test_mode
-        self.scores = nn.ModuleList([nn.Linear(args.d_model, 2),
+        self.scores = nn.ModuleList([nn.Linear(args.d_model, 2)
                                      for _ in range(args.n_layers * len(self.multi_strides))])
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
