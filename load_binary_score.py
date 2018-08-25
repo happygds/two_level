@@ -80,6 +80,8 @@ class BinaryVideoRecord:
             begin_ind, end_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[begin_ind:end_ind] = 1.
         self.gts = np.asarray(gts)
+        if len(gts) == 0:
+            import pdb; pdb.set_trace()
 
 
 class BinaryDataSet(data.Dataset):
