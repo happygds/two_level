@@ -54,6 +54,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
         if not test_mode:
             # compute iou with ground-truths
             gt_k = gts[k]
+            import pdb; pdb.set_trace()
             gt_k, rois = np.asarray(gt_k), np.asarray(rois)
             rois_iou = wrapper_segment_iou(gt_k, rois)
             m, n = rois_iou.shape
