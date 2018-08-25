@@ -126,7 +126,6 @@ class BinaryClassifier(torch.nn.Module):
             rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_outputs, test_mode=test_mode)
 
         # use relative position embedding
-        import pdb; pdb.set_trace()
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(enc_output, rois, rois_mask, rois_pos_emb)
         roi_scores = self.roi_cls(roi_feats)

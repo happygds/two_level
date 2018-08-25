@@ -76,7 +76,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois.mean(axis=2), rpn_rois[:, :, 1] - rpn_rois[:, :, 0]
     rois_relative_pos[:, :, :, 0] = np.abs(rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :]
+    rois_relative_pos[:, :, :, 1] = rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos = np.log(rois_relative_pos.clip(1e-3)) * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
     # convert numpy to pytorch
