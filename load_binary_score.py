@@ -202,6 +202,7 @@ class BinaryDataSet(data.Dataset):
         gts = np.zeros((32, 2), dtype='float32')
         gts[:len(video.gts)] = video.gts
         if gts.sum() == 0.:
+            print(video.id)
             import pdb; pdb.set_trace()
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
