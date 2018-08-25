@@ -131,6 +131,7 @@ class BinaryClassifier(torch.nn.Module):
         roi_scores = self.roi_cls(roi_feats)
         if not test_mode:
             roi_loss = self.criterion_stage2(roi_scores, labels, rois_mask)
-            return ce_loss, roi_loss
+            loss_list = [ce_loss, roi_loss]
+            return torch.stack(loss_list).squeeze()
 
         return actness, roi_scores
