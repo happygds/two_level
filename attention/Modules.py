@@ -173,6 +173,7 @@ class MultiHeadAttention(nn.Module):
         if attn_pos_emb is not None:
             attn_pos_emb = attn_pos_emb.repeat(n_head, 1, 1, 1)
         if self.kernel_type == 'roi_remov':
+            import pdb; pdb.set_trace()
             attn_pos_emb = attn_pos_emb.view(n_head, -1, d_model)
             attn_pos_emb = F.relu((torch.bmm(attn_pos_emb, self.w_rs) + self.b_rs).view(-1, len_q, len_k))
 
