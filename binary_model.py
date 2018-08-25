@@ -135,6 +135,7 @@ class BinaryClassifier(torch.nn.Module):
 
 
     def build_loss(self, inputs, target, roi_scores, labels, rois_mask, attns=None, mask=None, multi_strides=None):
+        self.use_weight = True
         targets = [target[:, (i//2)::i] for i in multi_strides]
         masks = [mask[:, (i//2)::i] for i in multi_strides]
         # targets = [target] * len(inputs)
