@@ -16,7 +16,7 @@ from transforms import *
 from ops.utils import get_actionness_configs, ScheduledOptim
 from ops.anet_db import ANetDB
 from torch.utils import model_zoo
-from attention.utils import CE_Criterion
+from attention.utils import CE_Criterion, CE_Criterion_multi
 from tensorboard import Logger
 best_loss = 100
 
@@ -110,6 +110,8 @@ def main():
     #                             args.lr,
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay, nesterov=False)
+    criterion_stage1 = CE_Criterion_multi()
+    criterion_stage2 = CE_Criterion()
 
     if not os.path.exists(args.result_path):
         os.makedirs(args.result_path)
@@ -140,11 +142,11 @@ def main():
         # train for one epoch
         if patience > 3:
             break
-        train(train_loader, model, optimizer, epoch, logger)
+        train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, epoch, logger)
 
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
-            loss, score_loss, roi_loss = validate(val_loader, model,
+            loss, score_loss, roi_loss = validate(val_loader, model, criterion_stage1, criterion_stage2,
                                                  (epoch + 1) * len(train_loader))
             # 1. Log scalar values (scalar summary)
             info = {'val_loss': loss,
@@ -168,7 +170,7 @@ def main():
             }, is_best, save_path)
 
 
-def train(train_loader, model, optimizer, epoch, logger):
+def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, epoch, logger):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -190,10 +192,12 @@ def train(train_loader, model, optimizer, epoch, logger):
         pos_ind = pos_ind.cuda().requires_grad_(False)
 
         # compute output
-        loss_list = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
-        ngpu = loss_list.size(0) // 2
-        score_loss, roi_loss = loss_list[::ngpu].mean(), loss_list[1::ngpu].mean()
-        loss = score_loss + 0.1 * roi_loss
+        score_outputs, enc_slf_attns, roi_scores, labels, rois_mask = model(
+            feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
+        score_loss, attn_loss = criterion_stage1(score_outputs, target, attns=enc_slf_attns, 
+                                                 mask=feature_mask, multi_strides=multi_strides)
+        roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
+        loss = score_loss + 0.2 * roi_loss
         score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
@@ -246,7 +250,7 @@ def train(train_loader, model, optimizer, epoch, logger):
                   )
 
 
-def validate(val_loader, model, iter):
+def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
     batch_time = AverageMeter()
     attn_losses = AverageMeter()
     losses = AverageMeter()
@@ -263,10 +267,14 @@ def validate(val_loader, model, iter):
             feature = feature.cuda().requires_grad_(False)
             feature_mask = feature_mask.cuda().requires_grad_(False)
             pos_ind = pos_ind.cuda().requires_grad_(False)
-            loss_list = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
-            ngpu = loss_list.size(0) // 2
-            score_loss, roi_loss = loss_list[::ngpu].mean(), loss_list[1::ngpu].mean()
-            loss = score_loss + 0.1 * roi_loss
+
+            # compute output
+            score_outputs, enc_slf_attns, roi_scores, labels, rois_mask = model(
+                feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
+            score_loss, attn_loss = criterion_stage1(score_outputs, target, attns=enc_slf_attns, 
+                                                    mask=feature_mask, multi_strides=multi_strides)
+            roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
+            loss = score_loss + 0.2 * roi_loss
             score_losses.update(score_loss.item(), feature.size(0))
             roi_losses.update(roi_loss.item(), feature.size(0))
             losses.update(loss.item(), feature.size(0))

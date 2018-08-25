@@ -45,8 +45,6 @@ class BinaryClassifier(torch.nn.Module):
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
 
-        self.criterion_stage1 = CE_Criterion_multi()
-        self.criterion_stage2 = CE_Criterion()
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
         self.roi_cls = nn.Sequential(nn.Linear(args.d_model, 2), nn.Softmax(dim=2))
@@ -119,8 +117,6 @@ class BinaryClassifier(torch.nn.Module):
                                                       scale_factor=stride, mode='nearest').transpose(1, 2)
         # compute loss for training/validation stage
         if not test_mode:
-            ce_loss, attn_loss = self.criterion_stage1(score_outputs, target, attns=enc_slf_attns, 
-                                                       mask=feature_mask, multi_strides=self.multi_strides)
             rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_outputs, gts=gts, test_mode=test_mode)
         else:
             rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_outputs, test_mode=test_mode)
@@ -130,8 +126,6 @@ class BinaryClassifier(torch.nn.Module):
         roi_feats = self.roi_relations(enc_output, rois, rois_mask, rois_pos_emb)
         roi_scores = self.roi_cls(roi_feats)
         if not test_mode:
-            roi_loss = self.criterion_stage2(roi_scores, labels, rois_mask)
-            loss_list = [ce_loss, roi_loss]
-            return torch.stack(loss_list).squeeze()
+            return score_outputs, enc_slf_attns, roi_scores, labels, rois_mask
 
         return actness, roi_scores
