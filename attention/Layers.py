@@ -94,6 +94,8 @@ class ROI_Relation(nn.Module):
 
     def forward(self, features, rois, rois_mask, rois_pos_emb):
         roi_feats = self.roi_pool(features, rois)
+        roi_feat_size = roi_feats
+        roi_feats = roi_feats.view(roi_feat_size[:2] + (-1,))
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
         rois_attn_mask = (1. - rois_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
