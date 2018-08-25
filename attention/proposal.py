@@ -32,7 +32,6 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
     for k in range(batch_size):
         # the k-th sample
         bboxes = []
-        gt_k = gts[k]
         for s in range(len(score_outputs)):
             scores = score_outputs[s][k]
             # # use TAG
@@ -54,6 +53,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
         if not test_mode:
             # compute iou with ground-truths
+            gt_k = gts[k]
             rois_iou = wrapper_segment_iou(gt_k, rois)
             m, n = rois_iou.shape
             for i in range(n):

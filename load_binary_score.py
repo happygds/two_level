@@ -72,11 +72,14 @@ class BinaryVideoRecord:
         assert rgb_feat.shape[0] == sample_duration
         
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
+        gts = []
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
             # begin_ind, end_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
             begin_ind, end_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[begin_ind:end_ind] = 1.
+            gts.append([sample_duration * begin_ind, sample_duration * end_ind])
+        self.gts = gts
 
 
 class BinaryDataSet(data.Dataset):
@@ -201,7 +204,7 @@ class BinaryDataSet(data.Dataset):
         out_mask = torch.from_numpy(out_mask)
 
         # print(out_feats.size(), out_prop_type.size())
-        return out_feat, out_mask, out_label, pos_ind
+        return out_feat, out_mask, out_label, pos_ind, video.gts
 
     def get_test_data(self, video):
         props = []

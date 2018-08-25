@@ -181,7 +181,7 @@ def train(train_loader, model, optimizer, epoch, logger):
     end = time.time()
     optimizer.zero_grad()
 
-    for i, (feature, feature_mask, target, pos_ind) in enumerate(train_loader):
+    for i, (feature, feature_mask, target, pos_ind, gts) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)
         # feature_mask = feature.abs().mean(2).ne(0).float()
@@ -190,7 +190,7 @@ def train(train_loader, model, optimizer, epoch, logger):
         pos_ind = pos_ind.cuda().requires_grad_(False)
 
         # compute output
-        score_loss, roi_loss = model(feature, pos_ind, target, feature_mask=feature_mask)
+        score_loss, roi_loss = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
         loss = score_loss + 0.5 * roi_loss
         score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
@@ -255,14 +255,14 @@ def validate(val_loader, model, iter):
 
     end = time.time()
 
-    for i, (feature, feature_mask, target, pos_ind) in enumerate(val_loader):
+    for i, (feature, feature_mask, target, pos_ind, gts) in enumerate(val_loader):
         with torch.no_grad():
             # feature_mask = feature.abs().mean(2).ne(0).float()
             feature = feature.cuda().requires_grad_(False)
             feature_mask = feature_mask.cuda().requires_grad_(False)
             pos_ind = pos_ind.cuda().requires_grad_(False)
 
-            score_loss, roi_loss = model(feature, pos_ind, target, feature_mask=feature_mask)
+            score_loss, roi_loss = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
         loss = score_loss + 0.5 * roi_loss
         score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
