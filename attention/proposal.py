@@ -44,7 +44,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
             std_value = tmp.std()
             starts = np.nonzero(tmp > std_value)[0] + 1
             ends = np.nonzero(tmp < -std_value)[0] + 1
-            props = [(x, y, scores[x:y].mean()) for _, (x, y) in enumerate(zip(starts, ends)) if x < y]
+            props = [(x, y, scores[x:y].mean()) for x in starts for y in ends if x < y]
             bboxes.extend(props)
         import pdb; pdb.set_trace()
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_pos_nms_top]
