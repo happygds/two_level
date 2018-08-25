@@ -87,8 +87,8 @@ class CE_Criterion(nn.Module):
     def forward(self, input, target, mask):
         print(input.size(), target.size(), mask.size())
         if self.use_weight:
-            target = convert_categorical(target.cpu().numpy(), n_classes=2)
-            target = torch.from_numpy(target).cuda().requires_grad_(False)
+            # target = convert_categorical(target.cpu().numpy(), n_classes=2)
+            # target = torch.from_numpy(target).cuda().requires_grad_(False)
             target *= mask.unsqueeze(2)
             # cls_weight = 1. / target.mean(0).mean(0)
             weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
