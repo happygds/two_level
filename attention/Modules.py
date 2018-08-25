@@ -88,8 +88,9 @@ class ScaledDotProductAttention(nn.Module):
             assert attn_pos_emb is not None
             attn.data.masked_fill_(attn_mask, -1e+32)
             attn_max = torch.max(attn, 2, keepdim=True)[0]
-            attn = attn_pos_emb * torch.exp(attn - attn_max) / torch.sum(attn_pos_emb * torch.exp(attn - attn_max), 2, keepdim=True).clamp(1e-14)
+            attn = torch.exp(attn - attn_max)
             attn.data.masked_fill_(attn_mask, 0)
+            attn = attn_pos_emb * attn / torch.sum(attn_pos_emb * attn, 2, keepdim=True).clamp(1e-14)
         else:
             raise NotImplementedError()
 

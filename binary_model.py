@@ -48,7 +48,7 @@ class BinaryClassifier(torch.nn.Module):
         self.criterion_stage1 = CE_Criterion_multi()
         self.criterion_stage2 = CE_Criterion()
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
-                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
+                                          args.n_head, args.d_k, args.d_v, dropout=0.1)
         self.roi_cls = nn.Sequential(nn.Linear(args.d_model, 2), nn.Softmax(dim=2))
 
     def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
