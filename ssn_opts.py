@@ -37,6 +37,7 @@ parser.add_argument('--seed', type=int, default=0)
 parser.add_argument('--multiscale', type=int, default=0,
                     help='multiscale output')
 parser.add_argument('--groupwise_heads', type=int, default=0)
+parser.add_argument('--roi_poolsize', type=int, default=1)
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)

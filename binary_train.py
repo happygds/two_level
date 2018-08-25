@@ -129,6 +129,8 @@ def main():
         save_path = save_path + '_S' + str(args.multiscale)
     if args.groupwise_heads > 0:
         save_path = save_path + '_G' + str(args.groupwise_heads)
+    if args.roi_poolsize > 0:
+        save_path = save_path + '_roi' + str(args.roi_poolsize)
     model_name = os.path.split(save_path)[1]
     logger = Logger('./logs/{}'.format(model_name))
 
