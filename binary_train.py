@@ -193,7 +193,7 @@ def train(train_loader, model, optimizer, epoch, logger):
         loss_list = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
         ngpu = loss_list.size(0) // 2
         score_loss, roi_loss = loss_list[::ngpu].mean(), loss_list[1::ngpu].mean()
-        loss = score_loss + 0.5 * roi_loss
+        loss = score_loss + 0. * roi_loss
         score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
@@ -266,7 +266,7 @@ def validate(val_loader, model, iter):
             loss_list = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
         ngpu = loss_list.size(0) // 2
         score_loss, roi_loss = loss_list[::ngpu].mean(), loss_list[1::ngpu].mean()
-        loss = score_loss + 0.5 * roi_loss
+        loss = score_loss + 0. * roi_loss
         score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
