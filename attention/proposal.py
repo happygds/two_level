@@ -72,7 +72,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
 
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois).mean(axis=2) > 0.).astype('float32')
-    rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2))
+    rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois.mean(axis=2), rpn_rois[:, :, 1] - rpn_rois[:, :, 0]
     rois_relative_pos[:, :, :, 0] = np.abs(rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
@@ -80,13 +80,13 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
     rois_relative_pos = np.log(rois_relative_pos.clip(1e-3)) * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
     # convert numpy to pytorch
-    rpn_rois = torch.from_numpy(rpn_rois).cuda().requires_grad_(False)
-    rpn_rois_mask = torch.from_numpy(rpn_rois_mask).cuda().requires_grad_(False)
-    rois_relative_pos = torch.from_numpy(rois_relative_pos).cuda().requires_grad_(False)
+    rpn_rois = torch.from_numpy(rpn_rois.astype('float32')).cuda().requires_grad_(False)
+    rpn_rois_mask = torch.from_numpy(rpn_rois_mask.astype('float32')).cuda().requires_grad_(False)
+    rois_relative_pos = torch.from_numpy(rois_relative_pos.astype('float32')).cuda().requires_grad_(False)
 
     if not test_mode:
-        labels = torch.from_numpy(labels).cuda().requires_grad_(False)
+        labels = torch.from_numpy(labels.astype('float32')).cuda().requires_grad_(False)
         return rpn_rois, rpn_rois_mask, rois_relative_pos, labels
     else:
-        actness = torch.from_numpy(actness).cuda().requires_grad_(False)
+        actness = torch.from_numpy(actness.astype('float32')).cuda().requires_grad_(False)
         return rpn_rois, rpn_rois_mask, rois_relative_pos, actness
