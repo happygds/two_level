@@ -126,6 +126,78 @@ class BinaryClassifier(torch.nn.Module):
         roi_feats = self.roi_relations(enc_output, rois, rois_mask, rois_pos_emb)
         roi_scores = self.roi_cls(roi_feats)
         if not test_mode:
-            return score_outputs, enc_slf_attns, roi_scores, labels, rois_mask
+            loss, score_loss, attn_loss, roi_loss = self.build_loss(
+                score_outputs, target, roi_scores, labels, rois_mask, 
+                attns=enc_slf_attns, mask=feature_mask, multi_strides=self.multi_strides)
+            return loss, score_loss, attn_loss, roi_loss
 
         return actness, roi_scores
+
+
+    def build_loss(self, inputs, target, roi_scores, labels, rois_mask, attns=None, mask=None, multi_strides=None):
+        targets = [target[:, (i//2)::i] for i in multi_strides]
+        masks = [mask[:, (i//2)::i] for i in multi_strides]
+        # targets = [target] * len(inputs)
+        # masks = [mask] * len(inputs)
+
+        if self.use_weight:
+            weights = []
+            for i, target in enumerate(targets):
+                target = convert_categorical(target.cpu().numpy(), n_classes=2)
+                target = torch.from_numpy(target).cuda().requires_grad_(False)
+                target *= masks[i].unsqueeze(2)
+                # cls_weight = 1. / target.mean(0).mean(0)
+                weight = target.sum(1) / masks[i].sum(1).unsqueeze(1).clamp(eps)
+                weight = 0.5 / weight.clamp(eps)
+                # weight = weight / weight.mean(1).unsqueeze(1)
+                targets[i] = target
+                weights.append(weight)
+
+        for i, x in enumerate(inputs):
+            tmp_output = - targets[i] * torch.log(x.clamp(eps)) * self.l_step ** i
+            if self.use_weight:
+                tmp_output *= weights[i].unsqueeze(1)
+                tmp_output = torch.sum(tmp_output.mean(2) * masks[i], dim=1) / \
+                    torch.sum(masks[i], dim=1).clamp(eps)
+                tmp_output = torch.mean(tmp_output)
+            if i == 0:
+                output = tmp_output
+            else:
+                output += tmp_output
+        output = output / len(inputs)
+
+        if attns is not None:
+            for i, (target, attn, mask) in enumerate(zip(targets, attns, masks)):
+                # generate centered matrix
+                tsize = target.size()
+                H1, H2 = torch.eye(tsize[1], tsize[1]).unsqueeze(0).expand(tsize[0], -1, -1), \
+                    (torch.ones((tsize[1], 1)) * torch.ones((1, tsize[1]))).unsqueeze(0).expand(tsize[0], -1, -1)
+                H1, H2 = H1.cuda().requires_grad_(False), H2.cuda().requires_grad_(False)
+                H = (H1 - H2 / target.sum(2, keepdim=True).sum(1, keepdim=True).clamp(eps)) * mask.unsqueeze(2) * mask.unsqueeze(1)
+                target_cov = torch.bmm(target, target.transpose(1, 2))
+                target_cov = torch.bmm(torch.bmm(H, target_cov), H) * mask.unsqueeze(2) * mask.unsqueeze(1)
+                
+                attn = attn.mean(1)
+                attn = torch.bmm(torch.bmm(H, attn), H) * mask.unsqueeze(2) * mask.unsqueeze(1)
+                tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
+                tmp_output = 1. - (attn * target_cov).sum(2).sum(1).clamp(eps) / tmp.clamp(eps)
+                tmp_output = (tmp_output * mask[:, 0]).mean() * self.l_step ** i
+                if i == 0:
+                    attn_output = tmp_output
+                else:
+                    attn_output += tmp_output
+            attn_output = attn_output / len(inputs)
+
+        if self.use_weight:
+            labels *= rois_mask.unsqueeze(2)
+            rois_weight = labels.sum(1) / rois_mask.sum(1).unsqueeze(1).clamp(eps)
+            rois_weight = 0.5 / rois_weight.clamp(eps)
+
+        rois_output = - labels * torch.log(roi_scores.clamp(eps))
+        if self.use_weight:
+            rois_output *= rois_weight.unsqueeze(1)
+            rois_output = torch.sum(rois_output.mean(2) * rois_mask, dim=1) / \
+                torch.sum(rois_mask, dim=1).clamp(eps)
+            rois_output = torch.mean(rois_output)
+    
+            return output+0.2*rois_output, output, attn_output, rois_output
