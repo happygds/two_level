@@ -53,6 +53,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
         if not test_mode:
             # compute iou with ground-truths
+            import pdb; pdb.set_trace()
             gt_k = gts[k]
             gt_k = [x.cpu().numpy() for x in gt_k]
             gt_k, rois = np.asarray(gt_k), np.asarray(rois)
