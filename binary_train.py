@@ -231,7 +231,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
             logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
             logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
 
-        del loss, score_loss, roi_loss
+        del loss, roi_loss
         # optimizer.update_learning_rate()
         optimizer.zero_grad()
         # measure elapsed time
