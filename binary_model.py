@@ -155,7 +155,7 @@ class BinaryClassifier(torch.nn.Module):
                 weights.append(weight)
 
         for i, x in enumerate(inputs):
-            tmp_output = - targets[i] * torch.log(x.clamp(eps)) * self.l_step ** i
+            tmp_output = - targets[i] * torch.log(x.clamp(eps))
             if self.use_weight:
                 tmp_output *= weights[i].unsqueeze(1)
                 tmp_output = torch.sum(tmp_output.mean(2) * masks[i], dim=1) / \
@@ -182,7 +182,7 @@ class BinaryClassifier(torch.nn.Module):
                 attn = torch.bmm(torch.bmm(H, attn), H) * mask.unsqueeze(2) * mask.unsqueeze(1)
                 tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
                 tmp_output = 1. - (attn * target_cov).sum(2).sum(1).clamp(eps) / tmp.clamp(eps)
-                tmp_output = (tmp_output * mask[:, 0]).mean() * self.l_step ** i
+                tmp_output = (tmp_output * mask[:, 0]).mean()
                 if i == 0:
                     attn_output = tmp_output
                 else:
