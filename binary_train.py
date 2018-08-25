@@ -263,8 +263,9 @@ def validate(val_loader, model, iter):
             feature = feature.cuda().requires_grad_(False)
             feature_mask = feature_mask.cuda().requires_grad_(False)
             pos_ind = pos_ind.cuda().requires_grad_(False)
-
-            score_loss, roi_loss = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
+            loss_list = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
+        ngpu = loss_list.size(0) // 2
+        score_loss, roi_loss = loss_list[::ngpu].mean(), loss_list[1::ngpu].mean()
         loss = score_loss + 0.5 * roi_loss
         score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
