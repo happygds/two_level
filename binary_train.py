@@ -194,11 +194,11 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         # compute output
         score_outputs, enc_slf_attns, roi_scores, labels, rois_mask = model(
             feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
-        loss, attn_loss, roi_loss = criterion_stage1(score_outputs, target, roi_scores, labels, rois_mask, 
-                                                        attns=enc_slf_attns, mask=feature_mask, multi_strides=multi_strides)
-        score_losses.update(loss.item(), feature.size(0))
+        score_loss, attn_loss, roi_loss = criterion_stage1(score_outputs, target, roi_scores, labels, rois_mask, 
+                                                           attns=enc_slf_attns, mask=feature_mask, multi_strides=multi_strides)
         # roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-        loss = loss + 0.2 * roi_loss
+        loss = torch.sum(torch.cat([score_loss, 0.2*roi_loss], 0))
+        score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
 
@@ -217,9 +217,9 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         optimizer.step()
 
         # 1. Log scalar values (scalar summary)
-        info = {'train_loss': losses.val,
-                'train_score_loss': score_losses.val,
-                'train_roi_loss': roi_losses.val}
+        info = {'train_loss': loss.item(),
+                'train_score_loss': score_loss.item(),
+                'train_roi_loss': roi_loss.item()}
         for tag, value in info.items():
             logger.scalar_summary(tag, value, i+epoch*len(train_loader)+1)
         # 2. Log values and gradients of the parameters (histogram summary)
@@ -231,7 +231,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
             logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
             logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
 
-        del loss, roi_loss
+        del loss, score_loss, roi_loss
         # optimizer.update_learning_rate()
         optimizer.zero_grad()
         # measure elapsed time
@@ -272,11 +272,11 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
             # compute output
             score_outputs, enc_slf_attns, roi_scores, labels, rois_mask = model(
                 feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
-            loss, attn_loss, roi_loss = criterion_stage1(score_outputs, target, roi_scores, labels, rois_mask, 
+            score_loss, attn_loss, roi_loss = criterion_stage1(score_outputs, target, roi_scores, labels, rois_mask, 
                                                             attns=enc_slf_attns, mask=feature_mask, multi_strides=multi_strides)
-            score_losses.update(loss.item(), feature.size(0))
             # roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-            loss = loss + 0.2 * roi_loss
+            loss = torch.sum(torch.cat([score_loss, 0.2*roi_loss], 0))
+            score_losses.update(score_loss.item(), feature.size(0))
             roi_losses.update(roi_loss.item(), feature.size(0))
             losses.update(loss.item(), feature.size(0))
 
