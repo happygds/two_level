@@ -129,7 +129,7 @@ class BinaryClassifier(torch.nn.Module):
             self.loss, self.score_loss, self.attn_loss, self.roi_loss = self.build_loss(
                 score_outputs, target, roi_scores, labels, rois_mask, 
                 attns=enc_slf_attns, mask=feature_mask, multi_strides=self.multi_strides)
-            return loss
+            return score_outputs
 
         return actness, roi_scores
 
