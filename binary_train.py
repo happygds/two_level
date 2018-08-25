@@ -272,7 +272,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
             score_outputs, enc_slf_attns, roi_scores, labels, rois_mask = model(
                 feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
             score_loss, attn_loss = criterion_stage1(score_outputs, target, attns=enc_slf_attns, 
-                                                    mask=feature_mask, multi_strides=multi_strides)
+                                                     mask=feature_mask, multi_strides=multi_strides)
             roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
             loss = score_loss + 0.2 * roi_loss
             score_losses.update(score_loss.item(), feature.size(0))
