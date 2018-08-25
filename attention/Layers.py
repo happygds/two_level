@@ -88,7 +88,7 @@ class ROI_Relation(nn.Module):
         super(ROI_Relation, self).__init__()
         self.roi_pool = RoI1DPool(roipool_size, 1.)
         self.rank_fc = nn.Linear(d_model, d_model)
-        self.roi_fc = nn.Linear(d_model, d_model)
+        self.roi_fc = nn.Linear(d_model*roipool_size, d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
@@ -102,7 +102,7 @@ class ROI_Relation(nn.Module):
 
         # use rank embedding
         rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2])
-        roi_feats = self.rank_fc(rank_embedding(rank_emb)) + self.roi_fc(roi_feats)
+        roi_feats = self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + self.roi_fc(roi_feats)
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
