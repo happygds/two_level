@@ -51,7 +51,7 @@ class BinaryClassifier(torch.nn.Module):
                                            args.n_head, args.d_k, args.d_v, dropout=0.1)
         self.roi_cls = nn.Sequential(nn.Linear(args.d_model, 2), nn.Softmax(dim=2))
 
-    def forward(self, feature, pos_ind, target, feature_mask=None, test_mode=False):
+    def forward(self, feature, pos_ind, target=None, feature_mask=None, test_mode=False):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
