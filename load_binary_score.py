@@ -79,7 +79,7 @@ class BinaryVideoRecord:
             begin_ind, end_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[begin_ind:end_ind] = 1.
             gts.append([sample_duration * begin_ind, sample_duration * end_ind])
-        self.gts = gts
+        self.gts = np.asarray(gts)
 
 
 class BinaryDataSet(data.Dataset):
@@ -197,6 +197,8 @@ class BinaryDataSet(data.Dataset):
         out_mask[:min_len] = 1.
 
         # convert label using haar wavelet decomposition
+        gts = np.zeros((32, 2), dtype='float32')
+        gts[:len(video.gts)] = video.gts
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
@@ -204,7 +206,7 @@ class BinaryDataSet(data.Dataset):
         out_mask = torch.from_numpy(out_mask)
 
         # print(out_feats.size(), out_prop_type.size())
-        return out_feat, out_mask, out_label, pos_ind, video.gts
+        return out_feat, out_mask, out_label, pos_ind, gts
 
     def get_test_data(self, video):
         props = []
