@@ -93,7 +93,7 @@ class ROI_Relation(nn.Module):
             d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, features, rois, rois_mask, rois_pos_emb):
-        roi_feats = self.roi_pool(features, rois)
+        roi_feats = self.roi_pool(features.transpose(1, 2), rois).transpose(1, 2)
         roi_feat_size = roi_feats.size()
         roi_feats = roi_feats.view(roi_feat_size[:2] + (-1,))
         # compute mask
