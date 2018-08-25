@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.init as init
 # from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
+from .utils import rank_embedding
 from roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool
 
 
@@ -86,6 +87,8 @@ class ROI_Relation(nn.Module):
                  d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
         super(ROI_Relation, self).__init__()
         self.roi_pool = RoI1DPool(roipool_size, 1.)
+        self.rank_fc = nn.Linear(d_model, d_model)
+        self.roi_fc = nn.Linear(d_model, d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
@@ -96,6 +99,11 @@ class ROI_Relation(nn.Module):
         roi_feats = self.roi_pool(features.transpose(1, 2), rois)
         roi_feat_size = roi_feats.size()
         roi_feats = roi_feats.view(roi_feat_size[:2] + (-1,))
+
+        # use rank embedding
+        rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2])
+        roi_feats = self.rank_fc(rank_embedding(rank_emb)) + self.roi_fc(roi_feats)
+
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
         rois_attn_mask = (1. - rois_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
