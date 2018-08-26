@@ -42,7 +42,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
             # use change point
             scores = scores[:, 1]
             tmp = gaussian_filter(scores[1:,] - scores[:-1,], bw)
-            std_value = tmp.std()
+            std_value = 2*tmp.std()
             starts = np.nonzero(tmp > std_value)[0] + 1
             ends = np.nonzero(tmp < -std_value)[0] + 1
             props = [(x, y, 1, scores[x:y].mean()) for x in starts for y in ends if x < y] + [(0, len(scores), 1, scores.mean())]
