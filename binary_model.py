@@ -136,32 +136,29 @@ class BinaryScore(torch.nn.Module):
 
 
     def build_loss(self, inputs, target, attns=None, mask=None, multi_strides=None):
-        self.use_weight = True
         targets = [target[:, (i//2)::i] for i in multi_strides]
         masks = [mask[:, (i//2)::i] for i in multi_strides]
         # targets = [target] * len(inputs)
         # masks = [mask] * len(inputs)
 
-        if self.use_weight:
-            weights = []
-            for i, target in enumerate(targets):
-                target = convert_categorical(target.cpu().numpy(), n_classes=2)
-                target = torch.from_numpy(target).cuda().requires_grad_(False)
-                target *= masks[i].unsqueeze(2)
-                # cls_weight = 1. / target.mean(0).mean(0)
-                weight = target.sum(1) / masks[i].sum(1).unsqueeze(1).clamp(eps)
-                weight = 0.5 / weight.clamp(eps)
-                # weight = weight / weight.mean(1).unsqueeze(1)
-                targets[i] = target
-                weights.append(weight)
+        weights = []
+        for i, target in enumerate(targets):
+            target = convert_categorical(target.cpu().numpy(), n_classes=2)
+            target = torch.from_numpy(target).cuda().requires_grad_(False)
+            target *= masks[i].unsqueeze(2)
+            # cls_weight = 1. / target.mean(0).mean(0)
+            weight = target.sum(1) / masks[i].sum(1).unsqueeze(1).clamp(eps)
+            weight = 0.5 / weight.clamp(eps)
+            # weight = weight / weight.mean(1).unsqueeze(1)
+            targets[i] = target
+            weights.append(weight)
 
         for i, x in enumerate(inputs):
             tmp_output = - targets[i] * torch.log(x.clamp(eps))
-            if self.use_weight:
-                tmp_output *= weights[i].unsqueeze(1)
-                tmp_output = torch.sum(tmp_output.mean(2) * masks[i], dim=1) / \
-                    torch.sum(masks[i], dim=1).clamp(eps)
-                tmp_output = torch.mean(tmp_output)
+            tmp_output *= weights[i].unsqueeze(1)
+            tmp_output = torch.sum(tmp_output.mean(2) * masks[i], dim=1) / \
+                torch.sum(masks[i], dim=1).clamp(eps)
+            tmp_output = torch.mean(tmp_output)
             if i == 0:
                 output = tmp_output
             else:
@@ -204,6 +201,7 @@ class BinaryClassifier(torch.nn.Module):
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
         self.roi_cls = nn.Sequential(nn.Linear(args.d_model, 2), nn.Softmax(dim=2))
+        self.roi_loss = None
 
     @property
     def loss(self):
@@ -222,24 +220,19 @@ class BinaryClassifier(torch.nn.Module):
         roi_scores = self.roi_cls(roi_feats)
         if not test_mode:
             self.roi_loss = self.build_loss(roi_scores, labels, rois_mask)
-            return roi_scores
 
         return actness, roi_scores
 
 
     def build_loss(self, roi_scores, labels, rois_mask):
-        self.use_weight = True
-
-        if self.use_weight:
-            labels *= rois_mask.unsqueeze(2)
-            rois_weight = labels.sum(1) / rois_mask.sum(1).unsqueeze(1).clamp(eps)
-            rois_weight = 0.5 / rois_weight.clamp(eps)
+        labels *= rois_mask.unsqueeze(2)
+        rois_weight = labels.sum(1) / rois_mask.sum(1).unsqueeze(1).clamp(eps)
+        rois_weight = 0.5 / rois_weight.clamp(eps)
 
         rois_output = - labels * torch.log(roi_scores.clamp(eps))
-        if self.use_weight:
-            rois_output *= rois_weight.unsqueeze(1)
-            rois_output = torch.sum(rois_output.mean(2) * rois_mask, dim=1) / \
-                torch.sum(rois_mask, dim=1).clamp(eps)
-            rois_output = torch.mean(rois_output)
+        rois_output *= rois_weight.unsqueeze(1)
+        rois_output = torch.sum(rois_output.mean(2) * rois_mask, dim=1) / \
+            torch.sum(rois_mask, dim=1).clamp(eps)
+        rois_output = torch.mean(rois_output)
     
         return rois_output
