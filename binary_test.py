@@ -131,9 +131,9 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         feature_mask = feature_mask.cuda()
         pos_ind = pos_ind.cuda()
         with torch.no_grad():
-            actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
-            outputs = [output[0].cpu().numpy()[:num_feat] for _, output in enumerate(outputs)]
-            # outputs = outputs[-1]
+            rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
+            rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
+            outputs = [rois, actness, roi_scores]
 
         result_queue.put((dataset.video_list[index].id.split('/')[-1], outputs))
         

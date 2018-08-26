@@ -70,7 +70,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
             rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
             labels[k, :len(bboxes), :] = rois_iou
         else:
-            actness[k, :len(bboxes)] = np.asarray([x[2] for x in bboxes])
+            actness[k, :len(bboxes)] = np.asarray([x[3] for x in bboxes])
 
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois).mean(axis=2) > 0.).astype('float32')

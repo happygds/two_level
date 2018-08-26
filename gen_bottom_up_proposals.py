@@ -143,34 +143,11 @@ def gen_prop(v):
         vid = v.id
     else:
         vid = v.path.split('/')[-1].split('.')[0]
-    scores_list = score_dict[vid]
-    bboxes = []
-    if not isinstance(scores_list, list):
-        scores_list = [scores_list]
-    for scores in scores_list:
-        frm_duration = len(scores)
-        frm_interval = v.frame_interval
-        frm_cnt = v.frame_cnt
-        topk_cls = [0]
-        topk_labels = label_frame_by_threshold(scores, topk_cls, bw=3, thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95, ], multicrop=False)
+    rois, actness, roi_scores = score_dict[vid]
+    frm_cnt = 100.
+    pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in rois]
 
-        tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
-
-        bboxes.extend(build_box_by_search(topk_labels, np.array(tol_lst)))
-    if reg_score_dict:
-        reg_scores = reg_score_dict[score_id]
-        bboxes = regress_box(bboxes, reg_scores, len(scores))
-    # bboxes = [(x[0], x[1], x[2], x[3] / float(x[1] - x[0])) for x in bboxes]
-
-    # print len(bboxes)
-    bboxes = temporal_nms(bboxes, 0.9)
-
-    # pr_box = [(x[0] / float(frm_duration) * v.duration, x[1] / float(frm_duration) * v.duration) for x in bboxes]
-    pr_box = [(x[0] * frm_interval / float(frm_cnt) * v.duration, x[1] * frm_interval / float(frm_cnt) * v.duration) for x in bboxes]
-
-    # filter out too short proposals
-    pr_box = list(filter(lambda b: b[1] - b[0] > args.minimum_len, pr_box))
-    return v.id, pr_box, [x[3] for x in bboxes]
+    return v.id, pr_box, list(actness * roi_scores)
 
 
 def call_back(rst):
