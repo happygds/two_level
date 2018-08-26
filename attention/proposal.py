@@ -6,7 +6,7 @@ from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, te
 from ops.eval_utils import wrapper_segment_iou
 
 
-def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0., 
+def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_prob=0., 
                    rpn_post_nms_top=32, feat_stride=16):
     """
     Parameters
@@ -20,6 +20,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
 
     """
     score_outputs = [score_output.data.cpu().numpy() for score_output in score_outputs]
+    feature_mask = feature_mask.data.cpu().numpy()
     batch_size = score_outputs[0].shape[0]
     topk_cls = [0]
     tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
@@ -33,8 +34,9 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
     for k in range(batch_size):
         # the k-th sample
         bboxes = []
+        num_feat = feature_mask[k].sum()
         for s in range(len(score_outputs)):
-            scores = score_outputs[s][k]
+            scores = score_outputs[s][k][:num_feat]
             # use TAG
             topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
             props = build_box_by_search(topk_labels, np.array(tol_lst))
