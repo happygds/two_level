@@ -49,6 +49,15 @@ class BinaryClassifier(torch.nn.Module):
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
         self.roi_cls = nn.Sequential(nn.Linear(args.d_model, 2), nn.Softmax(dim=2))
 
+    @property
+    def loss(self):
+        # print('rpn stage: cross_entropy {}, loss_dura {}'.format(
+        #     self.rpn.cross_entropy.data.cpu().numpy()[0], self.rpn.loss_dura.data.cpu().numpy()[0]))
+        # print('final stage: cross_entropy {}, loss_dura {}'.format(
+        #     self.cross_entropy.data.cpu().numpy()[0], self.loss_box.data.cpu().numpy()[0]))
+        return self.score_loss + self.roi_loss * 0.2
+
+
     def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
         # Word embedding look up
         if self.reduce:
@@ -136,7 +145,7 @@ class BinaryClassifier(torch.nn.Module):
         roi_feats = self.roi_relations(enc_output, rois, rois_mask, rois_pos_emb)
         roi_scores = self.roi_cls(roi_feats)
         if not test_mode:
-            self.loss, self.score_loss, self.attn_loss, self.roi_loss = self.build_loss(
+            self.score_loss, self.attn_loss, self.roi_loss = self.build_loss(
                 score_outputs, target, roi_scores, labels, rois_mask, 
                 attns=enc_slf_attns, mask=feature_mask, multi_strides=self.multi_strides)
             return score_outputs
@@ -211,4 +220,4 @@ class BinaryClassifier(torch.nn.Module):
                 torch.sum(rois_mask, dim=1).clamp(eps)
             rois_output = torch.mean(rois_output)
     
-            return output+0.2*rois_output, output, attn_output, rois_output
+            return output, attn_output, rois_output
