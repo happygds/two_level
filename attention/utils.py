@@ -25,7 +25,7 @@ class CE_Criterion_multi(nn.Module):
         self.l_step = l_step
         self.use_weight = use_weight
 
-    def forward(self, inputs, target, roi_scores, labels, rois_mask, attns=None, mask=None, multi_strides=None):
+    def forward(self, inputs, target, attns=None, mask=None, multi_strides=None):
         targets = [target[:, (i//2)::i] for i in multi_strides]
         masks = [mask[:, (i//2)::i] for i in multi_strides]
         # targets = [target] * len(inputs)
@@ -79,19 +79,19 @@ class CE_Criterion_multi(nn.Module):
                     attn_output += tmp_output
             attn_output = attn_output / len(inputs)
 
-        if self.use_weight:
-            labels *= rois_mask.unsqueeze(2)
-            rois_weight = labels.sum(1) / rois_mask.sum(1).unsqueeze(1).clamp(eps)
-            rois_weight = 0.5 / rois_weight.clamp(eps)
+        # if self.use_weight:
+        #     labels *= rois_mask.unsqueeze(2)
+        #     rois_weight = labels.sum(1) / rois_mask.sum(1).unsqueeze(1).clamp(eps)
+        #     rois_weight = 0.5 / rois_weight.clamp(eps)
 
-        rois_output = - labels * torch.log(roi_scores.clamp(eps))
-        if self.use_weight:
-            rois_output *= rois_weight.unsqueeze(1)
-            rois_output = torch.sum(rois_output.mean(2) * rois_mask, dim=1) / \
-                torch.sum(rois_mask, dim=1).clamp(eps)
-            rois_output = torch.mean(rois_output)
+        # rois_output = - labels * torch.log(roi_scores.clamp(eps))
+        # if self.use_weight:
+        #     rois_output *= rois_weight.unsqueeze(1)
+        #     rois_output = torch.sum(rois_output.mean(2) * rois_mask, dim=1) / \
+        #         torch.sum(rois_mask, dim=1).clamp(eps)
+        #     rois_output = torch.mean(rois_output)
     
-            return output + 0.2*rois_output, output, attn_output, rois_output
+            return output + 0.2*rois_output, output, attn_output
 
 
 class CE_Criterion(nn.Module):
