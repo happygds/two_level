@@ -148,8 +148,9 @@ def gen_prop(v):
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
 
-    frm_cnt = 100.
-    pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in bboxes]
+    # frm_cnt = 100.
+    # pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in bboxes]
+    pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1] * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
 
     return v.id, pr_box, [x[3] for x in bboxes]
 
