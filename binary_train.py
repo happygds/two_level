@@ -103,7 +103,7 @@ def main():
         num_workers=args.workers, pin_memory=pin_memory)
 
     optimizer = torch.optim.Adam(
-            model.parameters(),
+            model.module.parameters(),
             args.lr, weight_decay=args.weight_decay)
     # optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
     #                             args.lr,
