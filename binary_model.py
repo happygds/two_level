@@ -125,7 +125,7 @@ class BinaryScore(torch.nn.Module):
             labels = torch.from_numpy(labels.astype('float32')).cuda().requires_grad_(False).to(device_id)
             self.score_loss, self.attn_loss = self.build_loss(
                 score_outputs, target, attns=enc_slf_attns, mask=feature_mask, multi_strides=self.multi_strides)
-            return enc_output, rois, rois_mask, rois_relative_pos, labels
+            return enc_input, rois, rois_mask, rois_relative_pos, labels
         else:
             rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_outputs, test_mode=test_mode)
             rois = torch.from_numpy(rois.astype('float32')).cuda().requires_grad_(False).to(device_id)
@@ -221,9 +221,7 @@ class BinaryClassifier(torch.nn.Module):
         if not test_mode:
             self.roi_loss = self.build_loss(roi_scores, labels, rois_mask)
             return roi_scores
-
         return actness, roi_scores
-
 
     def build_loss(self, roi_scores, labels, rois_mask):
         labels *= rois_mask.unsqueeze(2)
