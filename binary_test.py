@@ -64,6 +64,7 @@ parser.add_argument('--dilated_mask', type=int, default=True)
 parser.add_argument('--multiscale', type=int, default=0,
                     help='multiscale output')
 parser.add_argument('--groupwise_heads', type=int, default=0)
+parser.add_argument('--roi_poolsize', type=int, default=1)
 
 args = parser.parse_args()
 
