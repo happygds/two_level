@@ -212,10 +212,10 @@ class BinaryClassifier(torch.nn.Module):
     def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
         if not test_mode:
             enc_output, rois, rois_mask, rois_relative_pos, labels = self.rpn(
-                feature, pos_ind, target=target, gts=gts, feature_mask=feature_mask, test_mode=test_mode)
+                feature, pos_ind, target=target, gts=gts, feature_mask=feature_mask, test_mode=False)
         else:
             enc_output, rois, rois_mask, rois_relative_pos, actness = self.rpn(
-                feature, pos_ind, target=target, gts=gts, feature_mask=feature_mask, test_mode=test_mode)
+                feature, pos_ind, target=target, gts=gts, feature_mask=feature_mask, test_mode=True)
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(enc_output, rois, rois_mask, rois_pos_emb)
