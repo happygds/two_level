@@ -75,7 +75,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             labels[k, :len(bboxes), :] = rois_iou
         else:
             actness[k, :len(bboxes)] = np.asarray([x[3] for x in bboxes])
-
+    import pdb; pdb.set_trace()
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois[:, :, 1:]).mean(axis=2) > 0.).astype('float32')
     rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
