@@ -81,7 +81,13 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
     rois_relative_pos[:, :, :, 1] = rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos = np.log(rois_relative_pos.clip(1e-3)) * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
+    rpn_rois = torch.from_numpy(rpn_rois).cuda().requires_grad_(False)
+    rpn_rois_mask = torch.from_numpy(rpn_rois_mask).cuda().requires_grad_(False)
+    rois_relative_pos = torch.from_numpy(rois_relative_pos).cuda().requires_grad_(False)
+
     if not test_mode:
+        labels = torch.from_numpy(labels).cuda().requires_grad_(False)
         return rpn_rois, rpn_rois_mask, rois_relative_pos, labels
     else:
+        actness = torch.from_numpy(actness).cuda().requires_grad_(False)
         return rpn_rois, rpn_rois_mask, rois_relative_pos, actness
