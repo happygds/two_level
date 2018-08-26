@@ -38,7 +38,7 @@ def proposal_layer(score_outputs, gts=None, test_mode=False, ss_prob=0.,
             # use TAG
             topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
             props = build_box_by_search(topk_labels, np.array(tol_lst))
-            props = [(x[0], x[1], x[3] / float(x[1] - x[0])) for x in props]
+            props = [(x[0], x[1], 1, x[3] / float(x[1] - x[0])) for x in props]
             # use change point
             # scores = scores[:, 1]
             # tmp = gaussian_filter(scores[1:,] - scores[:-1,], bw)
