@@ -29,7 +29,6 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
 
     if test_mode:
         assert len(feature_mask) == 1
-        rpn_post_nms_top = int(round(64. / 512 * feature_mask.shape[1]))
         actness = np.zeros((batch_size, rpn_post_nms_top))
     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
