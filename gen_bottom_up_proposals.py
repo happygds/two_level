@@ -147,7 +147,7 @@ def gen_prop(v):
     frm_cnt = 100.
     pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in rois]
 
-    return v.id, pr_box, list(actness * roi_scores)
+    return v.id, pr_box, list(actness)
 
 
 def call_back(rst):
