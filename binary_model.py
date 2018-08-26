@@ -37,8 +37,7 @@ class BinaryScore(torch.nn.Module):
                 for _ in range(args.n_layers * len(self.multi_strides))])
 
         self.d_model = args.d_model
-        self.scores = nn.ModuleList([nn.Linear(args.d_model, 2)
-                                     for _ in range(args.n_layers * len(self.multi_strides))])
+        self.scores = nn.Linear(args.d_model, 2)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
         self.score_loss = None
@@ -68,52 +67,24 @@ class BinaryScore(torch.nn.Module):
                 enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
         enc_slf_attn_mask = torch.gt(enc_slf_attn_mask + enc_slf_attn_mask.transpose(1, 2), 0)
 
-        score_outputs, enc_slf_attns = [], []
+        enc_output = enc_input
         size = enc_input.size()
-        for scale, stride in enumerate(self.multi_strides[::-1]):
-            layers, cls_layers = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.scores[scale*self.n_layers:(scale+1)*self.n_layers]
-            if stride > 1:
-                cur_output = F.pad(enc_input, (0, 0, 0, stride//2-1))
-                cur_output = F.avg_pool1d(cur_output.transpose(1, 2), stride, 
-                                          stride=stride).transpose(1, 2)
-            else:
-                cur_output = enc_input
-            if scale == 0:
-                enc_output = cur_output
-            else:
-                repeat = int(round(cur_output.size()[1] / enc_output.size()[1]))
-                enc_output = F.upsample(enc_output.transpose(1, 2), scale_factor=repeat, 
-                                        mode='nearest').transpose(1, 2)
-                diff_size = cur_output.size()[1] - enc_output.size()[1]
-                if diff_size != 0:
-                    if diff_size > 0:
-                        enc_output = F.pad(enc_output, (0, 0, 0, diff_size))
-                    else:
-                        enc_output = enc_output[:, :diff_size, :]
-                enc_output += cur_output
             
-            # obtain local and global mask
-            slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
+        # obtain local and global mask
+        slf_attn_mask = enc_slf_attn_mask
 
-            if local_attn_mask is not None:
-                slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
-            else:
-                slf_local_mask = None
+        if local_attn_mask is not None:
+            slf_local_mask = local_attn_mask
+        else:
+            slf_local_mask = None
 
-            for i, enc_layer in enumerate(layers):
-                enc_output, enc_slf_attn = enc_layer(
-                    enc_output, local_attn_mask=slf_local_mask, 
-                    slf_attn_mask=slf_attn_mask)
-            enc_slf_attns.append(enc_slf_attn)
-            score_output = F.softmax(cls_layers[i](enc_output), dim=2)
-            score_outputs.append(score_output)
-        score_outputs = score_outputs[::-1]
-        enc_slf_attns = enc_slf_attns[::-1]
-        if test_mode:
-            for scale, stride in enumerate(self.multi_strides):
-                if scale > 0:
-                    score_outputs[scale] = F.upsample(score_outputs[scale].transpose(1, 2), 
-                                                      scale_factor=stride, mode='nearest').transpose(1, 2)
+        for i, enc_layer in enumerate(self.layer_stack):
+            enc_output, enc_slf_attn = enc_layer(
+                enc_output, local_attn_mask=slf_local_mask, 
+                slf_attn_mask=slf_attn_mask)
+            score_output = F.softmax(self.scores(enc_output), dim=2)
+
+        score_outputs, enc_slf_attns = [score_output], [enc_slf_attn]
         # compute loss for training/validation stage
         device_id = feature.device
         enc_feat = enc_output
