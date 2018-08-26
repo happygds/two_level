@@ -268,7 +268,8 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
 
             # compute output
             _ = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
-            loss, score_loss, roi_loss = model.module.loss, model.module.score_loss, model.module.roi_loss
+            score_loss, roi_loss = model.module.rpn.loss, model.module.loss
+            loss = score_loss + 0.2 * roi_loss
             score_losses.update(score_loss.item(), feature.size(0))
             roi_losses.update(roi_loss.item(), feature.size(0))
             losses.update(loss.item(), feature.size(0))
