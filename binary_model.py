@@ -73,10 +73,10 @@ class BinaryClassifier(torch.nn.Module):
         size = enc_input.size()
             
         # obtain local and global mask
-        slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
+        slf_attn_mask = enc_slf_attn_mask
 
         if local_attn_mask is not None:
-            slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
+            slf_local_mask = local_attn_mask
         else:
             slf_local_mask = None
 
