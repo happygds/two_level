@@ -125,14 +125,14 @@ class BinaryScore(torch.nn.Module):
             labels = torch.from_numpy(labels.astype('float32')).cuda().requires_grad_(False).to(device_id)
             self.score_loss, self.attn_loss = self.build_loss(
                 score_outputs, target, attns=enc_slf_attns, mask=feature_mask, multi_strides=self.multi_strides)
-            return rois, rois_mask, rois_relative_pos, labels
+            return enc_output, rois, rois_mask, rois_relative_pos, labels
         else:
             rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_outputs, test_mode=test_mode)
             rois = torch.from_numpy(rois.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_mask = torch.from_numpy(rois_mask.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_relative_pos = torch.from_numpy(rois_relative_pos.astype('float32')).cuda().requires_grad_(False).to(device_id)
             actness = torch.from_numpy(actness.astype('float32')).cuda().requires_grad_(False).to(device_id)
-            return rois, rois_mask, rois_relative_pos, actness
+            return enc_output, rois, rois_mask, rois_relative_pos, actness
 
 
     def build_loss(self, inputs, target, attns=None, mask=None, multi_strides=None):
@@ -211,10 +211,10 @@ class BinaryClassifier(torch.nn.Module):
 
     def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
         if not test_mode:
-            rois, rois_mask, rois_relative_pos, labels = self.rpn(
+            enc_output, rois, rois_mask, rois_relative_pos, labels = self.rpn(
                 feature, pos_ind, target=target, gts=gts, feature_mask=feature_mask, test_mode=test_mode)
         else:
-            rois, rois_mask, rois_relative_pos, actness = self.rpn(
+            enc_output, rois, rois_mask, rois_relative_pos, actness = self.rpn(
                 feature, pos_ind, target=target, gts=gts, feature_mask=feature_mask, test_mode=test_mode)
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
