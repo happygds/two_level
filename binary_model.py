@@ -47,7 +47,6 @@ class BinaryScore(torch.nn.Module):
     def loss(self):
         return self.score_loss
 
-
     def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
         # Word embedding look up
         if self.reduce:
