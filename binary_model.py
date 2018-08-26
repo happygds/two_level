@@ -71,23 +71,50 @@ class BinaryClassifier(torch.nn.Module):
 
         score_outputs, enc_slf_attns = [], []
         size = enc_input.size()
+        for scale, stride in enumerate(self.multi_strides[::-1]):
+            layers, cls_layers = self.layer_stack[scale*self.n_layers:(scale+1)*self.n_layers], self.scores[scale*self.n_layers:(scale+1)*self.n_layers]
+            if stride > 1:
+                cur_output = F.pad(enc_input, (0, 0, 0, stride//2-1))
+                cur_output = F.avg_pool1d(cur_output.transpose(1, 2), stride, 
+                                          stride=stride).transpose(1, 2)
+            else:
+                cur_output = enc_input
+            if scale == 0:
+                enc_output = cur_output
+            else:
+                repeat = int(round(cur_output.size()[1] / enc_output.size()[1]))
+                enc_output = F.upsample(enc_output.transpose(1, 2), scale_factor=repeat, 
+                                        mode='nearest').transpose(1, 2)
+                diff_size = cur_output.size()[1] - enc_output.size()[1]
+                if diff_size != 0:
+                    if diff_size > 0:
+                        enc_output = F.pad(enc_output, (0, 0, 0, diff_size))
+                    else:
+                        enc_output = enc_output[:, :diff_size, :]
+                enc_output += cur_output
             
-        # obtain local and global mask
-        slf_attn_mask = enc_slf_attn_mask
+            # obtain local and global mask
+            slf_attn_mask = enc_slf_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
 
-        if local_attn_mask is not None:
-            slf_local_mask = local_attn_mask
-        else:
-            slf_local_mask = None
+            if local_attn_mask is not None:
+                slf_local_mask = local_attn_mask[:, (stride//2)::stride, (stride//2)::stride]
+            else:
+                slf_local_mask = None
 
-        enc_output, enc_slf_attn = self.layer_stack[0](
-            enc_input, local_attn_mask=slf_local_mask, 
-            slf_attn_mask=slf_attn_mask)
-        enc_slf_attns.append(enc_slf_attn)
-        score_output = F.softmax(self.scores[0](enc_output), dim=2)
-        score_outputs.append(score_output)
+            for i, enc_layer in enumerate(layers):
+                enc_output, enc_slf_attn = enc_layer(
+                    enc_output, local_attn_mask=slf_local_mask, 
+                    slf_attn_mask=slf_attn_mask)
+            enc_slf_attns.append(enc_slf_attn)
+            score_output = F.softmax(cls_layers[i](enc_output), dim=2)
+            score_outputs.append(score_output)
         score_outputs = score_outputs[::-1]
         enc_slf_attns = enc_slf_attns[::-1]
+        if test_mode:
+            for scale, stride in enumerate(self.multi_strides):
+                if scale > 0:
+                    score_outputs[scale] = F.upsample(score_outputs[scale].transpose(1, 2), 
+                                                      scale_factor=stride, mode='nearest').transpose(1, 2)
         # compute loss for training/validation stage
         if not test_mode:
             rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_outputs, gts=gts, test_mode=test_mode)
@@ -96,7 +123,7 @@ class BinaryClassifier(torch.nn.Module):
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
-        roi_feats = self.roi_relations(enc_output, rois, rois_mask, rois_pos_emb)
+        roi_feats = self.roi_relations(enc_input, rois, rois_mask, rois_pos_emb)
         roi_scores = self.roi_cls(roi_feats)
         if not test_mode:
             return score_outputs, enc_slf_attns, roi_scores, labels, rois_mask
