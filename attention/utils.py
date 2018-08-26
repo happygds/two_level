@@ -91,7 +91,7 @@ class CE_Criterion_multi(nn.Module):
         #         torch.sum(rois_mask, dim=1).clamp(eps)
         #     rois_output = torch.mean(rois_output)
     
-            return output + 0.2*rois_output, output, attn_output
+            return output, attn_output
 
 
 class CE_Criterion(nn.Module):
