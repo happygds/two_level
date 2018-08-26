@@ -118,18 +118,18 @@ class BinaryClassifier(torch.nn.Module):
         # compute loss for training/validation stage
         device_id = feature.device
         if not test_mode:
+            rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_outputs, gts=gts, test_mode=test_mode)
             # convert numpy to pytorch
             rois = torch.from_numpy(rois.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_mask = torch.from_numpy(rois_mask.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_relative_pos = torch.from_numpy(rois_relative_pos.astype('float32')).cuda().requires_grad_(False).to(device_id)
             labels = torch.from_numpy(labels.astype('float32')).cuda().requires_grad_(False).to(device_id)
-            rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_outputs, gts=gts, test_mode=test_mode)
         else:
+            rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_outputs, test_mode=test_mode)
             rois = torch.from_numpy(rois.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_mask = torch.from_numpy(rois_mask.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_relative_pos = torch.from_numpy(rois_relative_pos.astype('float32')).cuda().requires_grad_(False).to(device_id)
             actness = torch.from_numpy(actness.astype('float32')).cuda().requires_grad_(False).to(device_id)
-            rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_outputs, test_mode=test_mode)
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
