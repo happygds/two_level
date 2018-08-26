@@ -116,6 +116,7 @@ class BinaryScore(torch.nn.Module):
                                                       scale_factor=stride, mode='nearest').transpose(1, 2)
         # compute loss for training/validation stage
         device_id = feature.device
+        enc_feat = enc_output
         if not test_mode:
             rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_outputs, gts=gts, test_mode=test_mode)
             # convert numpy to pytorch
@@ -125,14 +126,14 @@ class BinaryScore(torch.nn.Module):
             labels = torch.from_numpy(labels.astype('float32')).cuda().requires_grad_(False).to(device_id)
             self.score_loss, self.attn_loss = self.build_loss(
                 score_outputs, target, attns=enc_slf_attns, mask=feature_mask, multi_strides=self.multi_strides)
-            return enc_input, rois, rois_mask, rois_relative_pos, labels
+            return enc_feat, rois, rois_mask, rois_relative_pos, labels
         else:
             rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_outputs, test_mode=test_mode)
             rois = torch.from_numpy(rois.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_mask = torch.from_numpy(rois_mask.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_relative_pos = torch.from_numpy(rois_relative_pos.astype('float32')).cuda().requires_grad_(False).to(device_id)
             actness = torch.from_numpy(actness.astype('float32')).cuda().requires_grad_(False).to(device_id)
-            return enc_output, rois, rois_mask, rois_relative_pos, actness
+            return enc_feat, rois, rois_mask, rois_relative_pos, actness
 
 
     def build_loss(self, inputs, target, attns=None, mask=None, multi_strides=None):
