@@ -144,10 +144,14 @@ def gen_prop(v):
     else:
         vid = v.path.split('/')[-1].split('.')[0]
     rois, actness, roi_scores = score_dict[vid]
-    frm_cnt = 100.
-    pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in rois]
+    bboxes = [(roi[0], roi[1], 1, act_score*roi_score) for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
+    # filter out too short proposals
+    bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
 
-    return v.id, pr_box, list(actness)
+    frm_cnt = 100.
+    pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in bboxes]
+
+    return v.id, pr_box, [x[3] for x in bboxes]
 
 
 def call_back(rst):
