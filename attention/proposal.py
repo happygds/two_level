@@ -34,7 +34,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
     for k in range(batch_size):
         # the k-th sample
         bboxes = []
-        num_feat = feature_mask[k].sum()
+        num_feat = int(feature_mask[k].sum())
         for s in range(len(score_outputs)):
             scores = score_outputs[s][k][:num_feat]
             # use TAG
