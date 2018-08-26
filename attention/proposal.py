@@ -26,10 +26,13 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
     tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
     bw = 3
     thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95,]
+
+    if test_mode:
+        assert len(feature_mask) == 1
+        rpn_post_nms_top = int(round(64. / 512 * feature_mask.shape[1]))
+        actness = np.zeros((batch_size, rpn_post_nms_top))
     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
-    if test_mode:
-        actness = np.zeros((batch_size, rpn_post_nms_top))
 
     for k in range(batch_size):
         # the k-th sample
