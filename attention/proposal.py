@@ -73,6 +73,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             rois_iou = (rois_iou.max(axis=1) > 0.7).reshape((-1, 1))
             rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
             labels[k, :len(bboxes), :] = rois_iou
+            import pdb; pdb.set_trace()
         else:
             actness[k, :len(bboxes)] = np.asarray([x[3] for x in bboxes])
 
