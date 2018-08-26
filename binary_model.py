@@ -222,7 +222,7 @@ class BinaryClassifier(torch.nn.Module):
         roi_scores = self.roi_cls(roi_feats)
         if not test_mode:
             self.roi_loss = self.build_loss(roi_scores, labels, rois_mask)
-            return score_outputs
+            return roi_scores
 
         return actness, roi_scores
 
