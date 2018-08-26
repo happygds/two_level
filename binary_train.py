@@ -197,7 +197,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         score_loss, attn_loss = criterion_stage1(score_outputs, target, attns=enc_slf_attns, 
                                                  mask=feature_mask, multi_strides=multi_strides)
         roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-        loss = score_loss + 0.2 * roi_loss
+        loss = score_loss + 0. * roi_loss
         score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
@@ -275,7 +275,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
             score_loss, attn_loss = criterion_stage1(score_outputs, target, attns=enc_slf_attns, 
                                                      mask=feature_mask, multi_strides=multi_strides)
             roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-            loss = score_loss + 0.2 * roi_loss
+            loss = score_loss + 0. * roi_loss
             score_losses.update(score_loss.item(), feature.size(0))
             roi_losses.update(roi_loss.item(), feature.size(0))
             losses.update(loss.item(), feature.size(0))
