@@ -7,7 +7,7 @@ from ops.eval_utils import wrapper_segment_iou
 
 
 def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_prob=0., 
-                   rpn_post_nms_top=32, feat_stride=16):
+                   rpn_post_nms_top=128, feat_stride=16):
     """
     Parameters
     ----------
