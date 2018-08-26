@@ -193,7 +193,8 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
 
         # compute output
         _ = model(feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
-        loss, score_loss, roi_loss = model.module.loss, model.module.score_loss, model.module.roi_loss
+        score_loss, roi_loss = model.module.rpn.score_loss, model.module.roi_loss
+        loss = score_loss + 0.2 * roi_loss
         print(loss.size())
         score_losses.update(score_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))

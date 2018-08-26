@@ -8,10 +8,9 @@ from attention.Layers import EncoderLayer, Local_EncoderLayer, ROI_Relation
 from attention.proposal import proposal_layer
 from attention.utils import *
 
-class BinaryClassifier(torch.nn.Module):
-    def __init__(self, num_class, course_segment, args, dropout=0.8, test_mode=False):
-
-        super(BinaryClassifier, self).__init__()
+class BinaryScore(torch.nn.Module):
+    def __init__(self, args):
+        super(BinaryScore, self).__init__()
 
         self.reduce = args.reduce_dim > 0
         if self.reduce:
@@ -38,24 +37,15 @@ class BinaryClassifier(torch.nn.Module):
                 for _ in range(args.n_layers * len(self.multi_strides))])
 
         self.d_model = args.d_model
-        self.dropout = dropout
-        self.test_mode = test_mode
         self.scores = nn.ModuleList([nn.Linear(args.d_model, 2)
                                      for _ in range(args.n_layers * len(self.multi_strides))])
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
-
-        self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
-                                          args.n_head, args.d_k, args.d_v, dropout=0.1)
-        self.roi_cls = nn.Sequential(nn.Linear(args.d_model, 2), nn.Softmax(dim=2))
+        self.score_loss = None
 
     @property
     def loss(self):
-        # print('rpn stage: cross_entropy {}, loss_dura {}'.format(
-        #     self.rpn.cross_entropy.data.cpu().numpy()[0], self.rpn.loss_dura.data.cpu().numpy()[0]))
-        # print('final stage: cross_entropy {}, loss_dura {}'.format(
-        #     self.cross_entropy.data.cpu().numpy()[0], self.loss_box.data.cpu().numpy()[0]))
-        return self.score_loss + self.roi_loss * 0.2
+        return self.score_loss
 
 
     def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
@@ -133,24 +123,16 @@ class BinaryClassifier(torch.nn.Module):
             rois_mask = torch.from_numpy(rois_mask.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_relative_pos = torch.from_numpy(rois_relative_pos.astype('float32')).cuda().requires_grad_(False).to(device_id)
             labels = torch.from_numpy(labels.astype('float32')).cuda().requires_grad_(False).to(device_id)
+            self.score_loss, self.attn_loss = self.build_loss(
+                score_outputs, target, attns=enc_slf_attns, mask=feature_mask, multi_strides=self.multi_strides)
+            return rois, rois_mask, rois_relative_pos, labels
         else:
             rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_outputs, test_mode=test_mode)
             rois = torch.from_numpy(rois.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_mask = torch.from_numpy(rois_mask.astype('float32')).cuda().requires_grad_(False).to(device_id)
             rois_relative_pos = torch.from_numpy(rois_relative_pos.astype('float32')).cuda().requires_grad_(False).to(device_id)
             actness = torch.from_numpy(actness.astype('float32')).cuda().requires_grad_(False).to(device_id)
-
-        # use relative position embedding
-        rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
-        roi_feats = self.roi_relations(enc_output, rois, rois_mask, rois_pos_emb)
-        roi_scores = self.roi_cls(roi_feats)
-        if not test_mode:
-            self.score_loss, self.attn_loss, self.roi_loss = self.build_loss(
-                score_outputs, target, roi_scores, labels, rois_mask, 
-                attns=enc_slf_attns, mask=feature_mask, multi_strides=self.multi_strides)
-            return score_outputs
-
-        return actness, roi_scores
+            return rois, rois_mask, rois_relative_pos, actness
 
 
     def build_loss(self, inputs, target, roi_scores, labels, rois_mask, attns=None, mask=None, multi_strides=None):
@@ -207,6 +189,48 @@ class BinaryClassifier(torch.nn.Module):
                 else:
                     attn_output += tmp_output
             attn_output = attn_output / len(inputs)
+    
+        return output, attn_output
+
+
+class BinaryClassifier(torch.nn.Module):
+    def __init__(self, args):
+
+        super(BinaryClassifier, self).__init__()
+
+        self.rpn = BinaryScore(args)
+        self.d_model = args.d_model
+
+        self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
+                                          args.n_head, args.d_k, args.d_v, dropout=0.1)
+        self.roi_cls = nn.Sequential(nn.Linear(args.d_model, 2), nn.Softmax(dim=2))
+
+    @property
+    def loss(self):
+        return self.roi_loss
+
+    def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
+        if not test_mode:
+            rois, rois_mask, rois_relative_pos, labels = self.rpn(
+                feature, pos_ind, target=target, gts=gts, feature_mask=feature_mask, test_mode=test_mode)
+        else:
+            rois, rois_mask, rois_relative_pos, actness = self.rpn(
+                feature, pos_ind, target=target, gts=gts, feature_mask=feature_mask, test_mode=test_mode)
+        # use relative position embedding
+        rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
+        roi_feats = self.roi_relations(enc_output, rois, rois_mask, rois_pos_emb)
+        roi_scores = self.roi_cls(roi_feats)
+        if not test_mode:
+            self.roi_loss = self.build_loss(
+                score_outputs, target, roi_scores, labels, rois_mask, 
+                attns=enc_slf_attns, mask=feature_mask, multi_strides=self.multi_strides)
+            return score_outputs
+
+        return actness, roi_scores
+
+
+    def build_loss(self, roi_scores, labels, rois_mask):
+        self.use_weight = True
 
         if self.use_weight:
             labels *= rois_mask.unsqueeze(2)
@@ -220,4 +244,4 @@ class BinaryClassifier(torch.nn.Module):
                 torch.sum(rois_mask, dim=1).clamp(eps)
             rois_output = torch.mean(rois_output)
     
-            return output, attn_output, rois_output
+        return rois_output
