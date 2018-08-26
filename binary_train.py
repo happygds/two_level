@@ -72,8 +72,7 @@ def main():
         multi_strides += [2, 4, 8]
     args.multi_strides = multi_strides
 
-    model = BinaryClassifier(
-        num_class, args.num_body_segments, args, dropout=args.dropout)
+    model = BinaryClassifier(args)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()
 
     # cudnn.enabled = False
