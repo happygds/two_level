@@ -44,8 +44,8 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             # props = build_box_by_search(topk_labels, np.array(tol_lst))
             # props = [(x[0], x[1], 1, x[3]) for x in props]
             # use change point
-            scores = scores[:, 1]
-            tmp = gaussian_filter(scores[1:,] - scores[:-1,], bw)
+            scores = gaussian_filter(scores[:, 1], bw)
+            tmp = scores[1:,] - scores[:-1,], bw
             std_value = tmp.std()
             starts = np.nonzero(tmp > std_value)[0] + 1
             ends = np.nonzero(tmp < -std_value)[0] + 1
