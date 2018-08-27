@@ -48,9 +48,10 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             if len(scores) > 1:
                 diff_scores = scores[1:,] - scores[:-1,]
                 gd_scores = gaussian_filter(diff_scores, bw)
-                std_value = diff_scores.std()
-                starts = np.nonzero(gd_scores > std_value)[0] + 1
-                ends = np.nonzero(gd_scores < -std_value)[0] + 1
+                std_value = gd_scores.std()
+                mean_value = gd_scores.mean()
+                starts = np.nonzero(gd_scores > std_value + mean_value)[0] + 1
+                ends = np.nonzero(gd_scores < -std_value + mean_value)[0] + 1
                 props = [(x, y, 1, scores[x:y].mean()) for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
             else:
                 props = [(0, len(scores), 1, scores.mean())]
