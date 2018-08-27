@@ -31,6 +31,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
         assert len(feature_mask) == 1
         actness = np.zeros((batch_size, rpn_post_nms_top))
     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
+    start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
     for k in range(batch_size):
@@ -61,6 +62,10 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
         rois = [(x[0], x[1]) for x in bboxes]
         rpn_rois[k, :, 0] = k
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
+        start_rois[k, :, 0], end_rois[;, :, 0] = k, k
+        rois_begin, rois_end, rois_dura = np.asarray(rois)[:, 0], np.asarray(rois)[:, 1], np.asarray(rois).mean(axis=1)
+        start_rois[k, :len(bboxes), 1], end_rois[k, :len(bboxes), 1] = (rois_begin - rois_dura / 5.).clip(0., len(scores)), (rois_end - rois_dura / 5.).clip(0., len(scores))
+        start_rois[k, :len(bboxes), 2], end_rois[k, :len(bboxes), 2] = (rois_begin + rois_dura / 5.).clip(0., len(scores)), (rois_end + rois_dura / 5.).clip(0., len(scores))
         if not test_mode:
             # compute iou with ground-truths
             # import pdb; pdb.set_trace()
@@ -90,13 +95,8 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
     rois_relative_pos[:, :, :, 1] = rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos = np.log(rois_relative_pos.clip(1e-3)) * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
-    start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
-    start_rois[:, :, 0], end_rois[:, :, 0] = rpn_rois[:, :, 0], rpn_rois[:, :, 0]
-    start_rois[:, :, 1], end_rois[:, :, 1] = rpn_rois[:, :, 1] - rois_dura / 5., rpn_rois[:, :, 2] - rois_dura / 5.
-    start_rois[:, :, 2], end_rois[:, :, 2] = rpn_rois[:, :, 1] + rois_dura / 5., rpn_rois[:, :, 2] + rois_dura / 5.
     start_rois = torch.from_numpy(start_rois.clip(0.)).cuda().requires_grad_(False).cuda()
     end_rois = torch.from_numpy(end_rois.clip(0.)).cuda().requires_grad_(False).cuda()
-
     rpn_rois = torch.from_numpy(rpn_rois).cuda().requires_grad_(False).float()
     rpn_rois_mask = torch.from_numpy(rpn_rois_mask).cuda().requires_grad_(False).float()
     rois_relative_pos = torch.from_numpy(rois_relative_pos).cuda().requires_grad_(False).float()
