@@ -45,12 +45,15 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             # props = [(x[0], x[1], 1, x[3]) for x in props]
             # use change point
             scores = scores[:, 1]
-            g_scores = gaussian_filter(scores, bw)
-            tmp = g_scores[1:,] - g_scores[:-1,]
-            std_value = tmp.std()
-            starts = np.nonzero(tmp > std_value)[0] + 1
-            ends = np.nonzero(tmp < -std_value)[0] + 1
-            props = [(x, y, 1, scores[x:y].mean()) for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
+            if len(scores) > 1:
+                g_scores = gaussian_filter(scores, bw)
+                tmp = g_scores[1:,] - g_scores[:-1,]
+                std_value = tmp.std()
+                starts = np.nonzero(tmp > std_value)[0] + 1
+                ends = np.nonzero(tmp < -std_value)[0] + 1
+                props = [(x, y, 1, scores[x:y].mean()) for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
+            else:
+                props = [(0, len(scores), 1, scores.mean())]
             bboxes.extend(props)
         # import pdb; pdb.set_trace()
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
