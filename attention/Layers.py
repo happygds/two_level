@@ -103,7 +103,8 @@ class ROI_Relation(nn.Module):
         roi_feat_size = inner_feats.size()
         start_feats, end_feats = start_feats.view(roi_feat_size[:2] + (-1,)), end_feats.view(roi_feat_size[:2] + (-1,))
         inner_feats = inner_feats.view(roi_feat_size[:2] + (-1,))
-        roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=2)
+        # roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=2)
+        roi_feats = inner_feats
         roi_feats = self.roi_fc(roi_feats)
 
         # use rank embedding
