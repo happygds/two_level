@@ -121,6 +121,11 @@ class BinaryClassifier(torch.nn.Module):
         else:
             start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_outputs, feature_mask, test_mode=test_mode)
 
+        import gc
+        for obj in gc.get_objects():
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                print(type(obj), obj.size())
+                
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
