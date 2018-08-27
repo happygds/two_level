@@ -112,7 +112,10 @@ def main():
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay, nesterov=False)
     criterion_stage1 = CE_Criterion_multi()
-    criterion_stage2 = CE_Criterion()
+    criterion_stage2 = CE_Criterion()    
+    for k, v in model.named_parameters():
+        print(k, v.requires_grad)
+    import pdb; pdb.set_trace()
 
     if not os.path.exists(args.result_path):
         os.makedirs(args.result_path)
