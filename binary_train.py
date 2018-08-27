@@ -206,7 +206,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         import gc
         for obj in gc.get_objects():
             if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-            print(type(obj), obj.size())
+                print(type(obj), obj.size())
 
         # compute gradient and do SGD step
         loss.backward()
