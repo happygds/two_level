@@ -24,7 +24,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
     batch_size = score_outputs[0].shape[0]
     topk_cls = [0]
     tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
-    bw = 3
+    bw = 5
     thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95,]
 
     if test_mode:
@@ -47,8 +47,8 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             scores = scores[:, 1]
             if len(scores) > 1:
                 diff_scores = scores[1:,] - scores[:-1,]
-                # gd_scores = gaussian_filter(diff_scores, bw)
-                gd_scores = diff_scores
+                gd_scores = gaussian_filter(diff_scores, bw)
+                # gd_scores = diff_scores
                 std_value = gd_scores.std()
                 mean_value = gd_scores.mean()
                 starts = np.nonzero(gd_scores > std_value + mean_value)[0] + 1
