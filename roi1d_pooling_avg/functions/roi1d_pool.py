@@ -28,6 +28,7 @@ class RoI1DPoolFunction(Function):
         self.output = output
         self.rois = rois
         self.feature_size = features.size()
+        del output, rois
 
         return output
 
