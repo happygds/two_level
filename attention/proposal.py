@@ -67,10 +67,11 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             gt_k, rois = np.asarray(gt_k), np.asarray(rois)
             rois_iou = wrapper_segment_iou(gt_k, rois)
             m, n = rois_iou.shape
-            for i in range(n):
-                rois_iou_i = rois_iou[:, i]
-                rois_iou[:, i] = (rois_iou_i == rois_iou_i.max()) * rois_iou_i
-            rois_iou = (rois_iou.max(axis=1) > 0.7).reshape((-1, 1))
+            # for i in range(n):
+            #     rois_iou_i = rois_iou[:, i]
+            #     rois_iou[:, i] = (rois_iou_i == rois_iou_i.max()) * rois_iou_i
+            # rois_iou = (rois_iou.max(axis=1) > 0.7).reshape((-1, 1))
+            rois_iou = rois_iou.max(axis=1)
             rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
             labels[k, :len(bboxes), :] = rois_iou
         else:
