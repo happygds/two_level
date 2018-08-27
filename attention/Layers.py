@@ -97,13 +97,13 @@ class ROI_Relation(nn.Module):
             d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
-        roi_feats = self.roi_pool(features.transpose(1, 2), rois)
+        inner_feats = self.roi_pool(features.transpose(1, 2), rois)
         start_feats = self.start_pool(features.transpose(1, 2), start_rois)
         end_feats = self.end_pool(features.transpose(1, 2), end_rois)
-        roi_feat_size = roi_feats.size()
+        roi_feat_size = inner_feats.size()
         start_feats, end_feats = start_feats.view(roi_feat_size[:2] + (-1,)), end_feats.view(roi_feat_size[:2] + (-1,))
-        roi_feats = roi_feats.view(roi_feat_size[:2] + (-1,))
-        roi_feats = torch.cat([start_feats, roi_feats, end_feats], dim=2)
+        inner_feats = inner_feats.view(roi_feat_size[:2] + (-1,))
+        roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=2)
         roi_feats = self.roi_fc(roi_feats)
 
         # use rank embedding
