@@ -90,13 +90,20 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
     rois_relative_pos[:, :, :, 1] = rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos = np.log(rois_relative_pos.clip(1e-3)) * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
+    start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
+    start_rois[:, :, 0], end_rois[:, :, 0] = rpn_rois[:, :, 0], rpn_rois[:, :, 1]
+    start_rois[:, :, 1], end_rois[:, :, 1] = rpn_rois[:, :, 1] - rois_dura / 5., rpn_rois[:, :, 2] - rois_dura / 5.
+    start_rois[:, :, 2], end_rois[:, :, 2] = rpn_rois[:, :, 1] + rois_dura / 5., rpn_rois[:, :, 2] + rois_dura / 5.
+    start_rois = torch.from_numpy(start_rois).cuda().requires_grad_(False).cuda()
+    end_rois = torch.from_numpy(end_rois).cuda().requires_grad_(False).cuda()
+
     rpn_rois = torch.from_numpy(rpn_rois).cuda().requires_grad_(False).float()
     rpn_rois_mask = torch.from_numpy(rpn_rois_mask).cuda().requires_grad_(False).float()
     rois_relative_pos = torch.from_numpy(rois_relative_pos).cuda().requires_grad_(False).float()
 
     if not test_mode:
         labels = torch.from_numpy(labels).cuda().requires_grad_(False).float()
-        return rpn_rois, rpn_rois_mask, rois_relative_pos, labels
+        return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels
     else:
         actness = torch.from_numpy(actness).cuda().requires_grad_(False).float()
-        return rpn_rois, rpn_rois_mask, rois_relative_pos, actness
+        return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, actness

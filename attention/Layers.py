@@ -88,17 +88,21 @@ class ROI_Relation(nn.Module):
         super(ROI_Relation, self).__init__()
         self.roi_pool = RoI1DPool(roipool_size, 1.)
         self.rank_fc = nn.Linear(d_model, d_model)
-        self.roi_fc = nn.Linear(d_model*roipool_size, d_model)
+        self.roi_fc = nn.Linear(d_model*(2+roipool_size), d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
 
-    def forward(self, features, rois, rois_mask, rois_pos_emb):
+    def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         roi_feats = self.roi_pool(features.transpose(1, 2), rois)
+        start_feats = self.roi_pool(features.transpose(1, 2), start_rois)
+        end_feats = self.roi_pool(features.transpose(1, 2), end_rois)
         roi_feat_size = roi_feats.size()
+        start_feats, end_feats = start_feats.view(roi_feat_size[:2] + (-1,)), end_feats.view(roi_feat_size[:2] + (-1,))
         roi_feats = roi_feats.view(roi_feat_size[:2] + (-1,))
+        roi_feats = torch.cat([start_feats, roi_feats, end_feats], dim=2)
 
         # use rank embedding
         rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2])
