@@ -62,7 +62,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
         rois = [(x[0], x[1]) for x in bboxes]
         rpn_rois[k, :, 0] = k
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
-        start_rois[k, :, 0], end_rois[;, :, 0] = k, k
+        start_rois[k, :, 0], end_rois[k, :, 0] = k, k
         rois_begin, rois_end, rois_dura = np.asarray(rois)[:, 0], np.asarray(rois)[:, 1], np.asarray(rois).mean(axis=1)
         start_rois[k, :len(bboxes), 1], end_rois[k, :len(bboxes), 1] = (rois_begin - rois_dura / 5.).clip(0., len(scores)), (rois_end - rois_dura / 5.).clip(0., len(scores))
         start_rois[k, :len(bboxes), 2], end_rois[k, :len(bboxes), 2] = (rois_begin + rois_dura / 5.).clip(0., len(scores)), (rois_end + rois_dura / 5.).clip(0., len(scores))
