@@ -24,7 +24,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
     batch_size = score_outputs[0].shape[0]
     topk_cls = [0]
     tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
-    bw = 3
+    bw = 5
     thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95,]
 
     if test_mode:
