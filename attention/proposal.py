@@ -94,8 +94,8 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
     start_rois[:, :, 0], end_rois[:, :, 0] = rpn_rois[:, :, 0], rpn_rois[:, :, 0]
     start_rois[:, :, 1], end_rois[:, :, 1] = rpn_rois[:, :, 1] - rois_dura / 5., rpn_rois[:, :, 2] - rois_dura / 5.
     start_rois[:, :, 2], end_rois[:, :, 2] = rpn_rois[:, :, 1] + rois_dura / 5., rpn_rois[:, :, 2] + rois_dura / 5.
-    start_rois = torch.from_numpy(start_rois).cuda().requires_grad_(False).cuda()
-    end_rois = torch.from_numpy(end_rois).cuda().requires_grad_(False).cuda()
+    start_rois = torch.from_numpy(start_rois.clip(0.)).cuda().requires_grad_(False).cuda()
+    end_rois = torch.from_numpy(end_rois.clip(0.)).cuda().requires_grad_(False).cuda()
 
     rpn_rois = torch.from_numpy(rpn_rois).cuda().requires_grad_(False).float()
     rpn_rois_mask = torch.from_numpy(rpn_rois_mask).cuda().requires_grad_(False).float()
