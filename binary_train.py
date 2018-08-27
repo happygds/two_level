@@ -77,8 +77,8 @@ def main():
         num_class, args.num_body_segments, args, dropout=args.dropout)
     model = torch.nn.DataParallel(model, device_ids=None).cuda()
 
-    # cudnn.enabled = False
-    cudnn.benchmark = True
+    cudnn.enabled = False
+    # cudnn.benchmark = True
     pin_memory = True
 
     train_prop_file = 'data/{}_proposal_list.txt'.format(
@@ -203,6 +203,11 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
 
+        import gc
+        for obj in gc.get_objects():
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+            print(type(obj), obj.size())
+
         # compute gradient and do SGD step
         loss.backward()
 
@@ -280,6 +285,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
             score_losses.update(score_loss.item(), feature.size(0))
             roi_losses.update(roi_loss.item(), feature.size(0))
             losses.update(loss.item(), feature.size(0))
+        del loss, score_loss, roi_loss, score_outputs, enc_slf_attns, roi_scores, labels, rois_mask
 
         batch_time.update(time.time() - end)
         end = time.time()
