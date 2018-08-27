@@ -39,26 +39,25 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
         num_feat = int(feature_mask[k].sum())
         for s in range(len(score_outputs)):
             scores = score_outputs[s][k][:num_feat]
-            # # use TAG
-            # topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
-            # props = build_box_by_search(topk_labels, np.array(tol_lst))
-            # props = [(x[0], x[1], 1, x[3]) for x in props]
-            # use change point
-            scores = scores[:, 1]
-            if len(scores) > 1:
-                diff_scores = scores[1:,] - scores[:-1,]
-                # gd_scores = gaussian_filter(diff_scores, bw)
-                gd_scores = diff_scores
-                std_value = gd_scores.std()
-                mean_value = gd_scores.mean()
-                starts = np.nonzero(gd_scores > std_value + mean_value)[0] + 1
-                ends = np.nonzero(gd_scores < -std_value + mean_value)[0] + 1
-                props = [(x, y, 1, scores[x:y].mean()) for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
-            else:
-                props = [(0, len(scores), 1, scores.mean())]
+            # use TAG
+            topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
+            props = build_box_by_search(topk_labels, np.array(tol_lst))
+            props = [(x[0], x[1], 1, x[3]) for x in props]
+            # # use change point
+            # scores = scores[:, 1]
+            # if len(scores) > 1:
+            #     diff_scores = scores[1:,] - scores[:-1,]
+            #     gd_scores = gaussian_filter(diff_scores, bw)
+            #     std_value = gd_scores.std()
+            #     mean_value = gd_scores.mean()
+            #     starts = np.nonzero(gd_scores > std_value + mean_value)[0] + 1
+            #     ends = np.nonzero(gd_scores < -std_value + mean_value)[0] + 1
+            #     props = [(x, y, 1, scores[x:y].mean()) for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
+            # else:
+            #     props = [(0, len(scores), 1, scores.mean())]
             bboxes.extend(props)
         # import pdb; pdb.set_trace()
-        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+        bboxes = temporal_nms(bboxes, 1.)[:rpn_post_nms_top]
         rois = [(x[0], x[1]) for x in bboxes]
         rpn_rois[k, :, 0] = k
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
