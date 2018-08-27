@@ -30,7 +30,7 @@ class RoI1DPoolFunction(Function):
         self.feature_size = features.size()
         del output, rois
 
-        return output
+        return self.output
 
     def backward(self, grad_output):
         assert(self.feature_size is not None and grad_output.is_cuda)
