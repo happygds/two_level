@@ -1,5 +1,6 @@
 import argparse
 import os
+import math
 import time
 import shutil
 import torch
@@ -294,6 +295,8 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
 
     print('Testing Results: Loss {loss.avg:.5f} \t'
           .format(loss=losses))
+    if math.isnan(losses.avg):
+        import pdb; pdb.set_trace()
 
     return losses.avg, score_losses.avg, roi_losses.avg
 
