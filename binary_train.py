@@ -359,7 +359,7 @@ class AverageMeter(object):
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
-        print(type(val))
+        print(type(val), val)
 
 
 def accuracy(output, target, topk=(1,)):
