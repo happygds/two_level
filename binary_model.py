@@ -82,7 +82,6 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output, local_attn_mask=slf_local_mask, 
                 slf_attn_mask=slf_attn_mask)
         score_output = F.sigmoid(self.scores(enc_output))
-        score_outputs, enc
 
         # compute loss for training/validation stage
         if not test_mode:
