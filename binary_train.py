@@ -208,7 +208,6 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         end_losses.update(end_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
-        import pdb; pdb.set_trace()
 
         # compute gradient and do SGD step
         loss.backward()
