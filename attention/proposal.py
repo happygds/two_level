@@ -39,7 +39,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     bboxes_dict = {}
 
     def gen_prop(k):
-        nonlocal feature_mask, scores
+        nonlocal feature_mask
+        nonlocal score_output
         bboxes = []
         num_feat = int(feature_mask[k].sum())
         scores = score_output[k][:num_feat]
