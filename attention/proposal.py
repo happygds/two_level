@@ -21,7 +21,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     """
     score_output = score_output.data.cpu().numpy()
     feature_mask = feature_mask.data.cpu().numpy()
-    batch_size = score_outputs[0].shape[0]
+    batch_size = score_output.shape[0]
     topk_cls = [0]
     tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
     bw = 3
