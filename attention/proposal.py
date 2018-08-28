@@ -37,6 +37,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     video_list = list(np.arange(batch_size))
     bboxes_dict = {}
+    global feature_mask, scores
 
     def gen_prop(k):
         bboxes = []
@@ -156,6 +157,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rpn_rois_mask = torch.from_numpy(rpn_rois_mask).cuda().requires_grad_(False).float()
     rois_relative_pos = torch.from_numpy(rois_relative_pos).cuda().requires_grad_(False).float()
 
+    del feature_mask, scores
     if not test_mode:
         labels = torch.from_numpy(labels).cuda().requires_grad_(False).float()
         return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels
