@@ -54,7 +54,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             # gd_scores = gaussian_filter(diff_scores, bw)
             starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.9 * pstarts.max())[0])
             ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.9 * pends.max())[0])
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             starts, ends = list(set(starts)), list(set(ends))
             props = [(x, y, 1, scores[x:y].mean() - \
             0.5*(scores[max(0, int(round(6*x/5.-y/5.))):max(int(round(4*x/5.+y/5.)), int(round(6*x/5.-y/5.))+1)].mean() + \
