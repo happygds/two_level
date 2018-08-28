@@ -254,12 +254,12 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Score_Loss {score_loss.val:.4f} ({score_loss.avg:.4f})\t'
-                  'Start_Loss {start_loss.val:.4f} ({start_loss.avg:.4f})\t'
-                  'End_Loss {end_loss.val:.4f} ({end_loss.avg:.4f})\t'
+                #   'Start_Loss {start_loss.val:.4f} ({start_loss.avg:.4f})\t'
+                #   'End_Loss {end_loss.val:.4f} ({end_loss.avg:.4f})\t'
                   'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
                   .format(
                       epoch, i, len(train_loader), batch_time=batch_time, data_time=data_time, 
-                      loss=losses, score_loss=score_losses, start_loss=start_losses, end_loss=end_losses,
+                      loss=losses, score_loss=score_losses,
                       roi_loss=roi_losses, lr=optimizer.param_groups[0]['lr'])
                   )
 
