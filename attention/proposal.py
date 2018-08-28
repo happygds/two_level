@@ -73,6 +73,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         return k, bboxes
 
     def call_back(rst):
+        nonlocal bboxes_dict
         bboxes_dict[rst[0]] = rst[1]
         import sys
         print(rst[0], len(rst[1]))
