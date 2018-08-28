@@ -147,11 +147,13 @@ def main():
 
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
-            loss, score_loss, roi_loss = validate(val_loader, model, criterion_stage1, criterion_stage2,
-                                                 (epoch + 1) * len(train_loader))
+            loss, score_loss, start_loss, end_loss, roi_loss = validate(
+                val_loader, model, criterion_stage1, criterion_stage2, (epoch + 1) * len(train_loader))
             # 1. Log scalar values (scalar summary)
             info = {'val_loss': loss,
                     'val_score_loss': score_loss,
+                    'val_start_loss': start_loss,
+                    'val_end_loss': end_loss,
                     'val_roi_loss': roi_loss}
             for tag, value in info.items():
                 logger.scalar_summary(tag, value, epoch+1)
@@ -254,7 +256,8 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
                   'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
                   .format(
                       epoch, i, len(train_loader), batch_time=batch_time, data_time=data_time, 
-                      loss=losses, score_loss=score_losses, roi_loss=roi_losses, lr=optimizer.param_groups[0]['lr'])
+                      loss=losses, score_loss=score_losses, start_loss=start_losses, end_loss=end_losses,
+                      roi_loss=roi_losses, lr=optimizer.param_groups[0]['lr'])
                   )
 
 
@@ -263,6 +266,8 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
     attn_losses = AverageMeter()
     losses = AverageMeter()
     score_losses = AverageMeter()
+    start_losses = AverageMeter()
+    end_losses = AverageMeter()
     roi_losses = AverageMeter()
 
     model.eval()
@@ -277,13 +282,15 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
             pos_ind = pos_ind.cuda().requires_grad_(False)
 
             # compute output
-            score_outputs, enc_slf_attns, roi_scores, labels, rois_mask = model(
+            score_output, enc_slf_attn, roi_scores, labels, rois_mask = model(
                 feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
-            score_loss, attn_loss = criterion_stage1(score_outputs, target, attns=enc_slf_attns, 
-                                                     mask=feature_mask, multi_strides=multi_strides)
+            score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
+                score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
             roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-            loss = score_loss + 0.5 * roi_loss
+            loss = score_loss + 0.5 * roi_loss + 0.5 * start_loss, 0.5 * end_loss
             score_losses.update(score_loss.item(), feature.size(0))
+            start_losses.update(start_loss.item(), feature.size(0))
+            end_losses.update(end_loss.item(), feature.size(0))
             roi_losses.update(roi_loss.item(), feature.size(0))
             losses.update(loss.item(), feature.size(0))
         del loss, score_loss, roi_loss, score_outputs, enc_slf_attns, roi_scores, labels, rois_mask
@@ -296,16 +303,19 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
                   'Time {batch_time.val:.4f} ({loss.avg:.4f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Score_Loss {score_loss.val:.4f} ({score_loss.avg:.4f})\t'
+                  'Start_Loss {start_loss.val:.4f} ({start_loss.avg:.4f})\t'
+                  'End_Loss {end_loss.val:.4f} ({end_loss.avg:.4f})\t'
                   'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
                   .format(i, len(val_loader), batch_time=batch_time, 
-                  loss=losses, score_loss=score_losses, roi_loss=roi_losses))
+                  loss=losses, score_loss=score_losses, start_loss=start_losses, 
+                  end_loss=end_losses, roi_loss=roi_losses))
 
     print('Testing Results: Loss {loss.avg:.5f} \t'
           .format(loss=losses))
     if math.isnan(losses.avg):
         import pdb; pdb.set_trace()
 
-    return losses.avg, score_losses.avg, roi_losses.avg
+    return losses.avg, score_losses.avg, start_losses.avg, end_losses.avg, roi_losses.avg
 
 
 def save_checkpoint(state, is_best, save_path, filename='/checkpoint.pth.tar'):

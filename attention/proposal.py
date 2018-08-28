@@ -6,7 +6,7 @@ from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, te
 from ops.eval_utils import wrapper_segment_iou
 
 
-def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_prob=0., 
+def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
                    rpn_post_nms_top=64, feat_stride=16):
     """
     Parameters
@@ -19,7 +19,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
     rpn_rois : (batch_size, rpn_post_nms_top, 3) e.g. [0, t1, t2]
 
     """
-    score_outputs = [score_output.data.cpu().numpy() for score_output in score_outputs]
+    score_output = score_output.data.cpu().numpy()
     feature_mask = feature_mask.data.cpu().numpy()
     batch_size = score_outputs[0].shape[0]
     topk_cls = [0]
