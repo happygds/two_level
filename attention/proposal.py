@@ -59,11 +59,10 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             props = [(x, y, 1, scores[x:y].mean() - \
             0.5*(scores[max(0, int(round(6*x/5.-y/5.))):max(int(round(4*x/5.+y/5.)), int(round(6*x/5.-y/5.))+1)].mean() + \
             scores[max(0, int(round(4*y/5.+x/5.))):max(int(round(6*y/5.-x/5.)), int(round(4*y/5.+x/5.))+1)].mean())) \
-            for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
+            for x in starts for y in ends if x+1 < y]
         else:
             props = [(0, len(scores), 1, scores.mean())]
         bboxes.extend(props)
-        import pdb; pdb.set_trace()
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores), 1, scores.sum())]
