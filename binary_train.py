@@ -185,12 +185,12 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
     # switch to train model
     model.train()
 
-    end = time.time()
+    end_time = time.time()
     optimizer.zero_grad()
 
     for i, (feature, feature_mask, target, start, end, pos_ind, gts) in enumerate(train_loader):
         # measure data loading time
-        data_time.update(time.time() - end)
+        data_time.update(time.time() - end_time)
         # feature_mask = feature.abs().mean(2).ne(0).float()
         feature = feature.cuda().requires_grad_(False)
         feature_mask = feature_mask.cuda().requires_grad_(False)
@@ -244,11 +244,10 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         # optimizer.update_learning_rate()
         optimizer.zero_grad()
         # measure elapsed time
-        batch_time.update(time.time() - end)
-        end = time.time()
+        batch_time.update(time.time() - end_time)
+        end_time = time.time()
 
         if i % args.print_freq == 0:
-            import pdb; pdb.set_trace()
             print('Epoch: [{0}][{1}/{2}], lr: {lr:.5f}\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
@@ -276,7 +275,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
 
     model.eval()
 
-    end = time.time()
+    end_time = time.time()
 
     for i, (feature, feature_mask, target, pos_ind, gts) in enumerate(val_loader):
         with torch.no_grad():
@@ -299,8 +298,8 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
             losses.update(loss.item(), feature.size(0))
         del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask
 
-        batch_time.update(time.time() - end)
-        end = time.time()
+        batch_time.update(time.time() - end_time)
+        end_time = time.time()
 
         if i % args.print_freq == 0:
             print('Test: [{0}/{1}]\t'
@@ -359,7 +358,6 @@ class AverageMeter(object):
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
-        print(type(val), val)
 
 
 def accuracy(output, target, topk=(1,)):
