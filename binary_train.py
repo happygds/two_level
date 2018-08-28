@@ -136,7 +136,7 @@ def main():
         save_path = save_path + '_roi' + str(args.roi_poolsize)
     model_name = os.path.split(save_path)[1]
     logger = Logger('./logs/{}'.format(model_name))
-    the_model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar'))
+    model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar'))
 
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):
