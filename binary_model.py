@@ -69,6 +69,7 @@ class BinaryClassifier(torch.nn.Module):
         enc_slf_attn_mask = torch.gt(enc_slf_attn_mask + enc_slf_attn_mask.transpose(1, 2), 0)
 
         size = enc_input.size()
+        enc_output = enc_input
         # obtain local and global mask
         slf_attn_mask = enc_slf_attn_mask
         if local_attn_mask is not None:
