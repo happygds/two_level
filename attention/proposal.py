@@ -35,12 +35,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
-    video_list = list(np.arange(batch_size).astype('int'))
-    bboxes_dict = {}
-
-    def gen_prop(k):
-        nonlocal feature_mask
-        nonlocal score_output
+    for k in range(batch_size):
+        # the k-th sample
         bboxes = []
         num_feat = int(feature_mask[k].sum())
         scores = score_output[k][:num_feat]
@@ -58,6 +54,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             # gd_scores = gaussian_filter(diff_scores, bw)
             starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.9 * pstarts.max())[0])
             ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.9 * pends.max())[0])
+            import pdb; pdb.set_trace()
             starts, ends = list(set(starts)), list(set(ends))
             props = [(x, y, 1, scores[x:y].mean() - \
             0.5*(scores[max(0, int(round(6*x/5.-y/5.))):max(int(round(4*x/5.+y/5.)), int(round(6*x/5.-y/5.))+1)].mean() + \
@@ -66,59 +63,10 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         else:
             props = [(0, len(scores), 1, scores.mean())]
         bboxes.extend(props)
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         if len(bboxes) == 0:
-            bboxes = [(0, len(scores), 1, scores.mean())]
-        return k, bboxes
-
-    def call_back(rst):
-        nonlocal bboxes_dict
-        bboxes_dict[rst[0]] = rst[1]
-        import sys
-        print(rst[0], len(rst[1]))
-        sys.stdout.flush()
-
-    pool = mp.Pool(processes=8)
-    handle = [pool.apply_async(gen_prop, args=(x, ), callback=call_back) for x in video_list]
-    pool.close()
-    pool.join()
-    import pdb; pdb.set_trace()
-
-    for k in range(batch_size):
-        # # the k-th sample
-        # bboxes = []
-        # num_feat = int(feature_mask[k].sum())
-        # scores = score_output[k][:num_feat]
-        # # # use TAG
-        # # scores = scores[:, :1]
-        # # scores = np.concatenate((1-scores, scores), axis=2)
-        # # topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
-        # # props = build_box_by_search(topk_labels, np.array(tol_lst))
-        # # props = [(x[0], x[1], 1, x[3]) for x in props]
-        
-        # # # use change point
-        # scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
-        # if len(scores) > 1:
-        #     diff_pstarts, diff_pends = pstarts[1:,] - pstarts[:-1,], pends[1:,] - pends[:-1,]
-        #     # gd_scores = gaussian_filter(diff_scores, bw)
-        #     starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.9 * pstarts.max())[0])
-        #     ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.9 * pends.max())[0])
-        #     starts, ends = list(set(starts)), list(set(ends))
-        #     props = [(x, y, 1, scores[x:y].mean() - \
-        #     0.5*(scores[max(0, int(round(6*x/5.-y/5.))):max(int(round(4*x/5.+y/5.)), int(round(6*x/5.-y/5.))+1)].mean() + \
-        #     scores[max(0, int(round(4*y/5.+x/5.))):max(int(round(6*y/5.-x/5.)), int(round(4*y/5.+x/5.))+1)].mean())) \
-        #     for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
-        # else:
-        #     props = [(0, len(scores), 1, scores.mean())]
-        # bboxes.extend(props)
-        # import pdb; pdb.set_trace()
-        # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
-        # if len(bboxes) == 0:
-        #     bboxes = [(0, len(scores), 1, scores.sum())]
-
-        # use multiprocessing
-        bboxes = bboxes_dict[k]
+            bboxes = [(0, len(scores), 1, scores.sum())]
 
         rpn_rois[k, :, 0] = k
         rois = [(x[0], x[1]) for x in bboxes]
