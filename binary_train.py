@@ -277,7 +277,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
 
     end_time = time.time()
 
-    for i, (feature, feature_mask, target, pos_ind, gts) in enumerate(val_loader):
+    for i, (feature, feature_mask, target, start, end, pos_ind, gts) in enumerate(val_loader):
         with torch.no_grad():
             # feature_mask = feature.abs().mean(2).ne(0).float()
             feature = feature.cuda().requires_grad_(False)
