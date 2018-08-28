@@ -35,7 +35,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
-    video_list = list(np.arange(batch_size))
+    video_list = list(np.arange(batch_size).astype('int'))
     bboxes_dict = {}
 
     def gen_prop(k):
