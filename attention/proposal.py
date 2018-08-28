@@ -40,24 +40,24 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
         num_feat = int(feature_mask[k].sum())
         for s in range(len(score_outputs)):
             scores = score_outputs[s][k][:num_feat]
-            # # use TAG
-            # topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
-            # props = build_box_by_search(topk_labels, np.array(tol_lst))
-            # props = [(x[0], x[1], 1, x[3]) for x in props]
-            # use change point
-            scores = scores[:, 1]
-            if len(scores) > 1:
-                diff_scores = scores[1:,] - scores[:-1,]
-                gd_scores = gaussian_filter(diff_scores, bw)
-                std_value = gd_scores.std()
-                mean_value = gd_scores.mean()
-                starts = np.nonzero(gd_scores > std_value + mean_value)[0] + 1
-                ends = np.nonzero(gd_scores < -std_value + mean_value)[0] + 1
-                props = [(x, y, 1, scores[x:y].mean() - \
-                0.5*(scores[max(0, int(round(6*x/5.-y/5.))):int(round(4*x/5.+y/5.))].mean() + scores[max(0, int(round(4*y/5.+x/5.))):int(round(6*y/5.-x/5.))].mean())) \
-                for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
-            else:
-                props = [(0, len(scores), 1, scores.mean())]
+            # use TAG
+            topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
+            props = build_box_by_search(topk_labels, np.array(tol_lst))
+            props = [(x[0], x[1], 1, x[3]) for x in props]
+            # # use change point
+            # scores = scores[:, 1]
+            # if len(scores) > 1:
+            #     diff_scores = scores[1:,] - scores[:-1,]
+            #     gd_scores = gaussian_filter(diff_scores, bw)
+            #     std_value = gd_scores.std()
+            #     mean_value = gd_scores.mean()
+            #     starts = np.nonzero(gd_scores > std_value + mean_value)[0] + 1
+            #     ends = np.nonzero(gd_scores < -std_value + mean_value)[0] + 1
+            #     props = [(x, y, 1, scores[x:y].mean() - \
+            #     0.5*(scores[max(0, int(round(6*x/5.-y/5.))):int(round(4*x/5.+y/5.))].mean() + scores[max(0, int(round(4*y/5.+x/5.))):int(round(6*y/5.-x/5.))].mean())) \
+            #     for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
+            # else:
+            #     props = [(0, len(scores), 1, scores.mean())]
             bboxes.extend(props)
         # import pdb; pdb.set_trace()
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
@@ -79,11 +79,11 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             gt_k, rois = np.asarray(gt_k), np.asarray(rois)
             rois_iou = wrapper_segment_iou(gt_k, rois)
             m, n = rois_iou.shape
-            # for i in range(n):
-            #     rois_iou_i = rois_iou[:, i]
-            #     rois_iou[:, i] = (rois_iou_i == rois_iou_i.max()) * rois_iou_i
-            # rois_iou = (rois_iou.max(axis=1) > 0.7).reshape((-1, 1))
-            rois_iou = rois_iou.max(axis=1).reshape((-1, 1))
+            for i in range(n):
+                rois_iou_i = rois_iou[:, i]
+                rois_iou[:, i] = (rois_iou_i == rois_iou_i.max()) * rois_iou_i
+            rois_iou = (rois_iou.max(axis=1) > 0.5).reshape((-1, 1))
+            # rois_iou = rois_iou.max(axis=1).reshape((-1, 1))
             rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
             labels[k, :len(bboxes), :] = rois_iou
         else:
