@@ -54,7 +54,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
                 starts = np.nonzero(gd_scores > std_value + mean_value)[0] + 1
                 ends = np.nonzero(gd_scores < -std_value + mean_value)[0] + 1
                 props = [(x, y, 1, scores[x:y].mean() - \
-                0.5*(scores[max(0, int(round(5*x/4.-y/4.))):int(round(3*x/4.+y/4.))].mean() + scores[max(0, int(round(3*y/4.+x/4.))):int(round(5*y/4.-x/4.))].mean())) \
+                0.5*(scores[max(0, int(round(6*x/5.-y/5.))):int(round(4*x/5.+y/5.))].mean() + scores[max(0, int(round(4*y/5.+x/5.))):int(round(6*y/5.-x/5.))].mean())) \
                 for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
             else:
                 props = [(0, len(scores), 1, scores.mean())]
