@@ -89,7 +89,7 @@ class ROI_Relation(nn.Module):
         self.roi_pool = RoI1DPool(roipool_size, 1.)
         self.start_pool, self.end_pool = RoI1DPool(1, 1.), RoI1DPool(1, 1.)
         self.rank_fc = nn.Linear(d_model, d_model)
-        self.roi_fc = nn.Linear(d_model*(2+roipool_size), d_model)
+        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2+roipool_size), d_model), nn.SELU())
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
