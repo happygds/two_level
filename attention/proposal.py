@@ -24,7 +24,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
     batch_size = score_outputs[0].shape[0]
     topk_cls = [0]
     tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
-    bw = 5
+    bw = 3
     thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95,]
 
     if test_mode:
@@ -53,7 +53,9 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
                 mean_value = gd_scores.mean()
                 starts = np.nonzero(gd_scores > std_value + mean_value)[0] + 1
                 ends = np.nonzero(gd_scores < -std_value + mean_value)[0] + 1
-                props = [(x, y, 1, scores[x:y].mean()) for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
+                props = [(x, y, 1, scores[x:y].mean() - \
+                0.5*(scores[max(0, int(round(6*x/5.-y/5.))):int(round(4*x/5.+y/5.))].mean() + scores[max(0, int(round(4*y/5.+x/5.))):int(round(6*y/5.-x/5.))].mean())) \
+                for x in starts for y in ends if x+1 < y] + [(0, len(scores), 1, scores.mean())]
             else:
                 props = [(0, len(scores), 1, scores.mean())]
             bboxes.extend(props)
