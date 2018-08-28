@@ -62,13 +62,14 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
         # import pdb; pdb.set_trace()
         rpn_rois[k, :, 0] = k
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
-        if len(bboxes) > 0:
-            rois = [(x[0], x[1]) for x in bboxes]
-            rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
-            start_rois[k, :, 0], end_rois[k, :, 0] = k, k
-            rois_begin, rois_end, rois_dura = np.asarray(rois)[:, 0], np.asarray(rois)[:, 1], np.asarray(rois).mean(axis=1)
-            start_rois[k, :len(bboxes), 1], end_rois[k, :len(bboxes), 1] = (rois_begin - rois_dura / 5.).clip(0., len(scores)), (rois_end - rois_dura / 5.).clip(0., len(scores))
-            start_rois[k, :len(bboxes), 2], end_rois[k, :len(bboxes), 2] = (rois_begin + rois_dura / 5.).clip(0., len(scores)), (rois_end + rois_dura / 5.).clip(0., len(scores))
+        if len(bboxes) == 0:
+            bboxes = [(0, len(scores), 1, scores.sum())]
+        rois = [(x[0], x[1]) for x in bboxes]
+        rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
+        start_rois[k, :, 0], end_rois[k, :, 0] = k, k
+        rois_begin, rois_end, rois_dura = np.asarray(rois)[:, 0], np.asarray(rois)[:, 1], np.asarray(rois).mean(axis=1)
+        start_rois[k, :len(bboxes), 1], end_rois[k, :len(bboxes), 1] = (rois_begin - rois_dura / 5.).clip(0., len(scores)), (rois_end - rois_dura / 5.).clip(0., len(scores))
+        start_rois[k, :len(bboxes), 2], end_rois[k, :len(bboxes), 2] = (rois_begin + rois_dura / 5.).clip(0., len(scores)), (rois_end + rois_dura / 5.).clip(0., len(scores))
         if not test_mode:
             # compute iou with ground-truths
             # import pdb; pdb.set_trace()
