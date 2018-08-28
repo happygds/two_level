@@ -43,7 +43,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             # use TAG
             topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
             props = build_box_by_search(topk_labels, np.array(tol_lst))
-            props = [(x[0], x[1], 1, x[3]) for x in props]
+            props = [(x[0], x[1], 1, x[3]) for x in props] + [(0, len(scores), 1, scores.sum())]
             # # use change point
             # scores = scores[:, 1]
             # if len(scores) > 1:
