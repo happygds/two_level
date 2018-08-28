@@ -43,7 +43,7 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             # use TAG
             topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
             props = build_box_by_search(topk_labels, np.array(tol_lst))
-            props = [(x[0], x[1], 1, x[3]) for x in props] + [(0, len(scores), 1, scores.sum())]
+            props = [(x[0], x[1], 1, x[3]) for x in props]
             # # use change point
             # scores = scores[:, 1]
             # if len(scores) > 1:
@@ -60,14 +60,15 @@ def proposal_layer(score_outputs, feature_mask, gts=None, test_mode=False, ss_pr
             #     props = [(0, len(scores), 1, scores.mean())]
             bboxes.extend(props)
         # import pdb; pdb.set_trace()
-        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
-        rois = [(x[0], x[1]) for x in bboxes]
         rpn_rois[k, :, 0] = k
-        rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
-        start_rois[k, :, 0], end_rois[k, :, 0] = k, k
-        rois_begin, rois_end, rois_dura = np.asarray(rois)[:, 0], np.asarray(rois)[:, 1], np.asarray(rois).mean(axis=1)
-        start_rois[k, :len(bboxes), 1], end_rois[k, :len(bboxes), 1] = (rois_begin - rois_dura / 5.).clip(0., len(scores)), (rois_end - rois_dura / 5.).clip(0., len(scores))
-        start_rois[k, :len(bboxes), 2], end_rois[k, :len(bboxes), 2] = (rois_begin + rois_dura / 5.).clip(0., len(scores)), (rois_end + rois_dura / 5.).clip(0., len(scores))
+        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+        if len(bboxes) > 0:
+            rois = [(x[0], x[1]) for x in bboxes]
+            rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
+            start_rois[k, :, 0], end_rois[k, :, 0] = k, k
+            rois_begin, rois_end, rois_dura = np.asarray(rois)[:, 0], np.asarray(rois)[:, 1], np.asarray(rois).mean(axis=1)
+            start_rois[k, :len(bboxes), 1], end_rois[k, :len(bboxes), 1] = (rois_begin - rois_dura / 5.).clip(0., len(scores)), (rois_end - rois_dura / 5.).clip(0., len(scores))
+            start_rois[k, :len(bboxes), 2], end_rois[k, :len(bboxes), 2] = (rois_begin + rois_dura / 5.).clip(0., len(scores)), (rois_end + rois_dura / 5.).clip(0., len(scores))
         if not test_mode:
             # compute iou with ground-truths
             # import pdb; pdb.set_trace()
