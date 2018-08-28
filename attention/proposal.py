@@ -74,6 +74,9 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     def call_back(rst):
         bboxes_dict[rst[0]] = rst[1]
+        import sys
+        print(rst[0], len(rst[1]))
+        sys.stdout.flush()
 
     pool = mp.Pool(processes=8)
     handle = [pool.apply_async(gen_prop, args=(x, ), callback=call_back) for x in video_list]
