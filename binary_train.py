@@ -248,6 +248,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         end = time.time()
 
         if i % args.print_freq == 0:
+            import pdb; pdb.set_trace()
             print('Epoch: [{0}][{1}/{2}], lr: {lr:.5f}\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
@@ -258,9 +259,9 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
                   'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
                   .format(
                       epoch, i, len(train_loader), lr=optimizer.param_groups[0]['lr'],
-                    #   batch_time=batch_time, data_time=data_time, loss=losses, 
-                    #   score_loss=score_losses, start_loss=start_losses, 
-                    #   end_loss=end_losses, roi_loss=roi_losses)
+                      batch_time=batch_time, data_time=data_time, loss=losses, 
+                      score_loss=score_losses, start_loss=start_losses, 
+                      end_loss=end_losses, roi_loss=roi_losses)
                   )
 
 
