@@ -77,6 +77,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     handle = [pool.apply_async(gen_prop, args=(x, ), callback=call_back) for x in video_list]
     pool.close()
     pool.join()
+    import pdb; pdb.set_trace()
 
     for k in range(batch_size):
         # # the k-th sample
@@ -110,8 +111,9 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         # if len(bboxes) == 0:
         #     bboxes = [(0, len(scores), 1, scores.sum())]
 
+        # use multiprocessing
         bboxes = bboxes_dict[k]
-        
+
         rpn_rois[k, :, 0] = k
         rois = [(x[0], x[1]) for x in bboxes]
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
