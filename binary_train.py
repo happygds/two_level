@@ -176,6 +176,8 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
     data_time = AverageMeter()
     losses = AverageMeter()
     score_losses = AverageMeter()
+    start_losses = AverageMeter()
+    end_losses = AverageMeter()
     roi_losses = AverageMeter()
 
     # switch to train model
@@ -184,7 +186,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
     end = time.time()
     optimizer.zero_grad()
 
-    for i, (feature, feature_mask, target, pos_ind, gts) in enumerate(train_loader):
+    for i, (feature, feature_mask, target, start, end, pos_ind, gts) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)
         # feature_mask = feature.abs().mean(2).ne(0).float()
@@ -193,13 +195,15 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         pos_ind = pos_ind.cuda().requires_grad_(False)
 
         # compute output
-        score_outputs, enc_slf_attns, roi_scores, labels, rois_mask = model(
+        score_output, enc_slf_attn, roi_scores, labels, rois_mask = model(
             feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
-        score_loss, attn_loss = criterion_stage1(score_outputs, target, attns=enc_slf_attns, 
-                                                 mask=feature_mask, multi_strides=multi_strides)
+        score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
+            score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
         roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-        loss = score_loss + 0.5 * roi_loss
+        loss = score_loss + 0.5 * roi_loss + 0.5 * start_loss, 0.5 * end_loss
         score_losses.update(score_loss.item(), feature.size(0))
+        start_losses.update(start_loss.item(), feature.size(0))
+        end_losses.update(end_loss.item(), feature.size(0))
         roi_losses.update(roi_loss.item(), feature.size(0))
         losses.update(loss.item(), feature.size(0))
 
@@ -245,6 +249,8 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Score_Loss {score_loss.val:.4f} ({score_loss.avg:.4f})\t'
+                  'Start_Loss {start_loss.val:.4f} ({start_loss.avg:.4f})\t'
+                  'End_Loss {end_loss.val:.4f} ({end_loss.avg:.4f})\t'
                   'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
                   .format(
                       epoch, i, len(train_loader), batch_time=batch_time, data_time=data_time, 

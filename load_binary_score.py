@@ -72,6 +72,8 @@ class BinaryVideoRecord:
         # assert rgb_feat.shape[0] == sample_duration
         
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
+        self.starts = np.zeros((rgb_feat.shape[0],), dtype='float32')
+        self.ends = np.zeros((rgb_feat.shape[0],), dtype='float32')
         gts = []
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
@@ -79,6 +81,7 @@ class BinaryVideoRecord:
             nbegin_ind, nend_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
             # begin_ind, end_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[nbegin_ind:nend_ind] = 1.
+            self.starts[nbegin_ind], self.ends[nend_ind] = 1., 1.
         self.gts = np.asarray(gts)
         if len(gts) == 0:
             import pdb; pdb.set_trace()
@@ -168,7 +171,7 @@ class BinaryDataSet(data.Dataset):
         else:
             return self.get_training_data(real_index)
 
-    def _sample_feat(self, feat, label):
+    def _sample_feat(self, feat, label, starts, ends):
         feat_num = feat.shape[0]
         if feat_num > self.sample_duration:
             begin_index = random.randrange(
@@ -177,24 +180,29 @@ class BinaryDataSet(data.Dataset):
             begin_index = 0
         out = np.zeros((self.sample_duration, feat.shape[1]), dtype='float32')
         out_label = np.zeros((self.sample_duration,), dtype='float32')
+        out_starts = np.zeros((self.sample_duration,), dtype='float32')
+        out_ends = np.zeros((self.sample_duration,), dtype='float32')
         min_len = min(feat_num, self.sample_duration)
         out[:min_len] = feat[begin_index:(begin_index+min_len)]
         out_label[:min_len] = label[begin_index:(begin_index+min_len)]
+        out_starts[:min_len] = starts[begin_index:(begin_index+min_len)]
+        out_ends[:min_len] = ends[begin_index:(begin_index+min_len)]
         assert len(out) == self.sample_duration
         end_ind = begin_index + self.sample_duration
 
-        return out, out_label, begin_index, end_ind, min_len
+        return out, out_label, out_starts, out_ends, begin_index, end_ind, min_len
 
     def get_training_data(self, index):
         video = self.video_list[index]
         feat = video.feat
         label = video.label
+        starts, ends = video.starts, video.ends
         num_feat = feat.shape[0]
-        if num_feat < 16:
-            feat = np.concatenate([feat, np.zeros((16-num_feat, feat.shape[1]), dtype='float32')], axis=0)
-            label = np.concatenate([label, np.zeros((16-num_feat,), dtype='float32')], axis=0)
+        # if num_feat < 16:
+        #     feat = np.concatenate([feat, np.zeros((16-num_feat, feat.shape[1]), dtype='float32')], axis=0)
+        #     label = np.concatenate([label, np.zeros((16-num_feat,), dtype='float32')], axis=0)
 
-        out_feat, out_label, begin_ind, end_ind, min_len = self._sample_feat(feat, label)
+        out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len = self._sample_feat(feat, label, starts, ends)
         out_mask = np.zeros_like(out_label).astype('float32')
         out_mask[:min_len] = 1.
 
@@ -205,10 +213,11 @@ class BinaryDataSet(data.Dataset):
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
         out_label = torch.from_numpy(out_label)
+        out_starts, out_ends = torch.from_numpy(out_starts), torch.from_numpy(out_ends)
         out_mask = torch.from_numpy(out_mask)
 
         # print(out_feats.size(), out_prop_type.size())
-        return out_feat, out_mask, out_label, pos_ind, gts
+        return out_feat, out_mask, out_label, out_starts, out_ends, pos_ind, gts
 
     def get_test_data(self, video):
         props = []
@@ -220,8 +229,8 @@ class BinaryDataSet(data.Dataset):
         pos_ind = torch.from_numpy(frame_ticks).long()
 
         num_feat = feat.shape[0]
-        if num_feat < 16:
-            feat = np.concatenate([feat, np.zeros((16-num_feat, feat.shape[1]), dtype='float32')], axis=0)
+        # if num_feat < 16:
+        #     feat = np.concatenate([feat, np.zeros((16-num_feat, feat.shape[1]), dtype='float32')], axis=0)
         feat_mask = (np.abs(feat).mean(axis=1) > 0.).astype('float32')
 
         return torch.from_numpy(np.expand_dims(feat, axis=0)), torch.from_numpy(np.expand_dims(feat_mask, axis=0)), num_feat, pos_ind
