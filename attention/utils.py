@@ -46,6 +46,7 @@ class CE_Criterion_multi(nn.Module):
         for i, x in enumerate(inputs):
             x = x.unsqueeze(2)
             x = torch.cat([1.-x, x], dim=2)
+            assert x.size(2) == 2
             tmp_output = - targets[i] * torch.log(x.clamp(eps))
             if self.use_weight:
                 tmp_output *= weights[i].unsqueeze(1)
