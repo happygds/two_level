@@ -82,9 +82,10 @@ class BinaryVideoRecord:
             # begin_ind, end_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[nbegin_ind:nend_ind] = 1.
             try:
-                # nbegin_ind, nend_ind = int(math.ceil(frame_cnt * begin_ind / feat_stride)), int(math.ceil(frame_cnt * end_ind / feat_stride))
-                self.starts[min(nbegin_ind, len(self.label)-1)], self.ends[min(nend_ind, len(self.label)-1)] = 1., 1.
-                # self.starts[min(nbegin_ind-1, len(self.label)-1)], self.ends[min(nend_ind-1, len(self.label)-1)] = 1., 1.
+                if nbegin_ind < nend_ind:
+                    # nbegin_ind, nend_ind = int(math.ceil(frame_cnt * begin_ind / feat_stride)), int(math.ceil(frame_cnt * end_ind / feat_stride))
+                    self.starts[min(nbegin_ind, len(self.label)-1)], self.ends[min(nend_ind, len(self.label)-1)] = 1., 1.
+                    # self.starts[min(nbegin_ind-1, len(self.label)-1)], self.ends[min(nend_ind-1, len(self.label)-1)] = 1., 1.
             except IndexError:
                 print(len(self.ends), nbegin_ind, nend_ind)
                 import pdb; pdb.set_trace()
