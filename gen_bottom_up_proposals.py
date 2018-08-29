@@ -144,7 +144,7 @@ def gen_prop(v):
     else:
         vid = v.path.split('/')[-1].split('.')[0]
     rois, actness, roi_scores = score_dict[vid]
-    bboxes = [(roi[0], roi[1], 1, roi_score*act_score) for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
+    bboxes = [(roi[0], roi[1], 1, roi_score) for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
     # bboxes = temporal_nms(bboxes, 0.7)
