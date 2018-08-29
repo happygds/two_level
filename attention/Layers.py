@@ -90,11 +90,11 @@ class ROI_Relation(nn.Module):
         self.start_pool, self.end_pool = RoI1DPool(1, 1.), RoI1DPool(1, 1.)
         self.rank_fc = nn.Linear(d_model, d_model)
         self.roi_fc = nn.Sequential(nn.Linear(d_model*(2+roipool_size), d_model), nn.SELU())
-        # for non-local operation
-        self.slf_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
-        self.pos_ffn = PositionwiseFeedForward(
-            d_model, d_inner_hid, dropout=dropout)
+        # # for non-local operation
+        # self.slf_attn = MultiHeadAttention(
+        #     n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
+        # self.pos_ffn = PositionwiseFeedForward(
+        #     d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         inner_feats = self.roi_pool(features.transpose(1, 2), rois)
@@ -117,8 +117,8 @@ class ROI_Relation(nn.Module):
         rois_attn_mask = torch.gt(rois_attn_mask + rois_attn_mask.transpose(1, 2), 0)
         enc_output = roi_feats
 
-        enc_output, _ = self.slf_attn(
-            enc_output, roi_feats, roi_feats,
-            attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
-        enc_output = self.pos_ffn(enc_output)
+        # enc_output, _ = self.slf_attn(
+        #     enc_output, roi_feats, roi_feats,
+        #     attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
+        # enc_output = self.pos_ffn(enc_output)
         return enc_output
