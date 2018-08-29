@@ -107,18 +107,18 @@ class ROI_Relation(nn.Module):
         # roi_feats = inner_feats
         roi_feats = self.roi_fc(roi_feats)
 
-        # use rank embedding
-        rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2])
-        roi_feats = self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
         rois_attn_mask = (1. - rois_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
         rois_attn_mask = torch.gt(rois_attn_mask + rois_attn_mask.transpose(1, 2), 0)
-        enc_output = roi_feats
+        # use rank embedding
+        rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2])
+        enc_output = self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats
+        # enc_output = roi_feats
 
         enc_output, _ = self.slf_attn(
-            enc_output, roi_feats, roi_feats,
+            enc_output, enc_output, enc_output,
             attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
         enc_output = self.pos_ffn(enc_output)
         return enc_output
