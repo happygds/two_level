@@ -53,8 +53,9 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         if len(scores) > 1:
             diff_pstarts, diff_pends = pstarts[1:,] - pstarts[:-1,], pends[1:,] - pends[:-1,]
             # gd_scores = gaussian_filter(diff_scores, bw)
-            starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.5 * pstarts.max())[0])
-            ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.5 * pends.max())[0])
+            starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.9 * pstarts.max())[0])
+            ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.9 * pends.max())[0])
+            # import pdb; pdb.set_trace()
             starts, ends = list(set(starts)), list(set(ends))
             # props = [(x, y, 1, scores[x:y].mean() - \
             # 0.5*(scores[max(0, int(round(6*x/5.-y/5.))):max(int(round(4*x/5.+y/5.)), int(round(6*x/5.-y/5.))+1)].mean() + \
@@ -65,7 +66,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         else:
             props = [(0, len(scores), 1, scores.mean())]
         bboxes.extend(props)
-        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+        bboxes = temporal_nms(bboxes, 0.95)[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores), 1, scores.sum())]
 
