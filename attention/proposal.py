@@ -66,12 +66,12 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         else:
             props = [(0, len(scores), 1, scores.mean())]
         bboxes.extend(props)
-        bboxes.sort(key=lambda x: x[3], reverse=True)
-        bboxes = bboxes[:rpn_post_nms_top]
-        
-        # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+        # bboxes.sort(key=lambda x: x[3], reverse=True)
+        # bboxes = bboxes[:rpn_post_nms_top]
+        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores), 1, scores.sum())]
+        import pdb; pdb.set_trace()
 
         rpn_rois[k, :, 0] = k
         rois = [(x[0], x[1]) for x in bboxes]
