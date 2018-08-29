@@ -95,6 +95,7 @@ class CE_Criterion(nn.Module):
         #     output = torch.mean(output)
 
         x, y = input[:, :, 1], target[:, :, 1]
+        mask = mask * torch.gt(y, 0.5)
         output = F.smooth_l1_loss(x, y, reduce=False)
         output = torch.sum(output * mask, dim=1) / torch.sum(mask, dim=1).clamp(eps)
         return output.mean()
