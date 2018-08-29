@@ -115,9 +115,10 @@ class ROI_Relation(nn.Module):
         mb_size, len_k = roi_feats.size()[:2]
         rois_attn_mask = (1. - rois_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
         rois_attn_mask = torch.gt(rois_attn_mask + rois_attn_mask.transpose(1, 2), 0)
+        enc_output = roi_feats
 
-        enc_output, _ = self.slf_attn(
-            roi_feats, roi_feats, roi_feats,
-            attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
-        enc_output = self.pos_ffn(enc_output)
+        # enc_output, _ = self.slf_attn(
+        #     enc_output, roi_feats, roi_feats,
+        #     attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
+        # enc_output = self.pos_ffn(enc_output)
         return enc_output
