@@ -127,12 +127,12 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     net.cuda()
     while True:
         index = index_queue.get()
-        feature, feature_mask, num_feat, pos_ind = dataset[index]
+        feature, feature_mask, num_feat, pos_ind, gts = dataset[index]
         feature = feature.cuda()
         feature_mask = feature_mask.cuda()
         pos_ind = pos_ind.cuda()
         with torch.no_grad():
-            rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
+            rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, gts=gts, test_mode=True)
             rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
             outputs = [rois, actness, roi_scores]
 

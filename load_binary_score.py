@@ -235,6 +235,9 @@ class BinaryDataSet(data.Dataset):
         # num_sampled_frames = len(frame_ticks)
         pos_ind = torch.from_numpy(frame_ticks).long()
 
+        gts = np.zeros((32, 2), dtype='float32')
+        gts[:len(video.gts)] = video.gts
+
         num_feat = feat.shape[0]
         # if num_feat < 16:
         #     feat = np.concatenate([feat, np.zeros((16-num_feat, feat.shape[1]), dtype='float32')], axis=0)
@@ -242,7 +245,7 @@ class BinaryDataSet(data.Dataset):
         out_feat = torch.from_numpy(np.expand_dims(feat, axis=0))
         out_mask = torch.from_numpy(np.expand_dims(feat_mask, axis=0))
 
-        return out_feat, out_mask, num_feat, pos_ind
+        return out_feat, out_mask, num_feat, pos_ind, gts
 
     def __len__(self):
         return len(self.video_list) * self.epoch_multiplier
