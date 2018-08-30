@@ -46,7 +46,10 @@ class Logger(object):
         """Log a histogram of the tensor of values."""
 
         # Create a histogram using numpy
-        counts, bin_edges = np.histogram(values, bins=bins)
+        try:
+            counts, bin_edges = np.histogram(values, bins=bins)
+        except ValueError:
+            import pdb; pdb.set_trace()
 
         # Fill the fields of the histogram proto
         hist = tf.HistogramProto()
