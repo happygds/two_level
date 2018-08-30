@@ -88,8 +88,8 @@ class ROI_Relation(nn.Module):
                  d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
         super(ROI_Relation, self).__init__()
         self.roi_pool = RoI1DPool(roipool_size, 1.)
-        self.start_pool, self.end_pool = RoI1DPool(3, 1.), RoI1DPool(3, 1.)
-        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2*3+roipool_size), d_model), nn.SELU())
+        self.start_pool, self.end_pool = RoI1DPool(2, 1.), RoI1DPool(2, 1.)
+        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2*2+roipool_size), d_model), nn.SELU())
 
         # self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
@@ -99,6 +99,10 @@ class ROI_Relation(nn.Module):
         #     d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
+        # len_q = feature.size(1)
+        # # clip rois
+        # rois_, start_rois_, end_rois_ = rois.clamp(0., len_q), start_rois.clamp(0., len_q), end_rois.clamp(0., len_q)
+
         inner_feats = self.roi_pool(features.transpose(1, 2), rois)
         # mean_feat = inner_feats.mean(dim=3, keepdim=True)
         # inner_feats -= mean_feat
