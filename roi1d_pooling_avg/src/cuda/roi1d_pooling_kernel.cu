@@ -73,7 +73,6 @@ __global__ void ROI1DPoolForward(const int nthreads, const float* bottom_data,
     }
 }
 
-
 int ROI1DPoolForwardLaucher(
     const float* bottom_data, const float temporal_scale,
     const int num_rois, const int depth,
