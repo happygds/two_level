@@ -83,6 +83,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             np.floor(rois_begin - rois_dura / 5.).clip(0., len(scores)), np.floor(rois_end - rois_dura / 5.).clip(0., len(scores))
         start_rois[k, :len(bboxes), 2], end_rois[k, :len(bboxes), 2] = \
             np.ceil(rois_begin + rois_dura / 5.).clip(0., len(scores)), np.ceil(rois_end + rois_dura / 5.).clip(0., len(scores))
+        import pdb; pdb.set_trace()
         if not test_mode:
             # compute iou with ground-truths
             # import pdb; pdb.set_trace()
@@ -112,8 +113,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rois_relative_pos[:, :, :, 1] = rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos = np.log(rois_relative_pos.clip(1e-3)) * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
-    start_rois = torch.from_numpy(start_rois.clip(0.)).cuda().requires_grad_(False).cuda()
-    end_rois = torch.from_numpy(end_rois.clip(0.)).cuda().requires_grad_(False).cuda()
+    start_rois = torch.from_numpy(start_rois).cuda().requires_grad_(False).cuda()
+    end_rois = torch.from_numpy(end_rois).cuda().requires_grad_(False).cuda()
     rpn_rois = torch.from_numpy(rpn_rois).cuda().requires_grad_(False).float()
     rpn_rois_mask = torch.from_numpy(rpn_rois_mask).cuda().requires_grad_(False).float()
     rois_relative_pos = torch.from_numpy(rois_relative_pos).cuda().requires_grad_(False).float()
