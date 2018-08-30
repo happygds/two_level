@@ -88,9 +88,10 @@ class ROI_Relation(nn.Module):
                  d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
         super(ROI_Relation, self).__init__()
         self.roi_pool = RoI1DPool(roipool_size, 1.)
-        self.start_pool, self.end_pool = RoI1DPool(2, 1.), RoI1DPool(2, 1.)
-        self.instance_norm = nn.InstanceNorm1d(2+roipool_size)
-        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2+roipool_size), d_model), nn.SELU())
+        start_pool_size = 1
+        self.start_pool, self.end_pool = RoI1DPool(start_pool_size, 1.), RoI1DPool(start_pool_size, 1.)
+        self.instance_norm = nn.InstanceNorm1d(2*start_pool_size+roipool_size)
+        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model), nn.SELU())
 
         # self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
