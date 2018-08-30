@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.init as init
+import numpy as np
 # from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
 from .utils import rank_embedding
@@ -106,7 +107,8 @@ class ROI_Relation(nn.Module):
         inner_feats = inner_feats.view(roi_feat_size[:2] + (-1,))
         roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=2)
         roi_feats = self.roi_fc(roi_feats)
-        import pdb; pdb.set_trace()
+        if np.isnan(roi_feats.data.cpu().numpy()).any():
+            import pdb; pdb.set_trace()
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
