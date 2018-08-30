@@ -34,7 +34,7 @@ class RoI1DPoolFunction(Function):
         grad_input = torch.zeros(batch_size, num_channels, data_depth).cuda()
         roi1d_pooling.roi1d_pooling_backward_cuda(self.pooled_depth, self.temporal_scale, grad_output,
                                                   self.rois, grad_input)
-        if np.isnan(grad_input.data.cpu().numpy).any():
+        if np.isnan(grad_input.data.cpu().numpy()).any():
             import pdb; pdb.set_trace()
         self.rois = None
 
