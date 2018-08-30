@@ -112,7 +112,6 @@ score_dict = {}
 #     score_dict[key] = out_score
 score_dict = score_list[0]
 print('done')
-import pdb; pdb.set_trace()
 
 # merge regression scores
 if reg_score_list is not None:
@@ -148,6 +147,7 @@ def gen_prop(v):
     bboxes = [(roi[0], roi[1], 1, roi_score*act_score[:, 1]) for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
+    bboxes = list(filter(lambda b: b[3] > 0, bboxes))
     # bboxes = temporal_nms(bboxes, 0.9)
     if len(bboxes) == 0:
         bboxes = [(0, float(v.frame_cnt) / v.frame_interval, 1, 1)]
