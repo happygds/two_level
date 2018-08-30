@@ -171,6 +171,7 @@ lst = []
 handle = [pool.apply_async(gen_prop, args=(x, ), callback=call_back) for x in video_list]
 pool.close()
 pool.join()
+import pdb; pdb.set_trace()
 
 # evaluate proposal info
 proposal_list = [pr_dict[v.id] for v in video_list if v.id in pr_dict]
