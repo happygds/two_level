@@ -107,7 +107,7 @@ class ROI_Relation(nn.Module):
         roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=2)
         # roi_feats = inner_feats
         roi_feats = self.roi_fc(roi_feats)
-
+        import pdb; pdb.set_trace()
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
