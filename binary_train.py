@@ -136,7 +136,7 @@ def main():
         save_path = save_path + '_roi' + str(args.roi_poolsize)
     model_name = os.path.split(save_path)[1]
     logger = Logger('./logs/{}'.format(model_name))
-    model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
+    # model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
 
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):
@@ -144,7 +144,7 @@ def main():
         # train for one epoch
         if patience > 3:
             break
-        # train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, epoch, logger)
+        train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, epoch, logger)
 
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
@@ -297,6 +297,8 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
             end_losses.update(end_loss.item(), feature.size(0))
             roi_losses.update(roi_loss.item(), feature.size(0))
             losses.update(loss.item(), feature.size(0))
+            if np.isnan(loss.data.cpu().numpy()).any():
+                import pdb; pdb.set_trace()
         del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask
 
         batch_time.update(time.time() - end_time)
