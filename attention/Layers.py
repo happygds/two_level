@@ -104,7 +104,7 @@ class ROI_Relation(nn.Module):
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         inner_feats = self.roi_pool(features.transpose(1, 2), rois)
         feat_len = features.size(1)
-        start_rois_, end_rois_ = start_rois.clip(0., feat_len), end_rois.clip(0., feat_len)
+        start_rois_, end_rois_ = start_rois.clamp(0., feat_len), end_rois.clamp(0., feat_len)
         start_ratio = (start_rois_[:, :, 2] - start_rois_[:, :, 1]) / (start_rois[:, :, 2] - start_rois[:, :, 1]).clamp(1e-3)
         start_ratio = start_ratio.unsqueeze(2) * torch.arange(self.start_pool_size).view((1, 1, -1)).cuda().float().requires_grad_(False)
         start_feats = self.start_pool(features.transpose(1, 2), start_rois_) * start_ratio.unsqueeze(2)
