@@ -47,14 +47,10 @@ __global__ void ROI1DPoolForward(const int nthreads, const float* bottom_data,
         int dstart = (int)(floor((float)(pd) * bin_size_d));
         int dend = (int)(ceil((float)(pd + 1) * bin_size_d));
         float bin_area = dend - dstart;
-        if (dend <= 0)
-        {
-            top_data[index] = 0;
-            continue;
-        }
+
         // Add roi offsets and clip to input boundaries
         dstart = fminf(fmaxf(dstart + roi_start_d, 0), depth);
-        dend = fminf(fmaxf(dend + roi_start_d, 0), depth);
+        dend = fminf(fmaxf(dend + roi_start_d, 1), depth);
         bool is_empty = dend <= dstart || dend <= 0;
 
         // Define an empty pooling region to be zero
@@ -139,14 +135,10 @@ __global__ void ROI1DPoolBackward(const int nthreads, const float* top_diff,
         int dstart = (int)(floor((float)(pd) * bin_size_d));
         int dend = (int)(ceil((float)(pd + 1) * bin_size_d));
         float bin_area = dend - dstart;
-        if (dend <= 0)
-        {
-            continue;
-        }
 
         // Add roi offsets and clip to input boundaries
         dstart = fminf(fmaxf(dstart + roi_start_d, 0), depth);
-        dend = fminf(fmaxf(dend + roi_start_d, 0), depth);
+        dend = fminf(fmaxf(dend + roi_start_d, 1), depth);
         bool is_empty = dend <= dstart || dend <= 0;
 
         // Compute c at bottom
