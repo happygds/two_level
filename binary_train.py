@@ -235,7 +235,6 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         # 2. Log values and gradients of the parameters (histogram summary)
         for tag, value in model.named_parameters():
             tag_ = tag.replace('.', '/')
-            values = value.data.cpu().numpy()
             if np.isnan(value.grad.data.cpu().numpy()).any() or np.isnan(value.data.cpu().numpy()).any():
                 import pdb; pdb.set_trace()
             logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
