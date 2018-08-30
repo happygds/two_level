@@ -112,6 +112,7 @@ score_dict = {}
 #     score_dict[key] = out_score
 score_dict = score_list[0]
 print('done')
+import pdb; pdb.set_trace()
 
 # merge regression scores
 if reg_score_list is not None:
