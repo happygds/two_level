@@ -114,7 +114,7 @@ class ROI_Relation(nn.Module):
         roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=3).transpose(2, 3)
         roi_feat_size = roi_feats.size()
         roi_feats = self.instance_norm(roi_feats.view((-1,)+roi_feat_size[2:])).view(roi_feat_size[:2]+(-1,))
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
         roi_feats = self.roi_fc(roi_feats)
         if np.isnan(roi_feats.data.cpu().numpy()).any():
