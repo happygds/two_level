@@ -91,7 +91,6 @@ class ROI_Relation(nn.Module):
         start_pool_size = 3
         self.start_pool_size = start_pool_size
         self.start_pool, self.end_pool = RoI1DPool(start_pool_size, 1.), RoI1DPool(start_pool_size, 1.)
-        self.instance_norm = nn.InstanceNorm1d(2*start_pool_size+roipool_size)
         self.roi_fc = nn.Sequential(nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model), nn.SELU())
 
         # self.rank_fc = nn.Linear(d_model, d_model)
@@ -111,9 +110,13 @@ class ROI_Relation(nn.Module):
         end_ratio = (end_rois_[:, :, 2] - end_rois_[:, :, 1]) / (end_rois[:, :, 2] - end_rois[:, :, 1]).clamp(1e-3)
         end_ratio = end_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
         end_feats = self.end_pool(features.transpose(1, 2), end_rois_) * end_ratio.unsqueeze(2)
-        roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=3).transpose(2, 3)
+        inner_mean = inner_feats.mean(dim=3, keepdim=True)
+        start_feats -= inner_mean
+        inner_feats -= inner_mean
+        end_feats -= innner_mean
+        roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=3)
         roi_feat_size = roi_feats.size()
-        roi_feats = self.instance_norm(roi_feats.view((-1,)+roi_feat_size[2:])).view(roi_feat_size[:2]+(-1,))
+        roi_feats = roi_feats.view(roi_feat_size[:2]+(-1,))
         # import pdb; pdb.set_trace()
 
         roi_feats = self.roi_fc(roi_feats)
