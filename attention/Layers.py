@@ -100,10 +100,10 @@ class ROI_Relation(nn.Module):
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         inner_feats = self.roi_pool(features.transpose(1, 2), rois)
-        mean_feat = inner_feats.mean(dim=3, keepdim=True)
-        inner_feats -= mean_feat
-        start_feats = self.start_pool(features.transpose(1, 2), start_rois) - mean_feat
-        end_feats = self.end_pool(features.transpose(1, 2), end_rois) - mean_feat
+        # mean_feat = inner_feats.mean(dim=3, keepdim=True)
+        # inner_feats -= mean_feat
+        start_feats = self.start_pool(features.transpose(1, 2), start_rois)
+        end_feats = self.end_pool(features.transpose(1, 2), end_rois)
         roi_feat_size = inner_feats.size()
         start_feats, end_feats = start_feats.view(roi_feat_size[:2] + (-1,)), end_feats.view(roi_feat_size[:2] + (-1,))
         inner_feats = inner_feats.view(roi_feat_size[:2] + (-1,))
