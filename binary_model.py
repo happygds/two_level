@@ -87,8 +87,7 @@ class BinaryClassifier(torch.nn.Module):
         if not test_mode:
             start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_output, feature_mask, gts=gts, test_mode=test_mode)
         else:
-            print(gts.size())
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_output, feature_mask, gts=gts, test_mode=False)
+            start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_output, feature_mask, gts=[gts], test_mode=False)
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
