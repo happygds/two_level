@@ -245,7 +245,7 @@ class BinaryDataSet(data.Dataset):
         out_feat = torch.from_numpy(np.expand_dims(feat, axis=0))
         out_mask = torch.from_numpy(np.expand_dims(feat_mask, axis=0))
 
-        return out_feat, out_mask, num_feat, pos_ind, gts
+        return out_feat, out_mask, num_feat, pos_ind, torch.from_numpy(gts)
 
     def __len__(self):
         return len(self.video_list) * self.epoch_multiplier
