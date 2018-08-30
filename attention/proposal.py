@@ -83,7 +83,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             np.floor(rois_begin - rois_dura / 5.), np.floor(rois_end - rois_dura / 5.)
         start_rois[k, :len(bboxes), 2], end_rois[k, :len(bboxes), 2] = \
             np.ceil(rois_begin + rois_dura / 5.), np.ceil(rois_end + rois_dura / 5.)
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         if not test_mode:
             # compute iou with ground-truths
             # import pdb; pdb.set_trace()
