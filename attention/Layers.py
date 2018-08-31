@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.init as init
+import torch.nn.functional as F
 import numpy as np
 # from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
