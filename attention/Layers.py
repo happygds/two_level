@@ -118,12 +118,14 @@ class ROI_Relation(nn.Module):
         roi_feats = (roi_feats - inner_mean).view(roi_feat_size[:2]+(-1,))
         # roi_feats = self.layer_norm(roi_feats)
 
+        roi_feats_before = roi_feats
         if np.isnan(roi_feats.data.cpu().numpy()).any():
-            tmp = roi_feats.data.cpu().numpy()
-            print("before", tmp.std(), tmp.mean())
+            print("here")
             import pdb; pdb.set_trace()
         roi_feats = self.roi_fc(roi_feats)
         if np.isnan(roi_feats.data.cpu().numpy()).any():
+            tmp = roi_feats_before.data.cpu().numpy()
+            print("before", tmp.std(), tmp.mean())
             tmp = roi_feats.data.cpu().numpy()
             print("after", np.isnan(self.roi_fc.weight.data.cpu().numpy()).any(), np.isnan(self.roi_fc.bias.data.cpu().numpy()).any(), 
                   np.isnan(roi_feats.data.cpu().numpy()).any(), tmp.std(), tmp.mean())
