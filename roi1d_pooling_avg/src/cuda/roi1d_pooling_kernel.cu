@@ -49,8 +49,8 @@ __global__ void ROI1DPoolForward(const int nthreads, const float* bottom_data,
         float bin_area = max(dend - dstart, 1);
 
         // Add roi offsets and clip to input boundaries
-        dstart = fminf(fmaxf(dstart + roi_start_d, 0), depth-1);
-        dend = fminf(fmaxf(dend + roi_start_d, 0), depth-1);
+        dstart = fminf(fmaxf(dstart + roi_start_d, 0), depth);
+        dend = fminf(fmaxf(dend + roi_start_d, 0), depth);
         bool is_empty = dend <= dstart || dend <= 0;
 
         // Define an empty pooling region to be zero
