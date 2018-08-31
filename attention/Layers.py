@@ -112,10 +112,23 @@ class ROI_Relation(nn.Module):
         end_feats = self.end_pool(features.transpose(1, 2), end_rois_) * end_ratio.unsqueeze(2)
         inner_mean = inner_feats.mean(dim=3, keepdim=True)
         roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=3)
-        roi_feats.data.masked_fill_(torch.isnan(roi_feats), 0)
         roi_feat_size = roi_feats.size()
         roi_feats = (roi_feats - inner_mean).view(roi_feat_size[:2]+(-1,))
         # import pdb; pdb.set_trace()
+
+        roi_feats = self.roi_fc(roi_feats)
+        if np.isnan(inner_feats.data.cpu().numpy()).any():
+            print("1")
+            import pdb; pdb.set_trace()
+        elif np.isnan(start_feats.data.cpu().numpy()).any():
+            print("2", start_rois_, features.size())
+            import pdb; pdb.set_trace()
+        elif np.isnan(end_feats.data.cpu().numpy()).any():
+            print("3")
+            import pdb; pdb.set_trace()
+        elif np.isnan(roi_feats.data.cpu().numpy()).any():
+            print("4")
+            import pdb; pdb.set_trace()
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
