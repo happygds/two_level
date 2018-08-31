@@ -144,7 +144,7 @@ def main():
         # train for one epoch
         if patience > 3:
             break
-        train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, epoch, logger)
+        # train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, epoch, logger)
 
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
