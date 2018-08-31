@@ -118,9 +118,12 @@ class ROI_Relation(nn.Module):
         # import pdb; pdb.set_trace()
         # roi_feats.data.masked_fill_(torch.isnan(roi_feats), 0)
 
+        if np.isnan(roi_feats.data.cpu().numpy()).any():
+            print("before", np.isnan(roi_feats.data.cpu().numpy()).any())
+            import pdb; pdb.set_trace()
         roi_feats = self.roi_fc(roi_feats)
         if np.isnan(roi_feats.data.cpu().numpy()).any():
-            print("4", np.isnan(self.roi_fc.weight.data.cpu().numpy()).any(), np.isnan(self.roi_fc.bias.data.cpu().numpy()).any(), np.isnan(roi_feats.data.cpu().numpy()).any())
+            print("after", np.isnan(self.roi_fc.weight.data.cpu().numpy()).any(), np.isnan(self.roi_fc.bias.data.cpu().numpy()).any(), np.isnan(roi_feats.data.cpu().numpy()).any())
             import pdb; pdb.set_trace()
 
         # compute mask
