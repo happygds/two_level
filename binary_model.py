@@ -16,7 +16,7 @@ class BinaryClassifier(torch.nn.Module):
         self.reduce = args.reduce_dim > 0
         if self.reduce:
             self.reduce_layer = nn.Sequential(
-                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU())
+                nn.Linear(args.input_dim, args.reduce_dim), nn.ReLU())
         if args.dropout > 0:
             self.dropout = args.dropout
         else:
@@ -91,7 +91,7 @@ class BinaryClassifier(torch.nn.Module):
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
-        roi_feats = self.roi_relations(enc_output, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
+        roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
         roi_scores = self.roi_cls(roi_feats)
 
         if not test_mode:
