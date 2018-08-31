@@ -121,6 +121,7 @@ class ROI_Relation(nn.Module):
         if np.isnan(x.data.cpu().numpy()).any():
             print("4", np.isnan(self.roi_fc[0].weight.data.cpu().numpy()).any(), np.isnan(self.roi_fc[0].bias.data.cpu().numpy()).any(), np.isnan(roi_feats.data.cpu().numpy()).any())
             import pdb; pdb.set_trace()
+        roi_feats = x
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
