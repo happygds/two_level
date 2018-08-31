@@ -8,7 +8,6 @@ class RoI1DPoolFunction(Function):
     def __init__(self, pooled_depth, temporal_scale=1.):
         self.pooled_depth = int(pooled_depth)
         self.temporal_scale = float(temporal_scale)
-        self.output = None
         self.rois = None
         self.feature_size = None
 
@@ -21,7 +20,6 @@ class RoI1DPoolFunction(Function):
         output = output.cuda()
         roi1d_pooling.roi1d_pooling_forward_cuda(self.pooled_depth, self.temporal_scale, features, rois, output)
         # output.data.masked_fill_(torch.isnan(output), 0)
-        # self.output = output
         self.rois = rois
         self.feature_size = features.size()
 
@@ -37,6 +35,6 @@ class RoI1DPoolFunction(Function):
                                                   self.rois, grad_input)
         if np.isnan(grad_input.data.cpu().numpy()).any():
             import pdb; pdb.set_trace()
-        # self.rois = None
+        self.rois = None
 
         return grad_input, None
