@@ -25,7 +25,7 @@ parser.add_argument('--test_batchsize', type=int, default=32)
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--max_num', type=int, default=-1)
 parser.add_argument('--num_body_segments', type=int, default=5)
-parser.add_argument('-j', '--workers', default=2, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=1, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 
 parser.add_argument('--annotation_path', default='/data1/matheguo/important/data/activitynet/activity_net.v1-3.min_save.json',
