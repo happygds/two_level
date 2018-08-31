@@ -133,7 +133,7 @@ __global__ void ROI1DPoolBackward(const int nthreads, const float* top_diff,
 
         int dstart = (int)(floor((float)(pd) * bin_size_d));
         int dend = (int)(ceil((float)(pd + 1) * bin_size_d));
-        float bin_area = dend - dstart;
+        float bin_area = max(dend - dstart, 1);
 
         // Add roi offsets and clip to input boundaries
         dstart = fminf(fmaxf(dstart + roi_start_d, 0), depth);
