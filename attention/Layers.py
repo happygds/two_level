@@ -116,7 +116,7 @@ class ROI_Relation(nn.Module):
         roi_feat_size = roi_feats.size()
         roi_feats = (roi_feats - inner_mean).view(roi_feat_size[:2]+(-1,))
         # import pdb; pdb.set_trace()
-        # roi_feats.data.masked_fill_(torch.isnan(roi_feats), 0)
+        roi_feats.data.masked_fill_(torch.isnan(roi_feats), 0)
 
         if np.isnan(roi_feats.data.cpu().numpy()).any():
             print("before", np.isnan(roi_feats.data.cpu().numpy()).any())
