@@ -91,7 +91,7 @@ class ROI_Relation(nn.Module):
         start_pool_size = 1
         self.start_pool_size = start_pool_size
         self.start_pool, self.end_pool = RoI1DPool(start_pool_size, 1.), RoI1DPool(start_pool_size, 1.)
-        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model), nn.SELU())
+        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model), nn.ReLU())
 
         self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
