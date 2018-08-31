@@ -101,7 +101,7 @@ def main():
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6, num_local=args.num_local, use_flow=args.use_flow),
-        batch_size=args.batch_size*2//3, shuffle=False,
+        batch_size=args.batch_size//2, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
     optimizer = torch.optim.Adam(
@@ -303,7 +303,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
         batch_time.update(time.time() - end_time)
         end_time = time.time()
 
-        if i % args.print_freq == 0:
+        if i % (args.print_freq * 2) == 0:
             print('Test: [{0}/{1}]\t'
                   'Time {batch_time.val:.4f} ({loss.avg:.4f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
