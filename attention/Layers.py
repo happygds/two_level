@@ -124,7 +124,7 @@ class ROI_Relation(nn.Module):
             tmp = np.argmax(np.isnan(roi_feats.data.cpu().numpy().sum(2)[0]))
             x = roi_feats[0][tmp]
             print(x, rois, tmp, feat_len)
-            import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
