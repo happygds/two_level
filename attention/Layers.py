@@ -95,6 +95,7 @@ class ROI_Relation(nn.Module):
         self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
 
         self.rank_fc = nn.Linear(d_model, d_model)
+        self.layer_norm = nn.LayerNorm(d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
@@ -129,7 +130,7 @@ class ROI_Relation(nn.Module):
         rois_attn_mask = torch.gt(rois_attn_mask + rois_attn_mask.transpose(1, 2), 0)
         # use rank embedding
         rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2])
-        enc_output = F.relu(self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats)
+        enc_output = self.layer_norm(self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats)
         # enc_output = roi_feats
 
         enc_output, _ = self.slf_attn(
