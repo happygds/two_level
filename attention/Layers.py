@@ -118,16 +118,7 @@ class ROI_Relation(nn.Module):
         # import pdb; pdb.set_trace()
 
         roi_feats = self.roi_fc(roi_feats)
-        if np.isnan(inner_feats.data.cpu().numpy()).any():
-            print("1")
-            import pdb; pdb.set_trace()
-        elif np.isnan(start_feats.data.cpu().numpy()).any():
-            print("2", start_rois_, features.size())
-            import pdb; pdb.set_trace()
-        elif np.isnan(end_feats.data.cpu().numpy()).any():
-            print("3")
-            import pdb; pdb.set_trace()
-        elif np.isnan(roi_feats.data.cpu().numpy()).any():
+        if np.isnan(roi_feats.data.cpu().numpy()).any():
             print("4")
             import pdb; pdb.set_trace()
 
