@@ -123,7 +123,7 @@ class ROI_Relation(nn.Module):
         if np.isnan(roi_feats.data.cpu().numpy()).any():
             tmp = np.argmax(np.isnan(roi_feats.data.cpu().numpy().sum(2)[0]))
             x = inner_feats[0][tmp]
-            print(x[:, 0], x[:, 1], x[, 2], rois, tmp, feat_len)
+            print(x[:, 0], x[:, 1], x[:, 2], rois, tmp, feat_len)
             import pdb; pdb.set_trace()
 
         # compute mask
