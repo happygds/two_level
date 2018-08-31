@@ -126,6 +126,8 @@ class ROI_Relation(nn.Module):
             print("2")
         elif np.isnan(end_feats.data.cpu().numpy()).any():
             print("3")
+        elif np.isnan(roi_feats.data.cpu().numpy()).any():
+            print("4")
         else:
             import pdb; pdb.set_trace()
 
