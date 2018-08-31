@@ -121,7 +121,7 @@ class ROI_Relation(nn.Module):
 
         roi_feats = self.roi_fc(roi_feats)
         if np.isnan(roi_feats.data.cpu().numpy()).any():
-            print(roi_feats.data.cpu().numpy(), rois)
+            print(roi_feats.data.cpu().numpy().sum(2), rois)
             import pdb; pdb.set_trace()
 
         # compute mask
