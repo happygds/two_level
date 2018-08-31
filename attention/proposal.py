@@ -66,6 +66,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         else:
             props = [(0, len(scores), 1, scores.mean())]
         bboxes.extend(props)
+        bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
         # bboxes.sort(key=lambda x: x[3], reverse=True)
         # bboxes = bboxes[:rpn_post_nms_top]
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
