@@ -119,7 +119,7 @@ class ROI_Relation(nn.Module):
         # roi_feats = self.layer_norm(roi_feats)
 
         if np.isnan(roi_feats.data.cpu().numpy()).any():
-            tmp = np.isnan(roi_feats.data.cpu().numpy()).any()
+            tmp = roi_feats.data.cpu().numpy()
             print("before", tmp.std(), tmp.mean())
             import pdb; pdb.set_trace()
         roi_feats = self.roi_fc(roi_feats)
