@@ -91,7 +91,7 @@ class ROI_Relation(nn.Module):
         start_pool_size = 1
         self.start_pool_size = start_pool_size
         self.start_pool, self.end_pool = RoI1DPool(start_pool_size, 1.), RoI1DPool(start_pool_size, 1.)
-        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model), nn.ReLU())
+        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model), nn.SELU())
 
         self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
@@ -111,27 +111,11 @@ class ROI_Relation(nn.Module):
         end_ratio = end_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
         end_feats = self.end_pool(features.transpose(1, 2), end_rois_) * end_ratio.unsqueeze(2)
         inner_mean = inner_feats.mean(dim=3, keepdim=True)
-        start_feats -= inner_mean
-        inner_feats -= inner_mean
-        end_feats -= inner_mean
         roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=3)
+        roi_feats.data.masked_fill_(torch.isnan(roi_feats), 0)
         roi_feat_size = roi_feats.size()
-        roi_feats = roi_feats.view(roi_feat_size[:2]+(-1,))
+        roi_feats = (roi_feats - inner_mean).view(roi_feat_size[:2]+(-1,))
         # import pdb; pdb.set_trace()
-
-        roi_feats = self.roi_fc(roi_feats)
-        if np.isnan(inner_feats.data.cpu().numpy()).any():
-            print("1")
-            import pdb; pdb.set_trace()
-        elif np.isnan(start_feats.data.cpu().numpy()).any():
-            print("2", start_rois_, features.size())
-            import pdb; pdb.set_trace()
-        elif np.isnan(end_feats.data.cpu().numpy()).any():
-            print("3")
-            import pdb; pdb.set_trace()
-        elif np.isnan(roi_feats.data.cpu().numpy()).any():
-            print("4")
-            import pdb; pdb.set_trace()
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
