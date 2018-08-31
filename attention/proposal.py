@@ -62,6 +62,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             # scores[max(0, int(round(4*y/5.+x/5.))):max(int(round(6*y/5.-x/5.)), int(round(4*y/5.+x/5.))+1)].mean()), 1e-3))*(pstarts[x]*pends[y])) \
             # for x in starts for y in ends if x < y and scores[x:y].mean() > 0.3]
             props = [(x, y, 1, scores[x:y].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y].mean() > 0.3]
+            if len(props) == 0:
+                props = [(0, len(scores), 1, scores.mean())]
             # import pdb; pdb.set_trace()
         else:
             props = [(0, len(scores), 1, scores.mean())]
