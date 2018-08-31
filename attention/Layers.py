@@ -91,7 +91,7 @@ class ROI_Relation(nn.Module):
         start_pool_size = 1
         self.start_pool_size = start_pool_size
         self.start_pool, self.end_pool = RoI1DPool(start_pool_size, 1.), RoI1DPool(start_pool_size, 1.)
-        self.roi_fc = nn.Sequential(nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model), nn.ReLU())
+        self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
 
         self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
@@ -115,7 +115,7 @@ class ROI_Relation(nn.Module):
         roi_feat_size = roi_feats.size()
         roi_feats = (roi_feats - inner_mean).view(roi_feat_size[:2]+(-1,))
         # import pdb; pdb.set_trace()
-        roi_feats.data.masked_fill_(torch.isnan(roi_feats), 0)
+        # roi_feats.data.masked_fill_(torch.isnan(roi_feats), 0)
 
         x = self.roi_fc(roi_feats)
         if np.isnan(x.data.cpu().numpy()).any():
