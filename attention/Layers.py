@@ -93,6 +93,7 @@ class ROI_Relation(nn.Module):
         self.start_pool_size = start_pool_size
         self.start_pool, self.end_pool = RoI1DPool(start_pool_size, 1.), RoI1DPool(start_pool_size, 1.)
         self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
+        self.layer_norm = nn.LayerNorm(d_model)
 
         self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
@@ -115,15 +116,15 @@ class ROI_Relation(nn.Module):
         roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=3)
         roi_feat_size = roi_feats.size()
         roi_feats = (roi_feats - inner_mean).view(roi_feat_size[:2]+(-1,))
-        # import pdb; pdb.set_trace()
-        # roi_feats.data.masked_fill_(torch.isnan(roi_feats), 0)
+        roi_feats = self.layer_norm(roi_feats)
 
         if np.isnan(roi_feats.data.cpu().numpy()).any():
             print("before", np.isnan(roi_feats.data.cpu().numpy()).any())
             import pdb; pdb.set_trace()
         roi_feats = self.roi_fc(roi_feats)
         if np.isnan(roi_feats.data.cpu().numpy()).any():
-            print("after", np.isnan(self.roi_fc.weight.data.cpu().numpy()).any(), np.isnan(self.roi_fc.bias.data.cpu().numpy()).any(), np.isnan(roi_feats.data.cpu().numpy()).any())
+            print("after", np.isnan(self.roi_fc.weight.data.cpu().numpy()).any(), np.isnan(self.roi_fc.bias.data.cpu().numpy()).any(), 
+                  np.isnan(roi_feats.data.cpu().numpy()).any())
             import pdb; pdb.set_trace()
 
         # compute mask
@@ -132,7 +133,7 @@ class ROI_Relation(nn.Module):
         rois_attn_mask = torch.gt(rois_attn_mask + rois_attn_mask.transpose(1, 2), 0)
         # use rank embedding
         rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2])
-        enc_output = F.relu(self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats)
+        enc_output = self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats
         # enc_output = roi_feats
 
         enc_output, _ = self.slf_attn(
