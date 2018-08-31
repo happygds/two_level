@@ -104,14 +104,14 @@ class ROI_Relation(nn.Module):
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         inner_feats = self.roi_pool(features.transpose(1, 2), rois)
-        feat_len = features.size(1) - 1.
+        feat_len = features.size(1)
         start_rois_, end_rois_, rois = start_rois.clamp(0., feat_len), end_rois.clamp(0., feat_len), rois.clamp(0., feat_len)
-        start_ratio = (start_rois_[:, :, 2] - start_rois_[:, :, 1]) / (start_rois[:, :, 2] - start_rois[:, :, 1]).clamp(1e-3)
-        start_ratio = start_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
-        start_feats = self.start_pool(features.transpose(1, 2), start_rois_) * start_ratio.unsqueeze(2)
-        end_ratio = (end_rois_[:, :, 2] - end_rois_[:, :, 1]) / (end_rois[:, :, 2] - end_rois[:, :, 1]).clamp(1e-3)
-        end_ratio = end_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
-        end_feats = self.end_pool(features.transpose(1, 2), end_rois_) * end_ratio.unsqueeze(2)
+        # start_ratio = (start_rois_[:, :, 2] - start_rois_[:, :, 1]) / (start_rois[:, :, 2] - start_rois[:, :, 1]).clamp(1e-3)
+        # start_ratio = start_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
+        start_feats = self.start_pool(features.transpose(1, 2), start_rois)
+        # end_ratio = (end_rois_[:, :, 2] - end_rois_[:, :, 1]) / (end_rois[:, :, 2] - end_rois[:, :, 1]).clamp(1e-3)
+        # end_ratio = end_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
+        end_feats = self.end_pool(features.transpose(1, 2), end_rois)
         inner_mean = inner_feats.mean(dim=3, keepdim=True)
         roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=3)
         roi_feat_size = roi_feats.size()
@@ -122,7 +122,7 @@ class ROI_Relation(nn.Module):
         if np.isnan(roi_feats.data.cpu().numpy()).any():
             print("here")
             import pdb; pdb.set_trace()
-        roi_feats = F.relu(self.roi_fc(roi_feats))
+        roi_feats = F.selu(self.roi_fc(roi_feats))
         if np.isnan(roi_feats.data.cpu().numpy()).any():
             tmp = roi_feats_before.data.cpu().numpy()
             print("before", tmp.std(), tmp.mean())
