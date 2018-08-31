@@ -122,8 +122,8 @@ class ROI_Relation(nn.Module):
         roi_feats = self.roi_fc(roi_feats)
         if np.isnan(roi_feats.data.cpu().numpy()).any():
             tmp = np.argmax(np.isnan(roi_feats.data.cpu().numpy().sum(2)[0]))
-            x = inner_feats[0][tmp]
-            print(x[:, 0], x[:, 1], x[:, 2], rois, tmp, feat_len)
+            x = roi_feats[0][tmp]
+            print(x, rois, tmp, feat_len)
             import pdb; pdb.set_trace()
 
         # compute mask
