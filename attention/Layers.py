@@ -128,7 +128,7 @@ class ROI_Relation(nn.Module):
         rois_attn_mask = torch.gt(rois_attn_mask + rois_attn_mask.transpose(1, 2), 0)
         # use rank embedding
         rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2])
-        enc_output = self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats
+        enc_output = F.relu(self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats)
         # enc_output = roi_feats
 
         enc_output, _ = self.slf_attn(
