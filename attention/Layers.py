@@ -121,7 +121,7 @@ class ROI_Relation(nn.Module):
         roi_feats_before = roi_feats
         if np.isnan(roi_feats.data.cpu().numpy()).any():
             print("here")
-            import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         roi_feats = F.selu(self.roi_fc(roi_feats))
         if np.isnan(roi_feats.data.cpu().numpy()).any():
             tmp = roi_feats_before.data.cpu().numpy()
