@@ -79,24 +79,24 @@ class CE_Criterion(nn.Module):
         self.use_weight = use_weight
 
     def forward(self, input, target, mask):
-        # if self.use_weight:
-        #     # target = convert_categorical(target.cpu().numpy(), n_classes=2)
-        #     # target = torch.from_numpy(target).cuda().requires_grad_(False)
-        #     target *= mask.unsqueeze(2)
-        #     # cls_weight = 1. / target.mean(0).mean(0)
-        #     weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
-        #     weight = 0.5 / weight.clamp(eps)
+        if self.use_weight:
+            # target = convert_categorical(target.cpu().numpy(), n_classes=2)
+            # target = torch.from_numpy(target).cuda().requires_grad_(False)
+            target *= mask.unsqueeze(2)
+            # cls_weight = 1. / target.mean(0).mean(0)
+            weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
+            weight = 0.5 / weight.clamp(eps)
 
-        # output = - target * torch.log(input.clamp(eps))
-        # if self.use_weight:
-        #     output *= weight.unsqueeze(1)
-        #     output = torch.sum(output.mean(2) * mask, dim=1) / \
-        #         torch.sum(mask, dim=1).clamp(eps)
-        #     output = torch.mean(output)
+        output = - target * torch.log(input.clamp(eps))
+        if self.use_weight:
+            output *= weight.unsqueeze(1)
+            output = torch.sum(output.mean(2) * mask, dim=1) / \
+                torch.sum(mask, dim=1).clamp(eps)
+            output = torch.mean(output)
 
-        x, y = input[:, :, 1], target[:, :, 1]
-        output = F.smooth_l1_loss(x, y, reduce=False)
-        output = torch.sum(output * mask, dim=1) / torch.sum(mask, dim=1).clamp(eps)
+        # x, y = input[:, :, 1], target[:, :, 1]
+        # output = F.smooth_l1_loss(x, y, reduce=False)
+        # output = torch.sum(output * mask, dim=1) / torch.sum(mask, dim=1).clamp(eps)
         return output.mean()
 
 
