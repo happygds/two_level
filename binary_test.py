@@ -127,7 +127,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     net.cuda()
     while True:
         index = index_queue.get()
-        feature, feature_mask, num_feat, pos_ind = dataset[index]
+        feature, feature_mask, num_feat, pos_ind, _ = dataset[index]
         feature = feature.cuda()
         feature_mask = feature_mask.cuda()
         pos_ind = pos_ind.cuda()
@@ -137,7 +137,24 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
             outputs = [rois, actness, roi_scores]
 
         result_queue.put((dataset.video_list[index].id.split('/')[-1], outputs))
-        
+
+def process(loader, state_dict, net):
+    torch.cuda.set_device(0)
+    net.load_state_dict(state_dict)
+    net.eval()
+    net.cuda()
+    result = {}
+    for i, (feature, feature_mask, num_feat, pos_ind, video_id) in enumerate(loader):
+        with torch.no_grad():
+        feature = feature.cuda()
+        feature_mask = feature_mask.cuda()
+        pos_ind = pos_ind.cuda()
+        with torch.no_grad():
+            rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
+            rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
+            outputs = [rois, actness, roi_scores]
+            result[video_id] = outputs
+    return result
 
 
 if __name__ == '__main__':
@@ -151,39 +168,49 @@ if __name__ == '__main__':
     base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint['state_dict'].items())}
     db = ANetDB.get_db("1.3")
     val_videos = db.get_subset_videos(args.subset)
-    dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos, 
-                            exclude_empty=True, body_seg=args.num_body_segments,
-                            input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow, 
-                            test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
+    loader = torch.utils.data.DataLoader(
+        BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, val_videos,
+                      exclude_empty=True, body_seg=args.num_body_segments,
+                      input_dim=args.d_model, prop_per_video=args.prop_per_video,
+                      fg_ratio=6, bg_ratio=6, num_local=args.num_local, use_flow=args.use_flow),
+        batch_size=1, shuffle=False,
+        num_workers=8, pin_memory=pin_memory)
 
-    index_queue = ctx.Queue()
-    result_queue = ctx.Queue()
-    workers = [ctx.Process(target=runner_func, args=(dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue))
-               for i in range(args.workers)]
+    out_dict = process(loader, base_dict, net)
 
-    del net
+    # dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos, 
+    #                         exclude_empty=True, body_seg=args.num_body_segments,
+    #                         input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow, 
+    #                         test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
 
-    max_num = args.max_num if args.max_num > 0 else len(dataset)
+    # index_queue = ctx.Queue()
+    # result_queue = ctx.Queue()
+    # workers = [ctx.Process(target=runner_func, args=(dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue))
+    #            for i in range(args.workers)]
 
+    # del net
 
-    for i in range(max_num):
-        index_queue.put(i)
-
-
-    for w in workers:
-        w.daemon = True
-        w.start()
+    # max_num = args.max_num if args.max_num > 0 else len(dataset)
 
 
-    proc_start_time = time.time()
-    out_dict = {}
-    for i in range(max_num):
-        rst = result_queue.get()
-        out_dict[rst[0]] = rst[1] 
-        cnt_time = time.time() - proc_start_time
-        # print('video {} done, total {}/{}, average {:.04f} sec/video'.format(i, i + 1,
-        #                                                                 max_num,
-        #                                                                 float(cnt_time) / (i+1)))
+    # for i in range(max_num):
+    #     index_queue.put(i)
+
+
+    # for w in workers:
+    #     w.daemon = True
+    #     w.start()
+
+
+    # proc_start_time = time.time()
+    # out_dict = {}
+    # for i in range(max_num):
+    #     rst = result_queue.get()
+    #     out_dict[rst[0]] = rst[1] 
+    #     cnt_time = time.time() - proc_start_time
+    #     # print('video {} done, total {}/{}, average {:.04f} sec/video'.format(i, i + 1,
+    #     #                                                                 max_num,
+    #     #                                                                 float(cnt_time) / (i+1)))
     if args.save_scores is not None:
         save_dict = {k: v for k,v in out_dict.items()}
         import pickle
