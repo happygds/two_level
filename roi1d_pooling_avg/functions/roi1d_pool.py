@@ -19,6 +19,8 @@ class RoI1DPoolFunction(Function):
 
         output = output.cuda()
         print(features.size(), rois.size(), self.pooled_depth)
+        if self.pooled_depth < 1:
+            import pdb; pdb.set_trace()
         roi1d_pooling.roi1d_pooling_forward_cuda(self.pooled_depth, self.temporal_scale, features, rois, output)
         # output.data.masked_fill_(torch.isnan(output), 0)
         self.rois = rois
