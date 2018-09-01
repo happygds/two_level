@@ -30,16 +30,15 @@ __global__ void ROI1DPoolForward(const int nthreads, const float* bottom_data,
         // [start, end) interval for spatial sampling
         bottom_rois += n * 3;
         int roi_batch_ind = bottom_rois[0];
-        if (roi_batch_ind != roi_b)
-        {
-            printf(roi_b, bottom_rois);
-            printf("roi_batch_ind is not right !!!\n");
-            return;
-        }
-
         // int roi_batch_ind = n / num_rois;
         int roi_start_d = round(bottom_rois[1] * temporal_scale);
         int roi_end_d = round(bottom_rois[2] * temporal_scale) - 1;
+        if (roi_batch_ind != roi_b)
+        {
+            printf(roi_b, roi_batch_ind, roi_start_d, roi_end_d);
+            printf("roi_batch_ind is not right !!!\n");
+            return;
+        }
 
         // Force malformed ROIs to be 1x1
         int roi_depth = max(roi_end_d - roi_start_d + 1, 1);
