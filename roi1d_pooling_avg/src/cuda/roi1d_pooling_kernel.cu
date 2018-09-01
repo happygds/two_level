@@ -33,10 +33,10 @@ __global__ void ROI1DPoolForward(const int nthreads, const float* bottom_data,
         // int roi_batch_ind = n / num_rois;
         int roi_start_d = round(bottom_rois[1] * temporal_scale);
         int roi_end_d = round(bottom_rois[2] * temporal_scale) - 1;
-        if (roi_batch_ind != roi_b && c == 128)
+        if (roi_batch_ind != roi_b && c == 128 && pooled_depth < 1)
         {
-            // printf("n=%d, channels=%d, c=%d, num_rois=%d, index=%d, roi_batch_ind=%d, roi_b=%d, roi_start_d=%d, roi_end_d=%d, pooled_depth=%f\n", 
-            //         n, channels, c, num_rois, index, roi_b, roi_batch_ind, roi_start_d, roi_end_d, pooled_depth);
+            printf("n=%d, channels=%d, c=%d, num_rois=%d, index=%d, roi_batch_ind=%d, roi_b=%d, roi_start_d=%d, roi_end_d=%d, pooled_depth=%f\n", 
+                    n, channels, c, num_rois, index, roi_b, roi_batch_ind, roi_start_d, roi_end_d, pooled_depth);
             return;
         }
 
@@ -83,8 +83,6 @@ int ROI1DPoolForwardLaucher(
     const int kThreadsPerBlock = 1024;
     const int output_size = batch_size * num_rois * pooled_depth * channels;
     cudaError_t err;
-
-    printf("pooled_depth=%d\n", pooled_depth);
 
     ROI1DPoolForward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock, 0, stream>>>(
       output_size, bottom_data, temporal_scale, num_rois, depth, channels,
