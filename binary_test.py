@@ -145,9 +145,9 @@ def process(loader, state_dict, net):
     net.cuda()
     result = {}
     for i, (feature, feature_mask, num_feat, pos_ind, video_id) in enumerate(loader):
-        feature = feature.cuda()
-        feature_mask = feature_mask.cuda()
-        pos_ind = pos_ind.cuda()
+        feature = feature[0].cuda()
+        feature_mask = feature_mask[0].cuda()
+        pos_ind = pos_ind[0].cuda()
         with torch.no_grad():
             rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
