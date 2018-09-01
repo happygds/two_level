@@ -36,7 +36,7 @@ __global__ void ROI1DPoolForward(const int nthreads, const float* bottom_data,
         if (c == 128 && pd == 0)
         {
             printf("n=%d, channels=%d, c=%d, num_rois=%d, index=%d, roi_batch_ind=%d, roi_b=%d, roi_start_d=%d, roi_end_d=%d, pooled_depth=%d, *bottom_rois=%f\n", 
-                    n, channels, c, num_rois, index, roi_b, roi_batch_ind, roi_start_d, roi_end_d, pooled_depth, *bottom_rois);
+                    n, channels, c, num_rois, index, roi_batch_ind, roi_b, roi_start_d, roi_end_d, pooled_depth, *bottom_rois);
             return;
         }
 
