@@ -84,8 +84,7 @@ int ROI1DPoolForwardLaucher(
     const int output_size = batch_size * num_rois * pooled_depth * channels;
     cudaError_t err;
 
-    printf("pooled_depth=%d\n", pooled_depth)
-
+    printf("pooled_depth=%d\n", pooled_depth);
 
     ROI1DPoolForward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock, 0, stream>>>(
       output_size, bottom_data, temporal_scale, num_rois, depth, channels,
