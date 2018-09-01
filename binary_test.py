@@ -145,7 +145,6 @@ def process(loader, state_dict, net):
     net.cuda()
     result = {}
     for i, (feature, feature_mask, num_feat, pos_ind, video_id) in enumerate(loader):
-        with torch.no_grad():
         feature = feature.cuda()
         feature_mask = feature_mask.cuda()
         pos_ind = pos_ind.cuda()
