@@ -35,8 +35,7 @@ __global__ void ROI1DPoolForward(const int nthreads, const float* bottom_data,
         int roi_end_d = round(bottom_rois[2] * temporal_scale) - 1;
         if (roi_batch_ind != roi_b)
         {
-            printf(roi_b, roi_batch_ind, roi_start_d, roi_end_d);
-            printf("roi_batch_ind is not right !!!\n");
+            printf("roi_batch_ind=%d, roi_b=%d, roi_start_d=%d, roi_end_d=%d\n", roi_b, roi_batch_ind, roi_start_d, roi_end_d);
             return;
         }
 
