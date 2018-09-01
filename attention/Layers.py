@@ -91,7 +91,8 @@ class ROI_Relation(nn.Module):
         self.roi_pool = RoI1DPool(roipool_size, 1.)
         start_pool_size = 1
         self.start_pool_size = start_pool_size
-        self.start_pool, self.end_pool = RoI1DPool(start_pool_size, 1.), RoI1DPool(start_pool_size, 1.)
+        self.start_pool = RoI1DPool(start_pool_size, 1.)
+        self.end_pool = RoI1DPool(start_pool_size, 1.)
         self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
         # self.layer_norm = nn.LayerNorm(d_model)
 
