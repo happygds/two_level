@@ -11,23 +11,3 @@ class RoI1DPool(Module):
 
     def forward(self, features, rois):
         return RoI1DPoolFunction(self.pooled_depth, self.temporal_scale)(features, rois)
-
-class Start_RoI1DPool(Module):
-    def __init__(self, pooled_depth, temporal_scale):
-        super(Start_RoI1DPool, self).__init__()
-
-        self.pooled_depth = int(pooled_depth)
-        self.temporal_scale = float(temporal_scale)
-
-    def forward(self, features, rois):
-        return RoI1DPoolFunction(self.pooled_depth, self.temporal_scale)(features, rois)
-
-class End_RoI1DPool(Module):
-    def __init__(self, pooled_depth, temporal_scale):
-        super(End_RoI1DPool, self).__init__()
-
-        self.pooled_depth = int(pooled_depth)
-        self.temporal_scale = float(temporal_scale)
-
-    def forward(self, features, rois):
-        return RoI1DPoolFunction(self.pooled_depth, self.temporal_scale)(features, rois)

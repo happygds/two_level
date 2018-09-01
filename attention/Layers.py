@@ -7,7 +7,7 @@ import numpy as np
 # from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
 from .utils import rank_embedding
-from roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool, Start_RoI1DPool, End_RoI1DPool
+from roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool
 
 
 class EncoderLayer(nn.Module):
@@ -91,8 +91,8 @@ class ROI_Relation(nn.Module):
         self.roi_pool = RoI1DPool(roipool_size, 1.)
         start_pool_size = 1
         self.start_pool_size = start_pool_size
-        self.start_pool = Start_RoI1DPool(start_pool_size, 1.)
-        self.end_pool = End_RoI1DPool(start_pool_size, 1.)
+        self.start_pool = RoI1DPool(start_pool_size, 1.)
+        self.end_pool = RoI1DPool(start_pool_size, 1.)
         self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
         # self.layer_norm = nn.LayerNorm(d_model)
 
