@@ -174,7 +174,7 @@ if __name__ == '__main__':
                       input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow, 
                       test_interval=args.frame_interval, verbose=False, num_local=args.num_local),
         batch_size=1, shuffle=False,
-        num_workers=8, pin_memory=pin_memory)
+        num_workers=8, pin_memory=True)
     out_dict = process(loader, base_dict, net)
 
     # dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos, 
