@@ -24,7 +24,7 @@ class Start_RoI1DPool(Module):
 
 class End_RoI1DPool(Module):
     def __init__(self, pooled_depth, temporal_scale):
-        super(Start_RoI1DPool, self).__init__()
+        super(End_RoI1DPool, self).__init__()
 
         self.pooled_depth = int(pooled_depth)
         self.temporal_scale = float(temporal_scale)
