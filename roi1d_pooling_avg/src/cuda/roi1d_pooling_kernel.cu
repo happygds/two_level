@@ -158,7 +158,7 @@ int ROI1DPoolBackwardLaucher(const float* top_diff, const float temporal_scale,
     const float* bottom_rois, float* bottom_diff, cudaStream_t stream)
 {
     const int kThreadsPerBlock = 1024;
-    const int output_size = batch_size * depth * channels;
+    const int output_size = batch_size * num_rois * pooled_depth * channels;
     cudaError_t err;
 
     ROI1DPoolBackward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock, 0, stream>>>(
