@@ -109,6 +109,7 @@ class ROI_Relation(nn.Module):
         # start_ratio = (start_rois_[:, :, 2] - start_rois_[:, :, 1]) / (start_rois[:, :, 2] - start_rois[:, :, 1]).clamp(1e-3)
         # start_ratio = start_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
         start_feats = self.start_pool(features.transpose(1, 2), start_rois)
+        import pdb; pdb.set_trace()
         # end_ratio = (end_rois_[:, :, 2] - end_rois_[:, :, 1]) / (end_rois[:, :, 2] - end_rois[:, :, 1]).clamp(1e-3)
         # end_ratio = end_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
         end_feats = self.end_pool(features.transpose(1, 2), end_rois)
