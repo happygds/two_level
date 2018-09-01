@@ -33,7 +33,7 @@ __global__ void ROI1DPoolForward(const int nthreads, const float* bottom_data,
         if (roi_batch_ind != roi_b)
         {
             printf("roi_batch_ind is not right !!!\n");
-            return 0;
+            return;
         }
 
         // int roi_batch_ind = n / num_rois;
