@@ -7,7 +7,7 @@ import numpy as np
 # from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
 from .utils import rank_embedding
-from roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool
+from roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool, Start_RoI1DPool, End_RoI1DPool
 
 
 class EncoderLayer(nn.Module):
@@ -91,8 +91,8 @@ class ROI_Relation(nn.Module):
         self.roi_pool = RoI1DPool(roipool_size, 1.)
         start_pool_size = 1
         self.start_pool_size = start_pool_size
-        self.start_pool = RoI1DPool(start_pool_size, 1.)
-        self.end_pool = RoI1DPool(start_pool_size, 1.)
+        self.start_pool = Start_RoI1DPool(start_pool_size, 1.)
+        self.end_pool = End_RoI1DPool(start_pool_size, 1.)
         self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
         # self.layer_norm = nn.LayerNorm(d_model)
 
@@ -107,7 +107,6 @@ class ROI_Relation(nn.Module):
         features = features.transpose(1, 2)
         inner_feats = self.roi_pool(features, rois)
         feat_len = features.size(1)
-        start_rois_, end_rois_, rois = start_rois.clamp(0., feat_len), end_rois.clamp(0., feat_len), rois.clamp(0., feat_len)
         # start_ratio = (start_rois_[:, :, 2] - start_rois_[:, :, 1]) / (start_rois[:, :, 2] - start_rois[:, :, 1]).clamp(1e-3)
         # start_ratio = start_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
         start_feats = self.start_pool(features, start_rois)
