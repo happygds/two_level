@@ -167,14 +167,14 @@ if __name__ == '__main__':
     base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint['state_dict'].items())}
     db = ANetDB.get_db("1.3")
     val_videos = db.get_subset_videos(args.subset)
+
     loader = torch.utils.data.DataLoader(
-        BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, val_videos,
+        BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos, 
                       exclude_empty=True, body_seg=args.num_body_segments,
-                      input_dim=args.d_model, prop_per_video=args.prop_per_video,
-                      fg_ratio=6, bg_ratio=6, num_local=args.num_local, use_flow=args.use_flow),
+                      input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow, 
+                      test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
         batch_size=1, shuffle=False,
         num_workers=8, pin_memory=pin_memory)
-
     out_dict = process(loader, base_dict, net)
 
     # dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos, 
