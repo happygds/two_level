@@ -8,6 +8,7 @@ import numpy as np
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
 from .utils import rank_embedding
 from roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool
+from broi1d_pooling_avg.modules.broi1d_pool import BRoI1DPool
 
 
 class EncoderLayer(nn.Module):
@@ -88,11 +89,8 @@ class ROI_Relation(nn.Module):
     def __init__(self, d_model, roipool_size, d_inner_hid, n_head, 
                  d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
         super(ROI_Relation, self).__init__()
-        self.roi_pool = RoI1DPool(roipool_size, 1.)
         start_pool_size = 1
-        self.start_pool_size = start_pool_size
-        self.start_pool = RoI1DPool(start_pool_size, 1.)
-        self.end_pool = RoI1DPool(start_pool_size, 1.)
+        self.roi_pool = RoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
         self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
         # self.layer_norm = nn.LayerNorm(d_model)
 
@@ -105,20 +103,8 @@ class ROI_Relation(nn.Module):
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         features = features.transpose(1, 2)
-        inner_feats = self.roi_pool(features, rois)
-        feat_len = features.size(1)
-        # start_ratio = (start_rois_[:, :, 2] - start_rois_[:, :, 1]) / (start_rois[:, :, 2] - start_rois[:, :, 1]).clamp(1e-3)
-        # start_ratio = start_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
-        start_feats = self.start_pool(features, start_rois)
+        roi_feats = self.roi_pool(features, rois)
         import pdb; pdb.set_trace()
-        # end_ratio = (end_rois_[:, :, 2] - end_rois_[:, :, 1]) / (end_rois[:, :, 2] - end_rois[:, :, 1]).clamp(1e-3)
-        # end_ratio = end_ratio.unsqueeze(2).float() * (torch.arange(self.start_pool_size).view((1, 1, -1)).float().cuda().requires_grad_(False) + 1)
-        end_feats = self.end_pool(features, end_rois)
-        inner_mean = inner_feats.mean(dim=3, keepdim=True)
-        roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=3)
-        roi_feat_size = roi_feats.size()
-        roi_feats = (roi_feats - inner_mean).view(roi_feat_size[:2]+(-1,))
-        # roi_feats = self.layer_norm(roi_feats)
 
         roi_feats_before = roi_feats
         if np.isnan(roi_feats.data.cpu().numpy()).any():
