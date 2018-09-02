@@ -53,7 +53,6 @@ __global__ void BROI1DPoolForward(
         else
         {
             printf(" pd is not right !!!");
-            exit(-1);
             return;
         }
         int roi_start_d = round(roi_start);
@@ -171,7 +170,7 @@ __global__ void BROI1DPoolBackward(
         else
         {
             printf(" pd is not right !!!");
-            exit(-1);
+            return;
         }
         int roi_start_d = round(roi_start);
         int roi_end_d = round(roi_end);
@@ -180,7 +179,7 @@ __global__ void BROI1DPoolBackward(
             if (roi_batch_ind != roi_b)
             {
                 printf("roi_batch_ind is not right !!!\n");
-                exit( -1 );
+                return;
             }
     
             // Force malformed ROIs to be 1x1
