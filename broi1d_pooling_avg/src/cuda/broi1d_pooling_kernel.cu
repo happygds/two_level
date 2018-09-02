@@ -37,19 +37,19 @@ __global__ void BROI1DPoolForward(
         // if pd in [0, start_pooled_depth)
         if (pd < start_pooled_depth)
         {
-            int roi_start = round(roi_start - bratio*roi_dura);
-            int roi_end = round(roi_start + bratio*roi_dura);
+            float roi_start = round(roi_start - bratio*roi_dura);
+            float roi_end = round(roi_start + bratio*roi_dura);
         }
         else if (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
         {
-            int roi_start = round(roi_start);
-            int roi_end = round(roi_end);
+            float roi_start = round(roi_start);
+            float roi_end = round(roi_end);
             pd = pd - start_pooled_depth;
         }
         else if (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
         {
-            int roi_start = round(roi_end - bratio*roi_dura);
-            int roi_end = round(roi_end + bratio*roi_dura);
+            float roi_start = round(roi_end - bratio*roi_dura);
+            float roi_end = round(roi_end + bratio*roi_dura);
             pd = pd - start_pooled_depth - pooled_depth;
         }
         else
@@ -58,8 +58,8 @@ __global__ void BROI1DPoolForward(
             exit(-1);
             return;
         }
-        int roi_start_d = roi_start;
-        int roi_end_d = roi_end;
+        int roi_start_d = round(roi_start);
+        int roi_end_d = round(roi_end);
         if (roi_end_d > roi_start_d)
         {   
             if (roi_b != roi_batch_ind)
@@ -157,19 +157,19 @@ __global__ void BROI1DPoolBackward(
         // if pd in [0, start_pooled_depth)
         if (pd < start_pooled_depth)
         {
-            int roi_start = round(roi_start - bratio*roi_dura);
-            int roi_end = round(roi_start + bratio*roi_dura);
+            float roi_start = round(roi_start - bratio*roi_dura);
+            float roi_end = round(roi_start + bratio*roi_dura);
         }
         else if (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
         {
-            int roi_start = round(roi_start);
-            int roi_end = round(roi_end);
+            float roi_start = round(roi_start);
+            float roi_end = round(roi_end);
             pd = pd - start_pooled_depth;
         }
         else if (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
         {
-            int roi_start = round(roi_end - bratio*roi_dura);
-            int roi_end = round(roi_end + bratio*roi_dura);
+            float roi_start = round(roi_end - bratio*roi_dura);
+            float roi_end = round(roi_end + bratio*roi_dura);
             pd = pd - start_pooled_depth - pooled_depth;
         }
         else
@@ -177,8 +177,8 @@ __global__ void BROI1DPoolBackward(
             printf(" pd is not right !!!");
             exit(-1);
         }
-        int roi_start_d = roi_start;
-        int roi_end_d = roi_end;
+        int roi_start_d = round(roi_start);
+        int roi_end_d = round(roi_end);
         if (roi_end_d > roi_start_d)
         {
             if (roi_batch_ind != roi_b)
