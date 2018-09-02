@@ -64,7 +64,6 @@ __global__ void BROI1DPoolForward(
                 printf("n=%d, channels=%d, c=%d, num_rois=%d, index=%d, roi_batch_ind=%d, roi_b=%d,\
                 roi_start_d=%d, roi_end_d=%d, pooled_depth=%d, *bottom_rois=%f\n", 
                 n, channels, c, num_rois, index, roi_batch_ind, roi_b, roi_start_d, roi_end_d, pooled_depth, *bottom_rois);
-                exit(-1);
                 return;
             }
     
