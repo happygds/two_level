@@ -90,7 +90,7 @@ class ROI_Relation(nn.Module):
                  d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
         super(ROI_Relation, self).__init__()
         start_pool_size = 1
-        self.roi_pool = RoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
+        self.roi_pool = BRoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
         self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
         # self.layer_norm = nn.LayerNorm(d_model)
 
