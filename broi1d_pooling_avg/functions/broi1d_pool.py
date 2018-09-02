@@ -23,7 +23,6 @@ class BRoI1DPoolFunction(Function):
         output = output.cuda()
         broi1d_pooling.broi1d_pooling_forward_cuda(self.pooled_depth, self.temporal_scale, self.start_pooled_depth, 
                                                    self.end_pooled_depth, self.bratio, features, rois, output)
-        import pdb; pdb.set_trace()
         # output.data.masked_fill_(torch.isnan(output), 0)
         self.rois = rois
         self.feature_size = features.size()
