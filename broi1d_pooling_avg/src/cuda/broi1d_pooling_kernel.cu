@@ -40,13 +40,13 @@ __global__ void BROI1DPoolForward(
             int roi_start_d = round(roi_start - bratio*roi_dura);
             int roi_end_d = round(roi_start + bratio*roi_dura);
         }
-        elif (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
+        else if (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
         {
             int roi_start_d = round(roi_start);
             int roi_end_d = round(roi_end);
             pd = pd - start_pooled_depth;
         }
-        elif (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
+        else if (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
         {
             int roi_start_d = round(roi_end - bratio*roi_dura);
             int roi_end_d = round(roi_end + bratio*roi_dura);
@@ -158,13 +158,13 @@ __global__ void BROI1DPoolBackward(
             int roi_start_d = round(roi_start - bratio*roi_dura);
             int roi_end_d = round(roi_start + bratio*roi_dura);
         }
-        elif (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
+        else if (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
         {
             int roi_start_d = round(roi_start);
             int roi_end_d = round(roi_end);
             pd = pd - start_pooled_depth;
         }
-        elif (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
+        else if (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
         {
             int roi_start_d = round(roi_end - bratio*roi_dura);
             int roi_end_d = round(roi_end + bratio*roi_dura);
