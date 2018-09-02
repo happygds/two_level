@@ -54,6 +54,8 @@ __global__ void BROI1DPoolForward(
         }
         else
         {
+            int roi_start_d = round(roi_start);
+            int roi_end_d = round(roi_end);
             printf(" pd is not right !!!");
             exit(-1);
             return;
@@ -172,6 +174,8 @@ __global__ void BROI1DPoolBackward(
         }
         else
         {
+            int roi_start_d = round(roi_start);
+            int roi_end_d = round(roi_end);
             printf(" pd is not right !!!");
             exit(-1);
         }
