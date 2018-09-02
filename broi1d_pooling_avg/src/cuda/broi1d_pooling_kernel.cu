@@ -177,8 +177,8 @@ __global__ void BROI1DPoolBackward(
             printf(" pd is not right !!!");
             exit(-1);
         }
-        int roi_start_d = round(roi_start);
-        int roi_end_d = round(roi_end);
+        int roi_start_d = roi_start;
+        int roi_end_d = roi_end;
         if (roi_end_d > roi_start_d)
         {
             if (roi_batch_ind != roi_b)
