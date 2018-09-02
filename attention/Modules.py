@@ -91,7 +91,7 @@ class ScaledDotProductAttention(nn.Module):
             attn = torch.exp(attn - attn_max)
             attn.data.masked_fill_(attn_mask, 0)
             attn = attn_pos_emb * attn
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
         else:
             raise NotImplementedError()
 
@@ -176,7 +176,6 @@ class MultiHeadAttention(nn.Module):
         if self.kernel_type == 'roi_remov':
             attn_pos_emb = attn_pos_emb.view(n_head, -1, d_model)
             attn_pos_emb = F.relu((torch.bmm(attn_pos_emb, self.w_rs) + self.b_rs).view(-1, len_q, len_k))
-            import pdb; pdb.set_trace()
         # treat as a (n_head) size batch
         # n_head x (mb_size*len_q) x d_model
         q_s = q.repeat(n_head, 1, 1).view(n_head, -1, d_model)
@@ -208,7 +207,8 @@ class MultiHeadAttention(nn.Module):
         outputs, attns = self.attention(q_s, k_s, v_s, attn_mask=attn_mask, attn_pos_emb=attn_pos_emb)
 
         # back to original mb_size batch, result size = mb_size x len_v x (n_head*d_v)
-        # outputs = outputs - v_s
+        if self.kernel_type == 'roi_remov':
+            outputs = outputs - v_s
         outputs = torch.cat(torch.split(outputs, mb_size, dim=0), dim=-1)
         # (n_head*mb_size) x len_q x len_k -> mb_size x n_head x len_q x len_k
         attns = [x.unsqueeze(1) for x in torch.split(attns, mb_size, dim=0)]

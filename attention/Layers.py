@@ -118,7 +118,7 @@ class ROI_Relation(nn.Module):
             tmp = roi_feats.data.cpu().numpy()
             print("after", np.isnan(self.roi_fc.weight.data.cpu().numpy()).any(), np.isnan(self.roi_fc.bias.data.cpu().numpy()).any(), 
                   np.isnan(roi_feats.data.cpu().numpy()).any(), tmp.std(), tmp.mean())
-        import pdb; pdb.set_trace()
+            import pdb; pdb.set_trace()
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
