@@ -182,7 +182,7 @@ __global__ void BROI1DPoolBackward(
             }
     
             // Force malformed ROIs to be 1x1
-            int roi_depth = max(roi_end_d - roi_start_d + 1, 1);
+            int roi_depth = max(roi_end_d - roi_start_d, 1);
             float bin_size_d = (float)(roi_depth) / (float)(pooled_depth);
     
             int dstart = (int)(floor((float)(pd) * bin_size_d));
