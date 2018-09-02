@@ -104,6 +104,8 @@ class ROI_Relation(nn.Module):
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         features = features.transpose(1, 2)
         roi_feats = self.roi_pool(features, rois)
+        roi_feats_size = roi_feats.size()
+        roi_feats = roi_feats.view(roi_feats_size[:2]+(-1,))
         import pdb; pdb.set_trace()
 
         roi_feats_before = roi_feats
