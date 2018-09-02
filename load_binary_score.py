@@ -239,8 +239,8 @@ class BinaryDataSet(data.Dataset):
         # gts[:len(video.gts)] = video.gts
 
         num_feat = feat.shape[0]
-        if num_feat < 512:
-            feat = np.concatenate([feat, np.zeros((512-num_feat, feat.shape[1]), dtype='float32')], axis=0)
+        # if num_feat < 16:
+        #     feat = np.concatenate([feat, np.zeros((16-num_feat, feat.shape[1]), dtype='float32')], axis=0)
         feat_mask = (np.abs(feat).mean(axis=1) > 0.).astype('float32')
         out_feat = torch.from_numpy(np.expand_dims(feat, axis=0))
         out_mask = torch.from_numpy(np.expand_dims(feat_mask, axis=0))
