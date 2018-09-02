@@ -37,19 +37,17 @@ __global__ void BROI1DPoolForward(
         // if pd in [0, start_pooled_depth)
         if (pd < start_pooled_depth)
         {
-            float roi_start = round(roi_start - bratio*roi_dura);
-            float roi_end = round(roi_start + bratio*roi_dura);
+            roi_start = roi_start - bratio*roi_dura;
+            roi_end = roi_start + bratio*roi_dura;
         }
         else if (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
         {
-            float roi_start = round(roi_start);
-            float roi_end = round(roi_end);
             pd = pd - start_pooled_depth;
         }
         else if (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
         {
-            float roi_start = round(roi_end - bratio*roi_dura);
-            float roi_end = round(roi_end + bratio*roi_dura);
+            roi_start = roi_end - bratio*roi_dura;
+            roi_end = roi_end + bratio*roi_dura;
             pd = pd - start_pooled_depth - pooled_depth;
         }
         else
@@ -157,19 +155,17 @@ __global__ void BROI1DPoolBackward(
         // if pd in [0, start_pooled_depth)
         if (pd < start_pooled_depth)
         {
-            float roi_start = round(roi_start - bratio*roi_dura);
-            float roi_end = round(roi_start + bratio*roi_dura);
+            roi_start = roi_start - bratio*roi_dura;
+            roi_end = roi_start + bratio*roi_dura;
         }
         else if (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
         {
-            float roi_start = round(roi_start);
-            float roi_end = round(roi_end);
             pd = pd - start_pooled_depth;
         }
         else if (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
         {
-            float roi_start = round(roi_end - bratio*roi_dura);
-            float roi_end = round(roi_end + bratio*roi_dura);
+            roi_start = roi_end - bratio*roi_dura;
+            roi_end = roi_end + bratio*roi_dura;
             pd = pd - start_pooled_depth - pooled_depth;
         }
         else
