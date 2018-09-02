@@ -187,12 +187,12 @@ __global__ void BROI1DPoolBackward(
     
             int dstart = (int)(floor((float)(pd) * bin_size_d));
             int dend = (int)(ceil((float)(pd + 1) * bin_size_d));
-            float bin_area = max(dend - dstart, 1);
+            float bin_area = dend - dstart;
     
             // Add roi offsets and clip to input boundaries
             dstart = fminf(fmaxf(dstart + roi_start_d, 0), depth);
             dend = fminf(fmaxf(dend + roi_start_d, 0), depth);
-            bool is_empty = dend <= dstart || dend <= 0;
+            bool is_empty = dend <= dstart;
     
             // Compute c at bottom
             float* offset_bottom_diff = bottom_diff + (roi_batch_ind * channels + c) * depth;
