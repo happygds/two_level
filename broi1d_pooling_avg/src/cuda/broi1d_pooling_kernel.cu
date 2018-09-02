@@ -58,8 +58,8 @@ __global__ void BROI1DPoolForward(
             exit(-1);
             return;
         }
-        int roi_start_d = round(roi_start);
-        int roi_end_d = round(roi_end);
+        int roi_start_d = roi_start;
+        int roi_end_d = roi_end;
         if (roi_end_d > roi_start_d)
         {   
             if (roi_b != roi_batch_ind)
