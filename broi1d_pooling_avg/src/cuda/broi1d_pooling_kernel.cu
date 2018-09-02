@@ -33,7 +33,7 @@ __global__ void BROI1DPoolForward(
         // int roi_batch_ind = n / num_rois;
         float roi_start = bottom_rois[1] * temporal_scale;
         float roi_end = bottom_rois[2] * temporal_scale;
-        float roi_dura = roi_end - roi_start
+        float roi_dura = roi_end - roi_start;
         // if pd in [0, start_pooled_depth)
         if (pd < start_pooled_depth)
         {
@@ -56,6 +56,7 @@ __global__ void BROI1DPoolForward(
         {
             printf(" pd is not right !!!");
             exit(-1);
+            return;
         }
         if (roi_end_d > roi_start_d)
         {   
@@ -150,7 +151,7 @@ __global__ void BROI1DPoolBackward(
         // int roi_batch_ind = n / num_rois;
         float roi_start = bottom_rois[1] * temporal_scale;
         float roi_end = bottom_rois[2] * temporal_scale;
-        float roi_dura = roi_end - roi_start
+        float roi_dura = roi_end - roi_start;
         // if pd in [0, start_pooled_depth)
         if (pd < start_pooled_depth)
         {
