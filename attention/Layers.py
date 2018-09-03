@@ -91,8 +91,9 @@ class ROI_Relation(nn.Module):
         super(ROI_Relation, self).__init__()
         start_pool_size = 1
         self.roi_pool = BRoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
-        self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
-        # self.layer_norm = nn.LayerNorm(d_model)
+        # self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
+        self.roi_fc = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=0), nn.ReLU(),
+                                    nn.Conv1d(d_model, d_model, 3, padding=0))
 
         self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
@@ -105,20 +106,8 @@ class ROI_Relation(nn.Module):
         features = features.transpose(1, 2)
         roi_feats = self.roi_pool(features, rois)
         roi_feat_size = roi_feats.size()
-        roi_feats = roi_feats.view(roi_feat_size[:2]+(-1,))
-
-        roi_feats_before = roi_feats
-        if np.isnan(roi_feats.data.cpu().numpy()).any():
-            print("here")
-            import pdb; pdb.set_trace()
-        roi_feats = F.selu(self.roi_fc(roi_feats))
-        if np.isnan(roi_feats.data.cpu().numpy()).any():
-            tmp = roi_feats_before.data.cpu().numpy()
-            print("before", tmp.std(), tmp.mean())
-            tmp = roi_feats.data.cpu().numpy()
-            print("after", np.isnan(self.roi_fc.weight.data.cpu().numpy()).any(), np.isnan(self.roi_fc.bias.data.cpu().numpy()).any(), 
-                  np.isnan(roi_feats.data.cpu().numpy()).any(), tmp.std(), tmp.mean())
-            import pdb; pdb.set_trace()
+        roi_feats = roi_feats.view((-1,)+roi_feat_size[2:])
+        roi_feats = self.roi_fc(roi_feats).view(roi_feat_size[:2]+(-1,))
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
