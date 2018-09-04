@@ -95,6 +95,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
             if len(gt_k) == 0:
                 gt_k = [(0, 1)]
+            elif len(gt_k) >= 2:
+                import pdb; pdb.set_trace()
             gt_k, rois = np.asarray(gt_k), np.asarray(rois)
             rois_iou = wrapper_segment_iou(gt_k, rois)
             m, n = rois_iou.shape
