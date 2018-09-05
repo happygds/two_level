@@ -102,7 +102,7 @@ class CE_Criterion(nn.Module):
                 result = output.mean()
             else:
                 result += output.mean()
-            return result
+        return result / len(self.thres)
 
 
 def position_encoding_init(n_position, d_pos_vec):
