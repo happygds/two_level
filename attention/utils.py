@@ -83,7 +83,7 @@ class CE_Criterion(nn.Module):
         assert x.size(2) == len(self.thres)
         for i, thre in enumerate(self.thres):
             if self.use_weight:
-                target = torch.gt(y, thre)
+                target = torch.gt(y, thre).float()
                 target *= mask.unsqueeze(2)
                 # cls_weight = 1. / target.mean(0).mean(0)
                 weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
