@@ -77,7 +77,7 @@ class CE_Criterion(nn.Module):
     def __init__(self, use_weight=True):
         super(CE_Criterion, self).__init__()
         self.use_weight = use_weight
-        self.thres = [0.5, 0.6, 0.7, 0.8, 0.9]
+        self.thres = [0.5,]
 
     def forward(self, x, y, mask):
         assert x.size(2) == len(self.thres)
