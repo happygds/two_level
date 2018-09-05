@@ -77,27 +77,31 @@ class CE_Criterion(nn.Module):
     def __init__(self, use_weight=True):
         super(CE_Criterion, self).__init__()
         self.use_weight = use_weight
+        self.thres = [0.5, 0.6, 0.7, 0.8, 0.9]
 
-    def forward(self, input, target, mask):
-        if self.use_weight:
-            # target = convert_categorical(target.cpu().numpy(), n_classes=2)
-            # target = torch.from_numpy(target).cuda().requires_grad_(False)
-            target *= mask.unsqueeze(2)
-            # cls_weight = 1. / target.mean(0).mean(0)
-            weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
-            weight = 0.5 / weight.clamp(eps)
+    def forward(self, x, y, mask):
+        assert x.size(2) == len(self.thres)
+        for i, thre in enumerate(self.thres):
+            if self.use_weight:
+                target = torch.gt(y, thre)
+                target *= mask.unsqueeze(2)
+                # cls_weight = 1. / target.mean(0).mean(0)
+                weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
+                weight = 0.5 / weight.clamp(eps)
 
-        output = - target * torch.log(input.clamp(eps))
-        if self.use_weight:
-            output *= weight.unsqueeze(1)
-            output = torch.sum(output.mean(2) * mask, dim=1) / \
-                torch.sum(mask, dim=1).clamp(eps)
-            output = torch.mean(output)
+            input = x[:, :, i, :]
+            output = - target * torch.log(input.clamp(eps))
+            if self.use_weight:
+                output *= weight.unsqueeze(1)
+                output = torch.sum(output.mean(2) * mask, dim=1) / \
+                    torch.sum(mask, dim=1).clamp(eps)
+                output = torch.mean(output)
 
-        # x, y = input[:, :, 1], target[:, :, 1]
-        # output = F.smooth_l1_loss(x, y, reduce=False)
-        # output = torch.sum(output * mask, dim=1) / torch.sum(mask, dim=1).clamp(eps)
-        return output.mean()
+            if i == 0:
+                result = output.mean()
+            else:
+                result += output.mean()
+            return result
 
 
 def position_encoding_init(n_position, d_pos_vec):

@@ -46,7 +46,7 @@ class BinaryClassifier(torch.nn.Module):
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
-        self.roi_cls = nn.Sequential(nn.Linear(args.d_model, 2), nn.Softmax(dim=2))
+        self.roi_cls = nn.Linear(args.d_model, 10)
 
     def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
         # Word embedding look up
@@ -92,8 +92,9 @@ class BinaryClassifier(torch.nn.Module):
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
-        roi_scores = self.roi_cls(roi_feats)
-        import pdb; pdb.set_trace()
+        rois_size = rois.size()
+        roi_scores = F.softmax(self.roi_cls(roi_feats).view(rois_size[:2]+(5, 2)), dim=3)
+        # import pdb; pdb.set_trace()
 
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
