@@ -98,7 +98,7 @@ class ROI_Relation(nn.Module):
         self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
+            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type='self_attn')
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
 
