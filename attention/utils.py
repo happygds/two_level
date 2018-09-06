@@ -90,7 +90,7 @@ class CE_Criterion(nn.Module):
                 weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
                 weight = 0.5 / weight.clamp(eps)
 
-            input = x[:, :, i, :]
+            input = x
             output = - target * torch.log(input.clamp(eps))
             if self.use_weight:
                 output *= weight.unsqueeze(1)
