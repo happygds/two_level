@@ -87,7 +87,7 @@ class ROI_Relation(nn.Module):
     ''' Compose with two layers '''
 
     def __init__(self, d_model, roipool_size, d_inner_hid, n_head, 
-                 d_k, d_v, dropout=0.1, kernel_type='self_attn'):
+                 d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
         super(ROI_Relation, self).__init__()
         start_pool_size = 1
         self.roi_pool = BRoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
@@ -98,7 +98,7 @@ class ROI_Relation(nn.Module):
         self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type='self_attn')
+            n_head, d_model, d_k, d_v, dropout=dropout, kernel_type=kernel_type)
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner_hid, dropout=dropout)
 

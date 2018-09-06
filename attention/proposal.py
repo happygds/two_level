@@ -103,7 +103,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             for i in range(n):
                 rois_iou_i = rois_iou[:, i]
                 rois_iou[:, i] = (rois_iou_i == rois_iou_i.max()) * rois_iou_i
-            rois_iou = rois_iou.max(axis=1).reshape((-1, 1))
+            rois_iou = rois_iou.max(axis=1).reshape((-1, 1)) > 0.7
             # rois_iou = rois_iou.max(axis=1).reshape((-1, 1))
             rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
             labels[k, :len(bboxes), :] = rois_iou

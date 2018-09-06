@@ -77,32 +77,24 @@ class CE_Criterion(nn.Module):
     def __init__(self, use_weight=True):
         super(CE_Criterion, self).__init__()
         self.use_weight = use_weight
-        self.thres = [0.5,]
 
     def forward(self, x, y, mask):
-        assert x.size(2) == len(self.thres)
-        for i, thre in enumerate(self.thres):
-            if self.use_weight:
-                target = torch.gt(y[:, :, 1:], thre).float()
-                target = torch.cat([1.-target, target], dim=2)
-                target *= mask.unsqueeze(2)
-                # cls_weight = 1. / target.mean(0).mean(0)
-                weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
-                weight = 0.5 / weight.clamp(eps)
+        if self.use_weight:
+            target = y
+            target *= mask.unsqueeze(2)
+            # cls_weight = 1. / target.mean(0).mean(0)
+            weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
+            weight = 0.5 / weight.clamp(eps)
 
-            input = x
-            output = - target * torch.log(input.clamp(eps))
-            if self.use_weight:
-                output *= weight.unsqueeze(1)
-                output = torch.sum(output.mean(2) * mask, dim=1) / \
-                    torch.sum(mask, dim=1).clamp(eps)
-                output = torch.mean(output)
+        input = x
+        output = - target * torch.log(input.clamp(eps))
+        if self.use_weight:
+            output *= weight.unsqueeze(1)
+            output = torch.sum(output.mean(2) * mask, dim=1) / \
+                torch.sum(mask, dim=1).clamp(eps)
+            output = torch.mean(output)
 
-            if i == 0:
-                result = output.mean()
-            else:
-                result += output.mean()
-        return result / len(self.thres)
+        return output.mean()
 
 
 def position_encoding_init(n_position, d_pos_vec):
