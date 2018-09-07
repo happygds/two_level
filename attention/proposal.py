@@ -103,7 +103,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
                 tmp = rois_iou > iou_thre
                 # rois_iou = rois_iou.max(axis=1).reshape((-1, 1))
                 tmp = np.concatenate([1. - tmp, tmp], axis=1)
-                labels[k, :len(bboxes), i, :] = rois_iou
+                labels[k, :len(bboxes), i, :] = tmp
         else:
             actness[k, :len(bboxes)] = np.asarray([x[3] for x in bboxes])
     # compute mask
