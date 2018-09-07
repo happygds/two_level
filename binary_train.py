@@ -4,7 +4,6 @@ import math
 import time
 import shutil
 import torch
-import torchvision
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim
@@ -110,8 +109,6 @@ def main():
     #                             args.lr,
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay, nesterov=False)
-    criterion_stage1 = CE_Criterion_multi()
-    criterion_stage2 = CE_Criterion()
 
     if not os.path.exists(args.result_path):
         os.makedirs(args.result_path)
@@ -125,17 +122,25 @@ def main():
         save_path = save_path + '_loc' + str(args.num_local) + args.local_type
         if args.dilated_mask:
             save_path += '_dilated'
-    if args.n_cluster > 0:
-        save_path = save_path + '_C' + str(args.n_cluster)
     if args.multiscale > 1:
         save_path = save_path + '_S' + str(args.multiscale)
     if args.groupwise_heads > 0:
         save_path = save_path + '_G' + str(args.groupwise_heads)
     if args.roi_poolsize > 0:
         save_path = save_path + '_roi' + str(args.roi_poolsize)
+    if args.n_thres > 0:
+        save_path = save_path + '_T' + str(args.n_thres)
+        if args.n_thres == 1:
+            args.iou_thres == [0.5]
+        elif args.n_thres == 5:
+            args.iou_thres = [0.5, 0.6, 0.7, 0.8, 0.9]
+        else:
+            raise NotImplementedError("not implemented !")
     model_name = os.path.split(save_path)[1]
     logger = Logger('./logs/{}'.format(model_name))
     # model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
+    criterion_stage1 = CE_Criterion_multi(use_weight=True)
+    criterion_stage2 = CE_Criterion(use_weight=True, iou_thres=args.iou_thres)
 
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):

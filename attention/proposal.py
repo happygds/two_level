@@ -9,7 +9,7 @@ from ops.eval_utils import wrapper_segment_iou
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
-                   rpn_post_nms_top=64, feat_stride=16):
+                   rpn_post_nms_top=64, feat_stride=16, iou_thres=[0.5, 0.6, 0.7, 0.8, 0.9]):
     """
     Parameters
     ----------
@@ -34,7 +34,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         actness = np.zeros((batch_size, rpn_post_nms_top))
     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
-    labels = np.zeros((batch_size, rpn_post_nms_top, 2))
+    labels = np.zeros((batch_size, rpn_post_nms_top, len(iou_thres), 2))
 
     for k in range(batch_size):
         # the k-th sample
@@ -98,15 +98,12 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             # elif len(gt_k) >= 2:
             #     import pdb; pdb.set_trace()
             gt_k, rois = np.asarray(gt_k), np.asarray(rois)
-            rois_iou = wrapper_segment_iou(gt_k, rois)
-            m, n = rois_iou.shape
-            for i in range(n):
-                rois_iou_i = rois_iou[:, i]
-                rois_iou[:, i] = (rois_iou_i == rois_iou_i.max()) * rois_iou_i
-            rois_iou = rois_iou.max(axis=1).reshape((-1, 1)) > 0.5
-            # rois_iou = rois_iou.max(axis=1).reshape((-1, 1))
-            rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
-            labels[k, :len(bboxes), :] = rois_iou
+            rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
+            for i, iou_thre in enumerate(iou_thres):
+                tmp = rois_iou > iou_thre
+                # rois_iou = rois_iou.max(axis=1).reshape((-1, 1))
+                tmp = np.concatenate([1. - tmp, tmp], axis=1)
+                labels[k, :len(bboxes), i, :] = rois_iou
         else:
             actness[k, :len(bboxes)] = np.asarray([x[3] for x in bboxes])
     # compute mask

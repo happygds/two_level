@@ -30,7 +30,6 @@ parser.add_argument('--d_inner_hid', default=2048, type=int,
                     help='the layer dimension for positionwise fc layers')
 parser.add_argument('--prop_per_video', type=int, default=12)
 parser.add_argument('--num_local', type=int, default=0)
-parser.add_argument('--n_cluster', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
 parser.add_argument('--seed', type=int, default=0)
@@ -38,6 +37,7 @@ parser.add_argument('--multiscale', type=int, default=0,
                     help='multiscale output')
 parser.add_argument('--groupwise_heads', type=int, default=0)
 parser.add_argument('--roi_poolsize', type=int, default=1)
+parser.add_argument('--n_thres', type=int, default=1)
 
 # ========================= Model Configs ==========================
 parser.add_argument('--num_aug_segments', type=int, default=2)
