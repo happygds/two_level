@@ -80,7 +80,6 @@ def main():
     cudnn.enabled = False
     # cudnn.benchmark = True
     pin_memory = True
-
     train_prop_file = 'data/{}_proposal_list.txt'.format(
         dataset_configs['train_list'])
     val_prop_file = 'data/{}_proposal_list.txt'.format(
