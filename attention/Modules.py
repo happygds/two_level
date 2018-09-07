@@ -84,13 +84,13 @@ class ScaledDotProductAttention(nn.Module):
             attn = conv_attn.transpose(
                 0, 1).contiguous().view(attn.size()) + attn
         elif self.kernel_type in ['roi_remov']:
-            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
+            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper + attn_pos_emb
             assert attn_pos_emb is not None
             attn.data.masked_fill_(attn_mask, -1e+32)
             attn_max = torch.max(attn, 2, keepdim=True)[0]
             attn = torch.exp(attn - attn_max)
             attn.data.masked_fill_(attn_mask, 0)
-            attn = attn_pos_emb * attn
+            # attn = attn_pos_emb * attn
         else:
             raise NotImplementedError()
 
@@ -175,7 +175,7 @@ class MultiHeadAttention(nn.Module):
         if self.kernel_type == 'roi_remov':
             attn_pos_emb = attn_pos_emb.view(n_head, -1, d_model)
             attn_pos_emb = (torch.bmm(attn_pos_emb, self.w_rs) + self.b_rs).view(-1, len_q, len_k)
-            attn_pos_emb = F.relu(attn_pos_emb)
+            attn_pos_emb = F.selu(attn_pos_emb)
         # treat as a (n_head) size batch
         # n_head x (mb_size*len_q) x d_model
         q_s = q.repeat(n_head, 1, 1).view(n_head, -1, d_model)
