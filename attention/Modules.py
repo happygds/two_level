@@ -84,13 +84,13 @@ class ScaledDotProductAttention(nn.Module):
             attn = conv_attn.transpose(
                 0, 1).contiguous().view(attn.size()) + attn
         elif self.kernel_type in ['roi_remov']:
-            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper + attn_pos_emb
+            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             assert attn_pos_emb is not None
             attn.data.masked_fill_(attn_mask, -1e+32)
             attn_max = torch.max(attn, 2, keepdim=True)[0]
             attn = torch.exp(attn - attn_max)
             attn.data.masked_fill_(attn_mask, 0)
-            # attn = attn_pos_emb * attn
+            attn = attn_pos_emb * attn
         else:
             raise NotImplementedError()
 
