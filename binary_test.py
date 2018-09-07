@@ -115,6 +115,13 @@ elif args.multiscale == 4:
     multi_strides += [2, 4, 8]
 args.multi_strides = multi_strides
 
+if args.n_thres == 1:
+    args.iou_thres = [0.5]
+elif args.n_thres == 5:
+    args.iou_thres = [0.5, 0.6, 0.7, 0.8, 0.9]
+else:
+    raise NotImplementedError("not implemented !")
+
 gpu_list = args.gpus if args.gpus is not None else range(4)
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
