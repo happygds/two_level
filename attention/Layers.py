@@ -92,8 +92,8 @@ class ROI_Relation(nn.Module):
         start_pool_size = 1
         self.roi_pool = BRoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
         self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
-        # self.roi_conv1 = nn.Conv1d(d_model, 2*d_model, 3, padding=0, stride=1)
-        # self.roi_conv1 = nn.Conv1d(d_model, 2*d_model, 3, padding=0, stride=1)
+        self.bpool_size = start_pool_size
+        self.roipoll_size = roipool_size
 
         self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
