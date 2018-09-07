@@ -107,8 +107,6 @@ class ROI_Relation(nn.Module):
         roi_feats = self.roi_pool(features, rois)
         roi_feat_size = roi_feats.size()
         roi_feats = roi_feats.view((-1,)+roi_feat_size[2:])
-        # roi_feats = F.glu(self.roi_conv1(roi_feats), dim=1)
-        # roi_feats = F.glu(self.roi_conv1(roi_feats), dim=1).view(roi_feat_size[:2]+(-1,))
         roi_feats = F.selu(self.roi_fc(roi_feats.view(roi_feat_size[:2]+(-1,))))
 
         # compute mask
