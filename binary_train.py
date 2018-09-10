@@ -310,7 +310,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
 
         if i % (args.print_freq * 2) == 0:
             print('Test: [{0}/{1}]\t'
-                  'Time {batch_time.val:.4f} ({loss.avg:.4f})\t'
+                  'Time {batch_time.val:.4f} ({batch_time.avg:.4f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Score_Loss {score_loss.val:.4f} ({score_loss.avg:.4f})\t'
                   'Start_Loss {start_loss.val:.4f} ({start_loss.avg:.4f})\t'
