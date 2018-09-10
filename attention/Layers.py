@@ -116,9 +116,9 @@ class ROI_Relation(nn.Module):
         features = features.transpose(1, 2)
         roi_feats = self.roi_pool(features, rois)
         roi_feat_size = roi_feats.size()
-        start_feats, inner_feats, end_feats = roi_feats[:, :, :, :2*self.bpool_size].view(roi_feat_size[:2]+(-1,)), \
-            roi_feats[:, :, :, self.bpool_size:(self.bpool_size+self.roipoll_size)].view(roi_feat_size[:2]+(-1,)), \
-            roi_feats[:, :, :, self.roipoll_size:].view(roi_feat_size[:2]+(-1,))
+        start_feats, inner_feats, end_feats = roi_feats[:, :, :, :2*self.bpool_size].view(roi_feat_size[:2]+(-1,)).contiguous(), \
+            roi_feats[:, :, :, self.bpool_size:(self.bpool_size+self.roipoll_size)].view(roi_feat_size[:2]+(-1,)).contiguous(), \
+            roi_feats[:, :, :, self.roipoll_size:].view(roi_feat_size[:2]+(-1,)).contiguous()
         start_feats, inner_feats, end_feats = self.start_fc(start_feats), self.inner_fc(inner_feats), self.end_fc(end_feats)
         roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=2)
         roi_feats = self.roi_fc(roi_feats)
