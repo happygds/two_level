@@ -98,9 +98,10 @@ class ROI_Relation(nn.Module):
         print("start_pool_size is {} and inner_pool_size is {}".format(start_pool_size, roipool_size))
         self.roi_pool = BRoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
         # self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size), d_model)
-        self.roi_convs = nn.Sequential(nn.Conv1d(d_model, d_model//2, 3, padding=1), nn.SELU(),
-                                       nn.Conv1d(d_model//2, d_model//4, 3, padding=1), nn.SELU())
-        self.roi_fc = nn.Linear(d_model*(2*start_pool_size+roipool_size)//4, d_model)
+        self.start_fc = nn.Sequential(nn.Linear(d_model*2*start_pool_size, d_model), nn.SELU())
+        self.inner_fc = nn.Sequential(nn.Linear(d_model*roipool_size, d_model), nn.SELU())
+        self.end_fc = nn.Sequential(nn.Linear(d_model*2*start_pool_size, d_model), nn.SELU())
+        self.roi_fc = nn.Sequential(nn.Linear(d_model*3, d_model), nn.SELU())
         self.bpool_size = start_pool_size
         self.roipoll_size = roipool_size
 
@@ -114,17 +115,13 @@ class ROI_Relation(nn.Module):
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         features = features.transpose(1, 2)
         roi_feats = self.roi_pool(features, rois)
-        # start_feats, inner_feats, end_feats = roi_feats[:, :, :, :self.bpool_size], \
-        #     roi_feats[:, :, :, self.bpool_size:(self.bpool_size+self.roipoll_size)], roi_feats[:, :, :, (self.bpool_size+self.roipoll_size):]
-        # inner_mean = inner_feats.mean(dim=3, keepdim=True)
-        # start_feats, end_feats = start_feats - inner_mean, end_feats - inner_mean
-        # roi_feats = torch.cat([start_feats, inner_feats - inner_mean, end_feats], dim=3)
-
         roi_feat_size = roi_feats.size()
-        roi_feats = roi_feats.view((-1,)+roi_feat_size[2:])
-        roi_feats = self.roi_fc(self.roi_convs(roi_feats).view(roi_feat_size[:2]+(-1,)))
-        # roi_feats = F.selu(self.roi_conv2(F.selu(self.roi_conv1(roi_feats)))).view(roi_feat_size[:2]+(-1,))
-        # roi_feats = F.selu(self.roi_fc(roi_feats.view(roi_feat_size[:2]+(-1,))))
+        start_feats, inner_feats, end_feats = roi_feats[:, :, :, :2*self.bpool_size].view(roi_feat_size[:2]+(-1,)), \
+            roi_feats[:, :, :, self.bpool_size:(self.bpool_size+self.roipoll_size)].view(roi_feat_size[:2]+(-1,)), \
+            roi_feats[:, :, :, self.roipoll_size:].view(roi_feat_size[:2]+(-1,))
+        start_feats, inner_feats, end_feats = self.start_fc(start_feats), self.inner_fc(inner_feats), self.end_fc(end_feats)
+        roi_feats = torch.cat([start_feats, inner_feats, end_feats], dim=2)
+        roi_feats = self.roi_fc(roi_feats)
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
