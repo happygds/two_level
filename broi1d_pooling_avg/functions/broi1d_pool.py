@@ -37,8 +37,8 @@ class BRoI1DPoolFunction(Function):
         grad_input = torch.zeros(batch_size, num_channels, data_depth).cuda()
         broi1d_pooling.broi1d_pooling_backward_cuda(self.pooled_depth, self.temporal_scale, self.start_pooled_depth,
                                                     self.end_pooled_depth, self.bratio, grad_output, self.rois, grad_input)
-        if np.isnan(grad_input.data.cpu().numpy()).any():
-            import pdb; pdb.set_trace()
+        # if np.isnan(grad_input.data.cpu().numpy()).any():
+        #     import pdb; pdb.set_trace()
         self.rois = None
 
         return grad_input, None
