@@ -88,7 +88,7 @@ def main():
         save_path = save_path + '_S' + str(args.multiscale)
     if args.groupwise_heads > 0:
         save_path = save_path + '_G' + str(args.groupwise_heads)
-    if args.roi_poolsize > 0:
+    if len(args.roi_poolsize) > 0:
         save_path = save_path + '_roi' + str(args.roi_poolsize)
     if args.n_thres > 0:
         save_path = save_path + '_T' + str(args.n_thres)
