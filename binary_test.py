@@ -64,7 +64,7 @@ parser.add_argument('--multiscale', type=int, default=0,
                     help='multiscale output')
 parser.add_argument('--groupwise_heads', type=int, default=0)
 parser.add_argument('--roi_poolsize', type=str, default="1_3")
-parser.add_argument('--n_thres', type=int, default=1)
+parser.add_argument('--n_thres', type=int, default=5)
 
 args = parser.parse_args()
 
