@@ -147,7 +147,7 @@ def main():
     for epoch in range(args.start_epoch, args.epochs):
         # adjust_learning_rate(optimizer, epoch, args.lr_steps)
         # train for one epoch
-        if patience > 3:
+        if patience > 5:
             break
         train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, epoch, logger)
 
