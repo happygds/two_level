@@ -7,8 +7,8 @@ import numpy as np
 # from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
 from .utils import rank_embedding
-from roi1d_pooling_avg.modules.roi1d_pool import RoI1DPool
 from broi1d_pooling_avg.modules.broi1d_pool import BRoI1DPool
+from broi1d_align.broi1d_align import BRoI1DAlign
 
 
 class EncoderLayer(nn.Module):
@@ -97,12 +97,15 @@ class ROI_Relation(nn.Module):
             start_pool_size, roipool_size = map(int, roipool_size.split("_"))
         print("start_pool_size is {} and inner_pool_size is {}".format(start_pool_size, roipool_size))
         self.roi_pool = BRoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
-        self.roi_convs = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=1, stride=2), nn.SELU(),
-                                       nn.Conv1d(d_model, d_model, 3, padding=1, stride=2), nn.SELU())
-        in_ch = (2*start_pool_size+roipool_size-1) // 2 // 2 + 1
-        self.roi_fc = nn.Sequential(nn.Linear(d_model*in_ch, d_model), nn.SELU())
+        # self.roi_pool = BRoI1DAlign(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
         self.bpool_size = start_pool_size
         self.roipoll_size = roipool_size
+        if start_pool_size == 1:
+            self.broi_conv = nn.Sequential(nn.Conv1d(d_model, d_model, 1), nn.Dropout(dropout), nn.SELU())
+        else:
+            self.broi_conv = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU())
+        self.inner_conv = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU())
+        self.roi_fc = nn.Sequential(nn.Linear(d_model * 3, d_model), nn.Dropout(dropout), nn.SELU())
 
         self.rank_fc = nn.Linear(d_model, d_model)
         # for non-local operation
@@ -115,8 +118,14 @@ class ROI_Relation(nn.Module):
         features = features.transpose(1, 2)
         roi_feats = self.roi_pool(features, rois)
         roi_feat_size = roi_feats.size()
-        roi_feats = self.roi_convs(roi_feats.view((-1,)+roi_feat_size[2:])).view(roi_feat_size[:2]+(-1,))
-        roi_feats = self.roi_fc(roi_feats)
+        roi_feats = roi_feats.view((-1,)+roi_feat_size[2:])
+        start_feats, inner_feats, end_feats = roi_feats[:, :, :self.bpool_size], \
+            roi_feats[:, :, self.bpool_size:(self.bpool_size+self.roipoll_size)], \
+            roi_feats[:, :, (self.bpool_size+self.roipoll_size):]
+        inner_mean = inner_feats.mean(2, keepdim=True)
+        start_feats, end_feats = self.broi_conv(start_feats - inner_mean).mean(2), self.broi_conv(end_feats - inner_mean).mean(2)
+        inner_feats = self.inner_conv(inner_feats).mean(2)
+        roi_feats = self.roi_fc(torch.cat([start_feats, inner_feats, end_feats], dim=1)).view(roi_feat_size[:3])
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]

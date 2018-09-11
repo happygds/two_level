@@ -34,7 +34,7 @@ __global__ void BROI1DPoolForward(
         float roi_start = bottom_rois[1] * temporal_scale;
         float roi_end = bottom_rois[2] * temporal_scale;
         float roi_dura = roi_end - roi_start;
-        int bpooled_depth = 1;
+        int bpooled_depth = pooled_depth;
         // if pd in [0, start_pooled_depth)
         if (pd < start_pooled_depth)
         {
@@ -45,7 +45,6 @@ __global__ void BROI1DPoolForward(
         else if (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
         {
             pd = pd - start_pooled_depth;
-            bpooled_depth = pooled_depth;
         }
         else if (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
         {
@@ -154,25 +153,24 @@ __global__ void BROI1DPoolBackward(
         float roi_start = bottom_rois[1] * temporal_scale;
         float roi_end = bottom_rois[2] * temporal_scale;
         float roi_dura = roi_end - roi_start;
-        int bpooled_depth = 1;
+        int bpooled_depth = pooled_depth;
         // if pd in [0, start_pooled_depth)
         if (pd < start_pooled_depth)
         {
             roi_start = roi_start - bratio*roi_dura;
             roi_end = roi_start + bratio*roi_dura;
-            int bpooled_depth = start_pooled_depth;
+            bpooled_depth = start_pooled_depth;
         }
         else if (pd >= start_pooled_depth && pd < start_pooled_depth+pooled_depth)
         {
             pd = pd - start_pooled_depth;
-            int bpooled_depth = pooled_depth;
         }
         else if (pd >= start_pooled_depth+pooled_depth && pd < (pooled_depth+start_pooled_depth+end_pooled_depth))
         {
             roi_start = roi_end - bratio*roi_dura;
             roi_end = roi_end + bratio*roi_dura;
             pd = pd - start_pooled_depth - pooled_depth;
-            int bpooled_depth = end_pooled_depth;
+            bpooled_depth = end_pooled_depth;
         }
         else
         {

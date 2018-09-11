@@ -196,6 +196,10 @@ class BinaryDataSet(data.Dataset):
         out_ends[:min_len] = ends[begin_index:(begin_index+min_len)]
         assert len(out) == self.sample_duration
         end_ind = begin_index + self.sample_duration
+        if out_label[0] == 1.:
+            out_starts[0] = 1.
+        elif out_label[-1] == 1.:
+            out_ends[-1] = 1.
 
         return out, out_label, out_starts, out_ends, begin_index, end_ind, min_len
 
