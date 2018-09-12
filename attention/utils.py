@@ -45,7 +45,7 @@ class CE_Criterion_multi(nn.Module):
         output = []
         for i, x in enumerate(inputs):
             # x = torch.cat([1.-x, x], dim=2)
-            tmp_output = - targets[i] * torch.log(x.clamp(eps))
+            tmp_output = - targets[i] * torch.log(x.unsqueeze(2).clamp(eps))
             if self.use_weight:
                 tmp_output *= weights[i].unsqueeze(1)
                 tmp_output = torch.sum(tmp_output.mean(2) * mask, dim=1) / \
