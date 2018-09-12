@@ -147,7 +147,7 @@ def gen_prop(v):
     bboxes = [(roi[0], roi[1], 1, act_score*roi_score, roi_score) for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
-    bboxes = list(filter(lambda b: b[4] > 0.1, bboxes))
+    bboxes = list(filter(lambda b: b[4] > 0.3, bboxes))
     # bboxes = temporal_nms(bboxes, 0.9)
     if len(bboxes) == 0:
         bboxes = [(0, float(v.frame_cnt) / v.frame_interval, 1, 1)]
