@@ -38,7 +38,7 @@ class CE_Criterion_multi(nn.Module):
                 # cls_weight = 1. / target.mean(0).mean(0)
                 weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
                 weight = 0.5 / weight.clamp(eps)
-                # weight = weight / weight.mean(1).unsqueeze(1)
+                weight = weight / weight.mean(1).unsqueeze(1)
                 targets[i] = target
                 weights.append(weight)
 
@@ -87,6 +87,7 @@ class CE_Criterion(nn.Module):
                 # cls_weight = 1. / target.mean(0).mean(0)
                 weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
                 weight = 0.5 / weight.clamp(eps)
+                weight = weight / weight.mean(1).unsqueeze(1)
 
             input = x[:, :, i, :]
             output = - target * torch.log(input.clamp(eps))
