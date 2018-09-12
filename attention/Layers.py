@@ -123,7 +123,7 @@ class ROI_Relation(nn.Module):
             roi_feats[:, :, self.bpool_size:(self.bpool_size+self.roipoll_size)], \
             roi_feats[:, :, (self.bpool_size+self.roipoll_size):]
         inner_mean = inner_feats.mean(2, keepdim=True)
-        start_feats, end_feats = self.broi_conv(start_feats - inner_mean).mean(2), self.broi_conv(end_feats - inner_mean).mean(2)
+        start_feats, end_feats = self.broi_conv(start_feats).mean(2), self.broi_conv(end_feats).mean(2)
         inner_feats = self.inner_conv(inner_feats).mean(2)
         roi_feats = self.roi_fc(torch.cat([start_feats, inner_feats, end_feats], dim=1)).view(roi_feat_size[:3])
 
