@@ -39,14 +39,13 @@ class BinaryClassifier(torch.nn.Module):
         self.d_model = args.d_model
         self.dropout = dropout
         self.test_mode = test_mode
-        self.scores = nn.Linear(args.d_model, 3)
+        self.scores = nn.Linear(args.d_model, 3*2)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
-        self.iou_thres = args.iou_thres
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
-        self.roi_cls = nn.Linear(args.d_model, 2*len(args.iou_thres))
+        self.roi_cls = nn.Sequential(nn.Linear(args.d_model, 2), nn.Softmax(dim=2))
 
     def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
         # Word embedding look up
@@ -81,24 +80,22 @@ class BinaryClassifier(torch.nn.Module):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=slf_local_mask, 
                 slf_attn_mask=slf_attn_mask)
-        score_output = F.sigmoid(self.scores(enc_output))
+        score_output = F.softmax(self.scores(enc_output).view(size[:2]+ (3, 2)), dim=3)
 
         # compute loss for training/validation stage
         if not test_mode:
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_output, feature_mask, gts=gts, 
-                                                                                              test_mode=test_mode, iou_thres=self.iou_thres)
+            start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_output, feature_mask, gts=gts, test_mode=test_mode)
         else:
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_output, feature_mask, 
-                                                                                               test_mode=test_mode, iou_thres=self.iou_thres)
+            start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_output, feature_mask, test_mode=test_mode)
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
         rois_size = rois.size()
-        roi_scores = F.softmax(self.roi_cls(roi_feats).view(rois_size[:2] + (-1, 2)), dim=3)
+        roi_scores = self.roi_cls(roi_feats)
         # import pdb; pdb.set_trace()
 
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
 
-        return rois[:, :, 1:], actness, roi_scores.mean(dim=2)
+        return rois[:, :, 1:], actness, roi_scores
