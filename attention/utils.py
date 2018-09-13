@@ -38,14 +38,14 @@ class CE_Criterion_multi(nn.Module):
                 # cls_weight = 1. / target.mean(0).mean(0)
                 weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
                 weight = 0.5 / weight.clamp(eps)
-                weight = weight / weight.mean(1).unsqueeze(1)
+                # weight = weight / weight.mean(1).unsqueeze(1)
                 targets[i] = target
                 weights.append(weight)
 
         output = []
         for i, x in enumerate(inputs):
-            # x = torch.cat([1.-x, x], dim=2)
-            tmp_output = - targets[i] * torch.log(x.unsqueeze(2).clamp(eps))
+            x = torch.cat([1.-x, x], dim=2)
+            tmp_output = - targets[i] * torch.log(x.clamp(eps))
             if self.use_weight:
                 tmp_output *= weights[i].unsqueeze(1)
                 tmp_output = torch.sum(tmp_output.mean(2) * mask, dim=1) / \
@@ -87,7 +87,7 @@ class CE_Criterion(nn.Module):
                 # cls_weight = 1. / target.mean(0).mean(0)
                 weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
                 weight = 0.5 / weight.clamp(eps)
-                weight = weight / weight.mean(1).unsqueeze(1)
+                # weight = weight / weight.mean(1).unsqueeze(1)
 
             input = x[:, :, i, :]
             output = - target * torch.log(input.clamp(eps))

@@ -39,9 +39,10 @@ class BinaryClassifier(torch.nn.Module):
         self.d_model = args.d_model
         self.dropout = dropout
         self.test_mode = test_mode
-        self.scores = nn.Linear(args.d_model, 3*2)
+        self.scores = nn.Linear(args.d_model, 3)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
+        self.trn_kernel = args.groupwise_heads
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
@@ -80,7 +81,7 @@ class BinaryClassifier(torch.nn.Module):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=slf_local_mask, 
                 slf_attn_mask=slf_attn_mask)
-        score_output = F.softmax(self.scores(enc_output).view(size[:2]+ (3, 2)), dim=3)
+        score_output = F.sigmoid(self.scores(enc_output))
 
         # compute loss for training/validation stage
         if not test_mode:

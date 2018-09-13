@@ -21,7 +21,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rpn_rois : (batch_size, rpn_post_nms_top, 3) e.g. [0, t1, t2]
 
     """
-    score_output = score_output.data.cpu().numpy()[:, :, :, 1]
+    score_output = score_output.data.cpu().numpy()
     feature_mask = feature_mask.data.cpu().numpy()
     batch_size = score_output.shape[0]
     topk_cls = [0]
