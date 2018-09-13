@@ -70,7 +70,7 @@ class CE_Criterion_multi(nn.Module):
             tmp_output = 1. - (attn * target_cov).sum(2).sum(1).clamp(eps) / tmp.clamp(eps)
             attn_output = (tmp_output * mask[:, 0]).mean() * self.l_step ** i
     
-            return score_loss, start_loss, end_loss, attn_output
+        return score_loss, start_loss, end_loss, attn_output
 
 
 class CE_Criterion(nn.Module):
