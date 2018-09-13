@@ -78,15 +78,22 @@ class BinaryVideoRecord:
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
             gts.append([frame_cnt * begin_ind / feat_stride, frame_cnt * end_ind / feat_stride])
+            # gts.append([sample_duration * begin_ind, sample_duration * end_ind])
             nbegin_ind, nend_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
-            # begin_ind, end_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
+            # nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[nbegin_ind:nend_ind] = 1.
             dura_i = frame_cnt * (end_ind - begin_ind) / feat_stride / 10.
+            # dura_i = sample_duration * (end_ind - begin_ind) / 10.
             try:
                 if nbegin_ind < nend_ind:
-                    start_nbegin, start_nend = int(max(math.floor(nbegin_ind - dura_i), 0)), int(min(math.ceil(nbegin_ind + dura_i), len(self.label)-1))
-                    end_nbegin, end_nend = int(max(math.floor(nend_ind - dura_i), 0)), int(min(math.ceil(nend_ind + dura_i), len(self.label)-1))
-                    # nbegin_ind, nend_ind = int(math.ceil(frame_cnt * begin_ind / feat_stride)), int(math.ceil(frame_cnt * end_ind / feat_stride))
+                    start_nbegin, start_nend = int(max(math.floor(frame_cnt * begin_ind / feat_stride - dura_i), 0)), \
+                                int(min(math.ceil(frame_cnt * begin_ind / feat_stride + dura_i), len(self.label)-1))
+                    end_nbegin, end_nend = int(max(math.floor(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
+                                int(min(math.ceil(frame_cnt * end_ind / feat_stride + dura_i), len(self.label)-1))
+                    # start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
+                    #             int(min(math.ceil(sample_duration * begin_ind + dura_i), len(self.label)-1))
+                    # end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
+                    #             int(min(math.ceil(sample_duration * end_ind + dura_i), len(self.label)-1))
                     if start_nbegin == start_nend:
                         start_nbegin, start_nend = nbegin_ind, nbegin_ind+1
                     elif end_nbegin == end_nend:
@@ -107,7 +114,7 @@ class BinaryDataSet(data.Dataset):
                  test_mode=False, feat_stride=16, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
-                 bg_coverage_thresh=0.02, sample_duration=8192,
+                 bg_coverage_thresh=0.02, sample_duration=8196,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True, num_local=8, 
