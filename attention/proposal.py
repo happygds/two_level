@@ -63,17 +63,17 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             # for x in starts for y in ends if x < y and scores[x:y].mean() > 0.3]
             props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.3]
             if scores.mean() > 0.3:
-                props += [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
+                props += [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
             # import pdb; pdb.set_trace()
         else:
-            props = [(0, len(scores), 1, scores.mean())]
+            props = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
         bboxes.extend(props)
         bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
         # bboxes.sort(key=lambda x: x[3], reverse=True)
         # bboxes = bboxes[:rpn_post_nms_top]
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         if len(bboxes) == 0:
-            bboxes = [(0, len(scores), 1, scores.sum())]
+            bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
         # import pdb; pdb.set_trace()
 
         rpn_rois[k, :, 0] = k
