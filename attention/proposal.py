@@ -61,7 +61,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             # max(min(scores[max(0, int(round(6*x/5.-y/5.))):max(int(round(4*x/5.+y/5.)), int(round(6*x/5.-y/5.))+1)].mean(), \
             # scores[max(0, int(round(4*y/5.+x/5.))):max(int(round(6*y/5.-x/5.)), int(round(4*y/5.+x/5.))+1)].mean()), 1e-3))*(pstarts[x]*pends[y])) \
             # for x in starts for y in ends if x < y and scores[x:y].mean() > 0.3]
-            props = [(x, y, 1, scores[x:y].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y].mean() > 0.3]
+            props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.3]
             if scores.mean() > 0.3:
                 props += [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
             # import pdb; pdb.set_trace()
@@ -71,7 +71,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
         # bboxes.sort(key=lambda x: x[3], reverse=True)
         # bboxes = bboxes[:rpn_post_nms_top]
-        bboxes = temporal_nms(bboxes, 0.7)[:rpn_post_nms_top]
+        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores), 1, scores.sum())]
         # import pdb; pdb.set_trace()
@@ -111,9 +111,9 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois[:, :, 1:].mean(axis=2), rpn_rois[:, :, 2] - rpn_rois[:, :, 1]
-    rois_relative_pos[:, :, :, 0] = np.abs(rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos = np.log(rois_relative_pos.clip(1e-3)) * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
+    rois_relative_pos[:, :, :, 0] = (rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
+    rois_relative_pos[:, :, :, 1] = np.log((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
+    rois_relative_pos = rois_relative_pos * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
     start_rois = torch.from_numpy(start_rois).cuda().requires_grad_(False).cuda()
     end_rois = torch.from_numpy(end_rois).cuda().requires_grad_(False).cuda()
