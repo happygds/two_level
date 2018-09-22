@@ -84,12 +84,14 @@ class ScaledDotProductAttention(nn.Module):
             attn = conv_attn.transpose(
                 0, 1).contiguous().view(attn.size()) + attn
         elif self.kernel_type in ['roi_remov']:
-            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper + attn_pos_emb
+            attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             assert attn_pos_emb is not None
-            attn.data.masked_fill_(attn_mask, -1e+32)
-            attn_max = torch.max(attn, 2, keepdim=True)[0]
-            attn = torch.exp(attn - attn_max)
-            attn.data.masked_fill_(attn_mask, 0)
+            k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
+            attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
+            # attn.data.masked_fill_(attn_mask, -1e+32)
+            # attn_max = torch.max(attn, 2, keepdim=True)[0]
+            # attn = torch.exp(attn - attn_max)
+            # attn.data.masked_fill_(attn_mask, 0)
             # attn = attn_pos_emb * attn
             # import pdb; pdb.set_trace()
         else:
@@ -101,13 +103,13 @@ class ScaledDotProductAttention(nn.Module):
                 'Attention mask shape {} mismatch ' \
                 'with Attention logit tensor shape ' \
                 '{}.'.format(attn_mask.size(), attn.size())
-            if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal']:
+            if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal', 'roi_remov']:
                 attn.data.masked_fill_(attn_mask, -float('inf'))
                 # attn.data.masked_fill_(attn_mask, -1e+32)
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
-        if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal']:
+        if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal', 'roi_remov']:
             attn = self.softmax(attn)
             attn.data.masked_fill_(torch.isnan(attn), 0)
             # shp = attn.size()
@@ -118,7 +120,7 @@ class ScaledDotProductAttention(nn.Module):
         out_attn = attn
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
-        if attn_pos_emb is not None and self.kernel_type not in ['roi_remov']:
+        if attn_pos_emb is not None and self.kernel_type in ['self_attn', 'roi_remov']:
             # v_gate = F.sigmoid(torch.mean(v_pos_emb + v.unsqueeze(1), dim=2))
             # output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
             output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
@@ -155,9 +157,9 @@ class MultiHeadAttention(nn.Module):
         init.xavier_normal_(self.w_ks)
         init.xavier_normal_(self.w_vs)
         if kernel_type == 'roi_remov':
-            self.w_rs = nn.Parameter(torch.FloatTensor(n_head, d_model, 1))
+            self.w_rs = nn.Parameter(torch.FloatTensor(n_head, d_model, d_k*2))
             init.xavier_normal_(self.w_rs)
-            self.b_rs = nn.Parameter(torch.FloatTensor(n_head, 1, 1))
+            self.b_rs = nn.Parameter(torch.FloatTensor(n_head, 1, d_k*2))
             init.xavier_normal_(self.b_rs)
         self.kernel_type = kernel_type
 
@@ -175,7 +177,7 @@ class MultiHeadAttention(nn.Module):
             attn_pos_emb = attn_pos_emb.repeat(n_head, 1, 1, 1)
         if self.kernel_type == 'roi_remov':
             attn_pos_emb = attn_pos_emb.view(n_head, -1, d_model)
-            attn_pos_emb = F.selu((torch.bmm(attn_pos_emb, self.w_rs) + self.b_rs).view(-1, len_q, len_k))
+            attn_pos_emb = F.selu((torch.bmm(attn_pos_emb, self.w_rs) + self.b_rs).view(-1, len_q, len_k, d_k*2))
         # treat as a (n_head) size batch
         # n_head x (mb_size*len_q) x d_model
         q_s = q.repeat(n_head, 1, 1).view(n_head, -1, d_model)

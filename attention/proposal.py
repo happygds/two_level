@@ -111,9 +111,14 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois[:, :, 1:].mean(axis=2), rpn_rois[:, :, 2] - rpn_rois[:, :, 1]
-    rois_relative_pos[:, :, :, 0] = np.abs(rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos = np.log(rois_relative_pos.clip(1e-3)) * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
+    rois_start, rois_end = rpn_rois[:, :, 1], rpn_rois[:, :, 2]
+    # xx1, yy1 = np.maximum(rois_start[:, np.newaxis, :], rois_start[:, :, np.newaxis]), np.minimum(rois_end[:, np.newaxis, :], rois_end[:, :, np.newaxis])
+    # rois_iou = (yy1 - xx1).clip(0.)
+    rois_relative_pos[:, :, :, 0] = rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis]
+    rois_relative_pos[:, :, :, 1] = rois_end[:, np.newaxis, :] - rois_end[:, :, np.newaxis]
+    rois_relative_pos[:, :, :, 2] = 20. * np.log((np.abs(rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
+    rois_relative_pos[:, :, :, 3] = 20. * np.log((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
+    rois_relative_pos = rois_relative_pos * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
     start_rois = torch.from_numpy(start_rois).cuda().requires_grad_(False).cuda()
     end_rois = torch.from_numpy(end_rois).cuda().requires_grad_(False).cuda()
