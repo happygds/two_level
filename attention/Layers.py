@@ -87,7 +87,7 @@ class ROI_Relation(nn.Module):
     ''' Compose with two layers '''
 
     def __init__(self, d_model, roipool_size, d_inner_hid, n_head, 
-                 d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
+                 d_k, d_v, dropout=0.1, kernel_type='self_attn'):
         super(ROI_Relation, self).__init__()
         if len(roipool_size) == 1:
             start_pool_size = 1
@@ -132,6 +132,6 @@ class ROI_Relation(nn.Module):
 
         enc_output, _ = self.slf_attn(
             enc_output, enc_output, enc_output,
-            attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
+            attn_mask=rois_attn_mask, attn_pos_emb=None)
         enc_output = self.pos_ffn(enc_output)
         return enc_output
