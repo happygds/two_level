@@ -111,7 +111,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois[:, :, 1:].mean(axis=2), rpn_rois[:, :, 2] - rpn_rois[:, :, 1]
-    rois_start, rois_end = rpn_rois[:, :, 1], rpn_rois[:, :, 2]
+    rois_start, rois_end = rpn_rois[:, :, 1], rpn_rois[:, :, 4]
     # xx1, yy1 = np.maximum(rois_start[:, np.newaxis, :], rois_start[:, :, np.newaxis]), np.minimum(rois_end[:, np.newaxis, :], rois_end[:, :, np.newaxis])
     # rois_iou = (yy1 - xx1).clip(0.)
     rois_relative_pos[:, :, :, 0] = 1. * (rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis])
