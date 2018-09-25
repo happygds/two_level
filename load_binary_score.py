@@ -70,9 +70,9 @@ class BinaryVideoRecord:
         else:
             output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
         rgb_feat = output.astype('float32')
-
-        self.feat = rgb_feat
         assert rgb_feat.shape[0] == sample_duration
+        
+        self.feat = rgb_feat
         
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
         self.starts = np.zeros((rgb_feat.shape[0],), dtype='float32')
