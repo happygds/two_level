@@ -129,6 +129,18 @@ def pos_embedding(position_mat, feat_dim, wave_length=1000.):
     embedding = torch.cat([sin_mat, cos_mat], dim=4)
     return embedding.view(pos_size[:3] + (feat_dim,)).float()
 
+def roi_embedding(position_mat, feat_dim, wave_length=1000.):
+    feat_range = torch.arange(0, feat_dim / 4)
+    dim_mat = torch.pow(wave_length, (4. / feat_dim) * feat_range)
+    dim_mat = dim_mat.view(1, 1, 1, -1).cuda()
+    pos_size = position_mat.size()
+    position_mat = position_mat.unsqueeze(3)
+    div_mat = torch.div(position_mat, dim_mat)
+    sin_mat = torch.sin(div_mat)
+    cos_mat = torch.cos(div_mat)
+    embedding = torch.cat([sin_mat, cos_mat], dim=3)
+    return embedding.view(pos_size[:2] + (feat_dim,)).float()
+
 def rank_embedding(position_mat, feat_dim, wave_length=1000.):
     feat_range = torch.arange(0, feat_dim / 2)
     dim_mat = torch.pow(wave_length, (2. / feat_dim) * feat_range)

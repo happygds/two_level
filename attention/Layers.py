@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import numpy as np
 # from .sparsemax import Sparsemax
 from .Modules import ScaledDotProductAttention, MultiHeadAttention, PositionwiseFeedForward
-from .utils import rank_embedding
+from .utils import rank_embedding, roi_embedding
 from broi1d_pooling_avg.modules.broi1d_pool import BRoI1DPool
 from broi1d_align.broi1d_align import BRoI1DAlign
 
@@ -107,6 +107,7 @@ class ROI_Relation(nn.Module):
         self.roi_fc = nn.Sequential(nn.Linear(d_model*in_ch, d_model), nn.Dropout(dropout), nn.SELU())
 
         self.rank_fc = nn.Linear(d_model, d_model)
+        self.rois_emb = nn.Linear(d_model, d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, 
@@ -130,7 +131,7 @@ class ROI_Relation(nn.Module):
         enc_output = self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats        
         rois_cent, rois_dura = rois[:, :, 1:].mean(2).unsqueeze(2), (rois[:, :, 2] - rois[:, :, 1]).unsqueeze(2)
         rois_emb = torch.cat([rois_cent, rois_dura], dim=2)
-        enc_output = enc_output + self.rois_emb(roi_embedding(rois_emb / 2., roi_feat_size[2]))
+        enc_output = enc_output + self.rois_emb(roi_embedding(rois, roi_feat_size[2]))
         # enc_output = roi_feats
 
         enc_output, _ = self.slf_attn(
