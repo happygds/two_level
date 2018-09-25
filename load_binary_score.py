@@ -72,8 +72,7 @@ class BinaryVideoRecord:
         rgb_feat = output.astype('float32')
         assert rgb_feat.shape[0] == sample_duration
         
-        self.feat = rgb_feat
-        
+        self.feat = rgb_feat 
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
         self.starts = np.zeros((rgb_feat.shape[0],), dtype='float32')
         self.ends = np.zeros((rgb_feat.shape[0],), dtype='float32')
