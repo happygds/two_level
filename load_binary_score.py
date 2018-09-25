@@ -65,7 +65,10 @@ class BinaryVideoRecord:
         xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
         pad = max(int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 1, 0)
         rgb_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
-        output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
+        if np.all(xgrids_floor == xgrids_ceil):
+            output = rgb_feat[xgrids_floor.astype('int')]
+        else:
+            output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
         rgb_feat = output.astype('float32')
 
         self.feat = rgb_feat
@@ -114,7 +117,7 @@ class BinaryDataSet(data.Dataset):
                  test_mode=False, feat_stride=16, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
-                 bg_coverage_thresh=0.02, sample_duration=1600,
+                 bg_coverage_thresh=0.02, sample_duration=2048,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True, num_local=8, 
@@ -262,7 +265,7 @@ class BinaryDataSet(data.Dataset):
         out_feat = torch.from_numpy(np.expand_dims(feat, axis=0))
         out_mask = torch.from_numpy(np.expand_dims(feat_mask, axis=0))
 
-        return out_feat, out_mask, num_feat, pos_ind, video_id
+        return out_feat, out_mask, num_feat, pos_ind, video_id, video.gts
 
     def __len__(self):
         return len(self.video_list) * self.epoch_multiplier
