@@ -7,6 +7,7 @@ from numpy.random import randint
 from ops.io import load_proposal_file
 from transforms import *
 from ops.utils import temporal_iou
+from scipy import interpolate
 
 
 class BinaryInstance:
@@ -68,7 +69,12 @@ class BinaryVideoRecord:
         if np.all(xgrids_floor == xgrids_ceil):
             output = rgb_feat[xgrids_floor.astype('int')]
         else:
-            output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
+            output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) \
+                + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
+        import pdb; pdb.set_trace()
+        ori_grids = np.arange(shp[0])
+        f = interpolate.interp1d(ori_grids, rgb_feat)
+        output = f(np.arange(sample_duration))
         rgb_feat = output.astype('float32')
         assert rgb_feat.shape[0] == sample_duration
         
