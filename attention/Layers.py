@@ -130,7 +130,6 @@ class ROI_Relation(nn.Module):
         rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2]) + 1
         enc_output = self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats
         
-        import pdb; pdb.set_trace()
         rois_cent, rois_dura = rois[:, :, 1:].mean(2).unsqueeze(2) - features.size(2) / 2., (rois[:, :, 2] - rois[:, :, 1]).unsqueeze(2)
         rois_emb = torch.cat([rois_cent, rois_dura], dim=2)
         enc_output = enc_output + self.rois_emb(roi_embedding(rois_emb, roi_feat_size[2]))
