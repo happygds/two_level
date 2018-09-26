@@ -72,9 +72,9 @@ class BinaryVideoRecord:
             output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) \
                 + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
         import pdb; pdb.set_trace()
-        ori_grids = np.arange(shp[0])
+        ori_grids = np.arange(0, shp[0])
         f = interpolate.interp1d(ori_grids, rgb_feat)
-        output = f(np.arange(sample_duration))
+        output = f(np.arange(0, sample_duration))
         rgb_feat = output.astype('float32')
         assert rgb_feat.shape[0] == sample_duration
         
