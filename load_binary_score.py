@@ -74,7 +74,8 @@ class BinaryVideoRecord:
         import pdb; pdb.set_trace()
         ori_grids = np.arange(0, shp[0])
         f = interpolate.interp1d(ori_grids, rgb_feat, axis=0)
-        output = f(np.arange(0, sample_duration))
+        x_new=[i*float(shp[0]-1)/(sample_duration-1) for i in range(sample_duration)]
+        output = f(x_new)
         rgb_feat = output.astype('float32')
         assert rgb_feat.shape[0] == sample_duration
         
