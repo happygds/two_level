@@ -172,7 +172,6 @@ class MultiHeadAttention(nn.Module):
         mb_size, len_q, d_model = q.size()
         mb_size, len_k, d_model = k.size()
         mb_size, len_v, d_model = v.size()
-
         if attn_pos_emb is not None:
             attn_pos_emb = attn_pos_emb.repeat(n_head, 1, 1, 1)
         if self.kernel_type == 'roi_remov':
