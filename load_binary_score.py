@@ -65,12 +65,12 @@ class BinaryVideoRecord:
         xgrids = (np.arange(sample_duration) + 0.5) / sample_duration * shp[0] - 0.5
         xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
         pad = max(int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 1, 0)
-        rgb_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
+        pad_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
         if np.all(xgrids_floor == xgrids_ceil):
-            output = rgb_feat[xgrids_floor.astype('int')]
+            output = pad_feat[xgrids_floor.astype('int')]
         else:
-            output = rgb_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) \
-                + rgb_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
+            output = pad_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) \
+                + pad_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
         import pdb; pdb.set_trace()
         ori_grids = np.arange(0, shp[0])
         f = interpolate.interp1d(ori_grids, rgb_feat)
