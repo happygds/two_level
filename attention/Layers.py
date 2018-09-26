@@ -107,7 +107,7 @@ class ROI_Relation(nn.Module):
         self.roi_fc = nn.Sequential(nn.Linear(d_model*in_ch, d_model), nn.Dropout(dropout), nn.SELU())
 
         self.rank_fc = nn.Linear(d_model, d_model)
-        self.rois_emb = nn.Linear(d_model, d_model)
+        self.rois_emb = nn.Linear(2*d_model, d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, 
@@ -132,7 +132,7 @@ class ROI_Relation(nn.Module):
         
         # rois_cent, rois_dura = rois[:, :, 1:].mean(2).unsqueeze(2), (rois[:, :, 2] - rois[:, :, 1]).unsqueeze(2)
         # rois_emb = torch.cat([rois_cent, rois_dura], dim=2)
-        enc_output = enc_output + self.rois_emb(roi_embedding(rois[:, :, 1:], roi_feat_size[2]))
+        enc_output = enc_output + self.rois_emb(roi_embedding(rois[:, :, 1:], 2*roi_feat_size[2]))
         import pdb; pdb.set_trace()
         # enc_output = roi_feats
 
