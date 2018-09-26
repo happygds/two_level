@@ -61,17 +61,17 @@ class BinaryVideoRecord:
         rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
         shp = rgb_feat.shape
 
-        # use linear interpolation to resize the feature into a fixed length
-        xgrids = (np.arange(sample_duration) + 0.5) / sample_duration * shp[0] - 0.5
-        xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
-        pad = max(int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 1, 0)
-        pad_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
-        if np.all(xgrids_floor == xgrids_ceil):
-            output = pad_feat[xgrids_floor.astype('int')]
-        else:
-            output = pad_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) \
-                + pad_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
-        import pdb; pdb.set_trace()
+        # # use linear interpolation to resize the feature into a fixed length
+        # xgrids = (np.arange(sample_duration) + 0.5) / sample_duration * shp[0] - 0.5
+        # xgrids_floor, xgrids_ceil = np.floor(xgrids), np.ceil(xgrids)
+        # pad = max(int(max(xgrids_ceil.max() - shp[0], -xgrids_floor.min())) + 1, 0)
+        # pad_feat = np.pad(rgb_feat, ((0, pad), (0, 0)), 'constant')
+        # if np.all(xgrids_floor == xgrids_ceil):
+        #     output = pad_feat[xgrids_floor.astype('int')]
+        # else:
+        #     output = pad_feat[xgrids_floor.astype('int')] * (xgrids_ceil - xgrids).reshape((-1, 1)) \
+        #         + pad_feat[xgrids_ceil.astype('int')] * (xgrids - xgrids_floor).reshape((-1, 1))
+        # import pdb; pdb.set_trace()
         ori_grids = np.arange(0, shp[0])
         f = interpolate.interp1d(ori_grids, rgb_feat, axis=0)
         x_new=[i*float(shp[0]-1)/(sample_duration-1) for i in range(sample_duration)]
