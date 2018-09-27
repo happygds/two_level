@@ -109,8 +109,8 @@ void CropAndResizeBackpropImageKernel(
     {
         // (n, c, ph, pw) is an element in the pooled output
         int n = index;
-        int pd = n % crop_depth;
-        n /= crop_depth;
+        int pd = n % (crop_depth+start_pooled_depth+end_pooled_depth);
+        n /= (crop_depth+start_pooled_depth+end_pooled_depth);
         int c = n % channels;
         n /= channels;
         int roi_b = n / num_rois;

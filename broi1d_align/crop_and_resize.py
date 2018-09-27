@@ -42,8 +42,8 @@ class CropAndResizeFunction(Function):
         grad_input = torch.zeros(batch_size, num_channels, data_depth).cuda()
         _backend.crop_and_resize_gpu_backward(
             grad_output, self.rois, self.crop_depth,
-            self.crop_height, self.crop_width,
-            self.temporal_scale, grad_input
+            self.temporal_scale, self.start_pooled_depth, 
+            self.end_pooled_depth, self.bratio,  grad_input
         )
         self.rois = None
 
