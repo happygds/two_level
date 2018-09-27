@@ -133,8 +133,8 @@ class ROI_Relation(nn.Module):
         
         rois_cent, rois_dura = rois[:, :, 1:].mean(2).unsqueeze(2), (rois[:, :, 2] - rois[:, :, 1]).unsqueeze(2)
         rois_emb = torch.cat([rois_cent, rois_dura], dim=2)
-        rois_emb = torch.log((rois_emb / len_feat).clamp(1e-3))
-        import pdb; pdb.set_trace()
+        rois_emb = 20. * torch.log((rois_emb / len_feat).clamp(1e-3))
+        # import pdb; pdb.set_trace()
         enc_output = enc_output + self.rois_emb(roi_embedding(rois_emb, roi_feat_size[2]))
         # enc_output = roi_feats
 
