@@ -139,7 +139,7 @@ def main():
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay, nesterov=False)
 
-    # model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
+    model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
     criterion_stage2 = CE_Criterion(use_weight=True, iou_thres=args.iou_thres)
 
