@@ -12,7 +12,7 @@ class ScaledDotProductAttention(nn.Module):
 
     def __init__(self, d_model, d_k, n_head, attn_dropout=0.1, kernel_type='self_attn'):
         super(ScaledDotProductAttention, self).__init__()
-        self.temper = np.power(d_model, 0.5)
+        self.temper = np.power(d_k, 0.5)
         self.dropout = nn.Dropout(attn_dropout)
         self.n_head = n_head
         self.softmax = nn.Softmax(dim=2)
