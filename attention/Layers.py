@@ -140,6 +140,6 @@ class ROI_Relation(nn.Module):
 
         enc_output, _ = self.slf_attn(
             enc_output, enc_output, enc_output,
-            attn_mask=rois_attn_mask, attn_pos_emb=None)
+            attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
         enc_output = self.pos_ffn(enc_output)
         return enc_output
