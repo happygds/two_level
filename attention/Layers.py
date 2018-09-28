@@ -96,8 +96,8 @@ class ROI_Relation(nn.Module):
             assert len(roipool_size) == 3 and roipool_size[1] == '_'
             start_pool_size, roipool_size = map(int, roipool_size.split("_"))
         print("start_pool_size is {} and inner_pool_size is {}".format(start_pool_size, roipool_size))
-        # self.roi_pool = BRoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
-        self.roi_pool = BRoI1DAlign(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
+        self.roi_pool = BRoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
+        # self.roi_pool = BRoI1DAlign(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
         self.bpool_size = start_pool_size
         self.roipoll_size = roipool_size
         self.roi_conv = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU(),
