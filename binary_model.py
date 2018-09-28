@@ -8,7 +8,7 @@ from attention.proposal import proposal_layer
 from attention.utils import *
 
 class BinaryClassifier(torch.nn.Module):
-    def __init__(self, num_class, course_segment, args, dropout=0.8, test_mode=False):
+    def __init__(self, num_class, course_segment, args, dropout=0.1, test_mode=False):
 
         super(BinaryClassifier, self).__init__()
 
