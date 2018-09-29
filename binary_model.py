@@ -91,7 +91,7 @@ class BinaryClassifier(torch.nn.Module):
             start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_output, feature_mask, test_mode=test_mode, iou_thres=self.iou_thres)
 
         # use relative position embedding
-        rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
+        rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model//2*3)
         roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
         rois_size = rois.size()
         roi_scores = F.softmax(self.roi_cls(roi_feats).view(rois_size[:2]+(-1, 2)), dim=3)

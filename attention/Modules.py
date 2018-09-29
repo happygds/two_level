@@ -157,7 +157,7 @@ class MultiHeadAttention(nn.Module):
         init.xavier_normal_(self.w_ks)
         init.xavier_normal_(self.w_vs)
         if kernel_type == 'roi_remov':
-            self.w_rs = nn.Parameter(torch.FloatTensor(n_head, d_model, d_k*2))
+            self.w_rs = nn.Parameter(torch.FloatTensor(n_head, d_model//2*3, d_k*2))
             init.xavier_normal_(self.w_rs)
             self.b_rs = nn.Parameter(torch.FloatTensor(n_head, 1, d_k*2))
             init.xavier_normal_(self.b_rs)
