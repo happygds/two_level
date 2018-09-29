@@ -44,9 +44,6 @@ class ScaledDotProductAttention(nn.Module):
                 nn.Conv2d(8*self.n_head, 8*self.n_head, (3, 1), padding=(1, 0)),
                 nn.Conv2d(8*self.n_head, self.n_head, (1, 3), padding=(0, 1)),
                 nn.BatchNorm2d(self.n_head))
-        elif self.kernel_type == 'roi_remov':
-            self.knorm = nn.LayerNorm(d_k)
-            self.vnorm = nn.LayerNorm(d_k)
 
     def forward(self, q, k, v, attn_mask=None, attn_pos_emb=None):
         if self.kernel_type == 'self_attn':
@@ -90,7 +87,7 @@ class ScaledDotProductAttention(nn.Module):
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             assert attn_pos_emb is not None
             k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
-            attn += torch.sum(q.unsqueeze(2) * self.knorm(k_pos_emb), dim=3) / self.temper
+            attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
             # attn.data.masked_fill_(attn_mask, -1e+32)
             # attn_max = torch.max(attn, 2, keepdim=True)[0]
             # attn = torch.exp(attn - attn_max)
@@ -126,7 +123,7 @@ class ScaledDotProductAttention(nn.Module):
         if attn_pos_emb is not None and self.kernel_type in ['self_attn', 'roi_remov']:
             # v_gate = F.sigmoid(torch.mean(v_pos_emb + v.unsqueeze(1), dim=2))
             # output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
-            output += torch.sum(attn.unsqueeze(3) * self.vnorm(v_pos_emb), dim=2)
+            output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
 
         return output, out_attn
 
