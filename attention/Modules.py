@@ -175,7 +175,7 @@ class MultiHeadAttention(nn.Module):
         if attn_pos_emb is not None:
             attn_pos_emb = attn_pos_emb.repeat(n_head, 1, 1, 1)
         if self.kernel_type == 'roi_remov':
-            attn_pos_emb = attn_pos_emb.view(n_head, -1, d_model)
+            attn_pos_emb = attn_pos_emb.view(n_head, -1, d_model//2*3)
             attn_pos_emb = F.selu((torch.bmm(attn_pos_emb, self.w_rs) + self.b_rs).view(-1, len_q, len_k, d_k*2))
         # treat as a (n_head) size batch
         # n_head x (mb_size*len_q) x d_model
