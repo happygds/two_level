@@ -85,9 +85,9 @@ class BinaryClassifier(torch.nn.Module):
 
         # compute loss for training/validation stage
         if not test_mode:
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_output, feature_mask, gts=gts, test_mode=test_mode, iou_thres=self.iou_thres)
+            start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_output, feature_mask, gts=gts, test_mode=test_mode)
         else:
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_output, feature_mask, test_mode=test_mode, iou_thres=self.iou_thres)
+            start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_output, feature_mask, test_mode=test_mode)
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model//2*3)
