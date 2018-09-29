@@ -73,35 +73,18 @@ class CE_Criterion_multi(nn.Module):
         return score_loss, start_loss, end_loss, attn_output
 
 
-class CE_Criterion(nn.Module):
-    def __init__(self, use_weight=True, iou_thres=[0.5, 0.6, 0.7, 0.8, 0.9]):
-        super(CE_Criterion, self).__init__()
-        self.use_weight = use_weight
-        self.iou_thres = iou_thres
+class Rank_Criterion(nn.Module):
+    def __init__(self, epsilon=0.01):
+        super(Rank_Criterion, self).__init__()
+        self.epsilon = epsilon
 
     def forward(self, x, y, mask):
-        for i, iou_thre in enumerate(self.iou_thres):
-            if self.use_weight:
-                target = y[:, :, i, :]
-                target *= mask.unsqueeze(2)
-                # cls_weight = 1. / target.mean(0).mean(0)
-                weight = target.sum(1) / mask.sum(1).unsqueeze(1).clamp(eps)
-                weight = 0.5 / weight.clamp(eps)
-                # weight = weight / weight.mean(1).unsqueeze(1)
+        x, y = x[:, :, 1], y[:, :, 1]
+        mask = torch.gt(y.unsqueeze(1) - y.unsqueeze(2), 0.).float()
+        pred = F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2))) * mask
+        output = torch.abs(pred).sum(2).sum(1) / mask.sum(2).sum(1).clamp(eps)
 
-            input = x[:, :, i, :]
-            output = - target * torch.log(input.clamp(eps))
-            if self.use_weight:
-                output *= weight.unsqueeze(1)
-                output = torch.sum(output.mean(2) * mask, dim=1) / \
-                    torch.sum(mask, dim=1).clamp(eps)
-                output = torch.mean(output)
-            if i == 0:
-                output_tmp = output
-            else:
-                output_tmp += output
-
-        return output_tmp.mean() / len(self.iou_thres)
+        return output.mean()
 
 
 def position_encoding_init(n_position, d_pos_vec):

@@ -90,14 +90,6 @@ def main():
         save_path = save_path + '_G' + str(args.groupwise_heads)
     if len(args.roi_poolsize) > 0:
         save_path = save_path + '_roi' + str(args.roi_poolsize)
-    if args.n_thres > 0:
-        save_path = save_path + '_T' + str(args.n_thres)
-        if args.n_thres == 1:
-            args.iou_thres = [0.5]
-        elif args.n_thres == 5:
-            args.iou_thres = [0.5, 0.6, 0.7, 0.8, 0.9]
-        else:
-            raise NotImplementedError("not implemented !")
     model_name = os.path.split(save_path)[1]
     logger = Logger('./logs/{}'.format(model_name))
 
@@ -141,7 +133,7 @@ def main():
 
     # model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
-    criterion_stage2 = CE_Criterion(use_weight=True, iou_thres=args.iou_thres)
+    criterion_stage2 = Rank_Criterion(epsilon=0.01)
 
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):
