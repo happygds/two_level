@@ -123,13 +123,13 @@ def main():
         batch_size=args.batch_size//2, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
-    # optimizer = torch.optim.Adam(
-    #         model.parameters(),
-    #         args.lr, weight_decay=args.weight_decay)
-    optimizer = torch.optim.SGD(model.parameters(),
-                                args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay, nesterov=False)
+    optimizer = torch.optim.Adam(
+            model.parameters(),
+            args.lr, weight_decay=args.weight_decay)
+    # optimizer = torch.optim.SGD(model.parameters(),
+    #                             args.lr,
+    #                             momentum=args.momentum,
+    #                             weight_decay=args.weight_decay, nesterov=False)
 
     # model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
@@ -200,7 +200,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
             score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
         roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-        loss = score_loss + 10. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
+        loss = score_loss + 1. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
         score_losses.update(score_loss.item(), feature.size(0))
         start_losses.update(start_loss.item(), feature.size(0))
         end_losses.update(end_loss.item(), feature.size(0))
@@ -287,7 +287,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
             score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
                 score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
             roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-            loss = score_loss + 10. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
+            loss = score_loss + 1. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
             score_losses.update(score_loss.item(), feature.size(0))
             start_losses.update(start_loss.item(), feature.size(0))
             end_losses.update(end_loss.item(), feature.size(0))
