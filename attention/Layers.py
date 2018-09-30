@@ -109,11 +109,11 @@ class ROI_Relation(nn.Module):
         # self.rank_fc = nn.Linear(d_model, d_model)
         # self.rois_emb = nn.Linear(d_model, d_model)
         # for non-local operation
-        self.slf_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout, 
-            kernel_type=kernel_type)
-        self.pos_ffn = PositionwiseFeedForward(
-            d_model, d_inner_hid, dropout=dropout)
+        # self.slf_attn = MultiHeadAttention(
+        #     n_head, d_model, d_k, d_v, dropout=dropout, 
+        #     kernel_type=kernel_type)
+        # self.pos_ffn = PositionwiseFeedForward(
+        #     d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         len_feat = features.size()[1]
