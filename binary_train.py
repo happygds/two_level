@@ -126,7 +126,7 @@ def main():
     # optimizer = torch.optim.Adam(
     #         model.parameters(),
     #         args.lr, weight_decay=args.weight_decay)
-    optimizer = torch.optim.SGD(model.module.get_trainable_parameters(),
+    optimizer = torch.optim.SGD(model.parameters(),
                                 args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay, nesterov=False)
