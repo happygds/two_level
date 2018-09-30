@@ -133,7 +133,7 @@ def main():
 
     # model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
-    criterion_stage2 = Rank_Criterion(epsilon=0.05)
+    criterion_stage2 = Rank_Criterion(epsilon=0.01)
 
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):
