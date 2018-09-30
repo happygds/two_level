@@ -138,9 +138,9 @@ class ROI_Relation(nn.Module):
         # enc_output = roi_feats + F.selu(self.rois_emb(roi_embedding(rois[:, :, 1:], roi_feat_size[2])))
         enc_output = roi_feats
 
-        enc_output, _ = self.slf_attn(
-            enc_output, enc_output, enc_output,
-            attn_mask=rois_attn_mask, attn_pos_emb=None)
-        enc_output = self.pos_ffn(enc_output)
+        # enc_output, _ = self.slf_attn(
+        #     enc_output, enc_output, enc_output,
+        #     attn_mask=rois_attn_mask, attn_pos_emb=None)
+        # enc_output = self.pos_ffn(enc_output)
         
         return enc_output
