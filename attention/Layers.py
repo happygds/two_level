@@ -128,14 +128,14 @@ class ROI_Relation(nn.Module):
         rois_attn_mask = (1. - rois_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
         rois_attn_mask = torch.gt(rois_attn_mask + rois_attn_mask.transpose(1, 2), 0)
         # use rank embedding
-        rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2]) + 1
-        enc_output = self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats
+        # rank_emb = torch.arange(roi_feat_size[1]).view((1, -1)).float().cuda().requires_grad_(False).expand(roi_feat_size[:2]) + 1
+        # enc_output = self.rank_fc(rank_embedding(rank_emb, roi_feat_size[2])) + roi_feats
         
         # rois_cent, rois_dura = rois[:, :, 1:].mean(2).unsqueeze(2), (rois[:, :, 2] - rois[:, :, 1]).unsqueeze(2)
         # rois_emb = torch.cat([rois_cent, rois_dura], dim=2)
         # rois_emb = 20. * torch.log((rois_emb / (len_feat * 0.5)).clamp(1e-3))
         # import pdb; pdb.set_trace()
-        enc_output = enc_output + F.selu(self.rois_emb(roi_embedding(rois[:, :, 1:], roi_feat_size[2])))
+        enc_output = roi_feats + F.selu(self.rois_emb(roi_embedding(rois[:, :, 1:], roi_feat_size[2])))
         # enc_output = roi_feats
 
         enc_output, _ = self.slf_attn(
