@@ -106,7 +106,7 @@ class ROI_Relation(nn.Module):
         in_ch = ((2*self.bpool_size+self.roipoll_size) - 1) // 4 + 1
         self.roi_fc = nn.Sequential(nn.Linear(d_model*in_ch, d_model), nn.Dropout(dropout), nn.SELU())
 
-        self.rank_fc = nn.Linear(d_model, d_model)
+        # self.rank_fc = nn.Linear(d_model, d_model)
         # self.rois_emb = nn.Linear(d_model, d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
