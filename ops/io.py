@@ -99,8 +99,7 @@ def dump_window_list(video_info, named_proposals, frame_path, name_pattern, allo
     # first count frame numbers
     try:
         video_name = video_info.id
-        files = glob.glob(os.path.join(frame_path, video_name, name_pattern))
-        frame_cnt = len(files)
+        frame_cnt = video_info.frame_cnt
     except:
         if allow_empty:
             frame_cnt = score.shape[0] * 6
