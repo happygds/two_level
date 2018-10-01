@@ -67,7 +67,9 @@ video_list = db.get_subset_videos(args.subset)
 video_list = [v for v in video_list if v.instances != []]
 print("video list size: {}".format(len(video_list)))
 video_list = [compute_frame_count(v, args.frame_path, 'frame*.jpg') for v in video_list]
-
+import pickle
+pickle.dump(video_list, open('./video_list', 'wb'), 2)
+import pdb; pdb.set_trace()
 
 # load scores
 print('loading scores...')
