@@ -40,13 +40,14 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         # the k-th sample
         bboxes = []
         num_feat = int(feature_mask[k].sum())
-        scores = score_output[k][:num_feat]
+        scores_k = score_output[k][:num_feat]
         # # use TAG
-        # scores = scores[:, :1]
-        # scores = np.concatenate((1-scores, scores), axis=2)
+        # scores = scores_k[:, :1]
+        # scores = np.concatenate((1-scores, scores), axis=1)
         # topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
         # props = build_box_by_search(topk_labels, np.array(tol_lst))
         # props = [(x[0], x[1], 1, x[3]) for x in props]
+        scores = scores_k
         
         # # use change point
         scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
@@ -61,9 +62,9 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             # max(min(scores[max(0, int(round(6*x/5.-y/5.))):max(int(round(4*x/5.+y/5.)), int(round(6*x/5.-y/5.))+1)].mean(), \
             # scores[max(0, int(round(4*y/5.+x/5.))):max(int(round(6*y/5.-x/5.)), int(round(4*y/5.+x/5.))+1)].mean()), 1e-3))*(pstarts[x]*pends[y])) \
             # for x in starts for y in ends if x < y and scores[x:y].mean() > 0.3]
-            props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.1]
-            if scores.mean() > 0.1:
-                props += [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
+            props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.3]
+            if scores.mean() > 0.3:
+                props = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
             # import pdb; pdb.set_trace()
         else:
             props = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
