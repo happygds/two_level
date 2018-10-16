@@ -150,7 +150,7 @@ def process(loader, state_dict, net):
         video_id = video_id[0]
         with torch.no_grad():
             rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
-            rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
+            rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()
             # import pdb; pdb.set_trace()
             outputs = [rois, actness, roi_scores, num_feat]
             result[video_id] = outputs
