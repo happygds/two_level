@@ -231,4 +231,5 @@ nr_proposals_lst = np.around(nr_proposals_lst)
 
 for j, nr_proposals in enumerate(nr_proposals_lst[::5]):
     print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*5]))
-print('AR@10 is {:.6f}, AR@100 is {:.6f}, AUC is {:.6f}'.format(ar_at_prop[9], ar_at_prop[99], auc))
+print('AR@1 is {:.6f}, AR@10 is {:.6f}, AR@20 is {:.6f}'.format(ar_at_prop[0], ar_at_prop[9], ar_at_prop[19]))
+print('AR@50 is {:.6f}, AR@100 is {:.6f}, AUC is {:.6f}'.format(ar_at_prop[49], ar_at_prop[99], auc))
