@@ -149,10 +149,10 @@ def process(loader, state_dict, net):
         pos_ind = pos_ind[0].cuda()
         video_id = video_id[0]
         with torch.no_grad():
-            _, _, score_output = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
-            score_output = score_output[0].cpu().numpy()
+            rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
+            rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()
             # import pdb; pdb.set_trace()
-            outputs = [score_output, num_feat]
+            outputs = [rois, actness, roi_scores, num_feat]
             result[video_id] = outputs
     return result
 
