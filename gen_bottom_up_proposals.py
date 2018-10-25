@@ -160,7 +160,7 @@ def gen_prop(v):
     scores = np.concatenate((1-scores, scores), axis=1)
     topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
     bboxes = build_box_by_search(topk_labels, np.array(tol_lst))
-    bboxes = [(x[0], x[1], 1, x[3]) for x in bboxes]
+    bboxes = [(x[0], x[1], 1, x[3] / (x[1] - x[0])) for x in bboxes]
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
     bboxes = temporal_nms(bboxes, 0.9)
