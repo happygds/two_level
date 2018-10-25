@@ -152,7 +152,7 @@ def gen_prop(v):
 
     score_output, frm_cnt = score_dict[vid]
     # use TAG
-    scores = scores_output[:, :1]
+    scores = score_output[:, :1]
     scores = np.concatenate((1-scores, scores), axis=1)
     topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
     bboxes = build_box_by_search(topk_labels, np.array(tol_lst))
