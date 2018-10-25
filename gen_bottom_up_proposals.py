@@ -152,6 +152,10 @@ def gen_prop(v):
 
     score_output, frm_cnt = score_dict[vid]
     # use TAG
+    topk_cls = [0]
+    tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
+    bw = 3
+    thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95,]
     scores = score_output[:, :1]
     scores = np.concatenate((1-scores, scores), axis=1)
     topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
