@@ -65,12 +65,27 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
         bboxes.extend(props)
         bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
-        # bboxes.sort(key=lambda x: x[3], reverse=True)
-        # bboxes = bboxes[:rpn_post_nms_top]
-        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+        # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
-        # import pdb; pdb.set_trace()
+        if not test_mode:
+            # compute iou with ground-truths
+            gt_k = gts[k]
+            gt_k = [x.cpu().numpy() for x in gt_k]
+            gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
+            if len(gt_k) == 0:
+                gt_k = [(0, 1)]
+            bboxes = np.asarray(bboxes)
+            rois = [(x[0], x[1]) for x in bboxes]
+            gt_k, rois = np.asarray(gt_k), np.asarray(rois)
+            rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1)
+            pos_bboxes, neg_bboxes = bboxes[rois_iou > 0.7], bboxes[rois_iou < 0.3]
+            rpn_post_nms_top = min(min(len(pos_bboxes) * 3, len(neg_bboxes) * 3 / 2), rpn_post_nms_top)
+            np.random.shuffle(pos_bboxes)
+            np.random.shuffle(neg_bboxes)
+            pos_bboxes, neg_bboxes = pos_bboxes[:int(rpn_post_nms_top/3.)], neg_bboxes[:int(rpn_post_nms_top*2./3.)]
+            bboxes = np.concatenate([pos_bboxes, neg_bboxes], axis=0)
+            np.random.shuffle(bboxes)
 
         rpn_rois[k, :, 0] = k
         rois = [(x[0], x[1]) for x in bboxes]
@@ -91,8 +106,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
             if len(gt_k) == 0:
                 gt_k = [(0, 1)]
-            # elif len(gt_k) >= 2:
-            #     import pdb; pdb.set_trace()
             gt_k, rois = np.asarray(gt_k), np.asarray(rois)
             rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
             tmp = np.concatenate([1. - rois_iou, rois_iou], axis=1)
