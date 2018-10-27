@@ -149,21 +149,7 @@ def gen_prop(v):
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
     bboxes = list(filter(lambda b: b[4] > 0.*roi_scores.max(), bboxes))
     # bboxes = temporal_nms(bboxes, 0.8)
-
-    # score_output, frm_cnt = score_dict[vid]
-    # # use TAG
-    # topk_cls = [0]
-    # tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
-    # bw = 3
-    # thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95,]
-    # scores = score_output[:, :1]
-    # scores = np.concatenate((1-scores, scores), axis=1)
-    # topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
-    # bboxes = build_box_by_search(topk_labels, np.array(tol_lst))
-    # bboxes = [(x[0], x[1], 1, x[3] / (x[1] - x[0])) for x in bboxes]
-    # # filter out too short proposals
-    # bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
-    # bboxes = temporal_nms(bboxes, 0.9)
+    bboxes = Soft_NMS(bboxes, length=frm_cnt)
 
     if len(bboxes) == 0:
         bboxes = [(0, float(v.frame_cnt) / v.frame_interval, 1, 1)]

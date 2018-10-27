@@ -98,6 +98,43 @@ def temporal_nms_fallback(bboxes, thresh, score_ind=3):
     return [bboxes[i] for i in keep]
 
 
+def IOU(s1,e1,s2,e2):
+    if (s2>e1) or (s1>e2):
+        return 0
+    Aor=max(e1,e2)-min(s1,s2) + 1
+    Aand=min(e1,e2)-max(s1,s2) + 1
+    return float(Aand)/Aor
+
+def Soft_NMS(bboxes, length=128, score_ind=3):
+    tstart = np.array([x[0] for x in bboxes])
+    tend = np.array([x[1] for x in bboxes])
+    tscores = np.array([x[score_ind] for x in bboxes])
+    order = scores.argsort()[::-1]
+    tstart, tend, tscores = list(tstart[order]), list(tend[order]), list(tscores[order])
+    
+    rstart=[]
+    rend=[]
+    rscore=[]
+
+    while len(tscore)>1 and len(rscore)<101:
+        max_index=tscore.index(max(tscore))
+        for idx in range(0,len(tscore)):
+            if idx!=max_index:
+                tmp_iou=IOU(tstart[max_index],tend[max_index],tstart[idx],tend[idx])
+                tmp_width=(tend[max_index]-tstart[max_index]) / length
+                if tmp_iou>0.65+0.25*tmp_width:#*1/(1+np.exp(-max_index)):        
+                    tscore[idx]=tscore[idx]*np.exp(-np.square(tmp_iou)/0.75)
+            
+        rstart.append(tstart[max_index])
+        rend.append(tend[max_index])
+        rscore.append(tscore[max_index])
+        tstart.pop(max_index)
+        tend.pop(max_index)
+        tscore.pop(max_index)
+                
+    new_bboxes = [(start, end, 1, score) for (start, end, score) in zip(rstart, rend, rscore)]
+    return new_bboxes
+
 
 def build_box_by_search(frm_label_lst, tol, min=1):
     boxes = []
