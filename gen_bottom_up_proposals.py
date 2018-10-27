@@ -225,7 +225,7 @@ dir_path = os.path.split(args.score_files[0])[0]
 # prediction.to_csv(os.path.join(dir_path, 'val.csv'))
 
 # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
-ground_truth, cls_to_idx = grd_activity('/data1/matheguo/important/data/activitynet/activity_net.v1-3.min_save.json', subset='validation')
+ground_truth, cls_to_idx = grd_activity('data/activity_net.v1-3.min_save.json', subset='validation')
 del cls_to_idx['background']
 auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=100,
                                                      tiou_thresholds=np.linspace(0.5, 0.95, 10))
