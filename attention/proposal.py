@@ -83,8 +83,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1)
             pos_bboxes, neg_bboxes = bboxes[rois_iou > 0.7], bboxes[rois_iou < 0.3]
             rpn_post_nms_top = min(min(len(pos_bboxes) * 3, len(neg_bboxes) * 3 / 2), rpn_post_nms_top)
-            np.random.shuffle(pos_bboxes)
-            np.random.shuffle(neg_bboxes)
+            np.random.shuffle(pos_bboxes), np.random.shuffle(neg_bboxes)
             pos_bboxes, neg_bboxes = pos_bboxes[:int(rpn_post_nms_top/3.)], neg_bboxes[:int(rpn_post_nms_top*2./3.)]
             bboxes = np.concatenate([pos_bboxes, neg_bboxes], axis=0)
             np.random.shuffle(bboxes)
