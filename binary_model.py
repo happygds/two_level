@@ -99,4 +99,4 @@ class BinaryClassifier(torch.nn.Module):
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
 
-        return rois[:, :, 1:], actness, score_output
+        return rois[:, :, 1:], actness, roi_scores
