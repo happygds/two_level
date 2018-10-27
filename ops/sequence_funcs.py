@@ -122,7 +122,7 @@ def Soft_NMS(bboxes, length=128., score_ind=3):
             if idx!=max_index:
                 tmp_iou=IOU(tstart[max_index],tend[max_index],tstart[idx],tend[idx])
                 tmp_width=(tend[max_index]-tstart[max_index]) / length
-                if tmp_iou>0.65+0.5*tmp_width:#*1/(1+np.exp(-max_index)):        
+                if tmp_iou>0.65+0.25*tmp_width:#*1/(1+np.exp(-max_index)):        
                     tscore[idx]=tscore[idx]*np.exp(-np.square(tmp_iou)/0.75)
             
         rstart.append(tstart[max_index])
