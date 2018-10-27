@@ -65,6 +65,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
         bboxes.extend(props)
         bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
+        bboxes.sort(key=lambda x: x[3], reverse=True)
+        # bboxes = bboxes[:rpn_post_nms_top]
         # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
@@ -86,6 +88,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             pos_bboxes, neg_bboxes = pos_bboxes[:int(rpn_post_nms_top/3.)], neg_bboxes[:int(rpn_post_nms_top*2./3.)]
             bboxes = np.concatenate([pos_bboxes, neg_bboxes], axis=0)
             np.random.shuffle(bboxes)
+        bboxes = bboxes[:rpn_post_nms_top]
 
         rpn_rois[k, :, 0] = k
         rois = [(x[0], x[1]) for x in bboxes]
