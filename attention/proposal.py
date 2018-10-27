@@ -88,6 +88,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             bboxes = np.concatenate([pos_bboxes, neg_bboxes], axis=0)
             np.random.shuffle(bboxes)
         bboxes = bboxes[:rpn_post_nms_top]
+        if len(bboxes) == 0:
+            bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
 
         rpn_rois[k, :, 0] = k
         rois = [(x[0], x[1]) for x in bboxes]
