@@ -4,7 +4,7 @@ import math
 import multiprocessing as mp
 from scipy.ndimage import gaussian_filter
 
-from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, temporal_nms
+from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, temporal_nms, Soft_NMS
 from ops.eval_utils import wrapper_segment_iou
 
 
@@ -68,28 +68,29 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         bboxes.sort(key=lambda x: x[3], reverse=True)
         # bboxes = bboxes[:rpn_post_nms_top]
         # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+        bboxes = Soft_NMS(bboxes, length=len(scores))[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
-        if not test_mode:
-            # compute iou with ground-truths
-            gt_k = gts[k]
-            gt_k = [x.cpu().numpy() for x in gt_k]
-            gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
-            if len(gt_k) == 0:
-                gt_k = [(0, 1)]
-            bboxes = np.asarray(bboxes)
-            rois = [(x[0], x[1]) for x in bboxes]
-            gt_k, rois = np.asarray(gt_k), np.asarray(rois)
-            rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1)
-            pos_bboxes, neg_bboxes = bboxes[rois_iou > 0.7], bboxes[rois_iou < 0.3]
-            # kept_num = min(min(len(pos_bboxes) * 3, len(neg_bboxes) * 3 / 2), rpn_post_nms_top)
-            if len(pos_bboxes) + len(neg_bboxes) > 0:
-                kept_ratio = rpn_post_nms_top / (len(pos_bboxes) + len(neg_bboxes))
-                np.random.shuffle(pos_bboxes), np.random.shuffle(neg_bboxes)
-                pos_bboxes, neg_bboxes = pos_bboxes[:int(kept_ratio*len(pos_bboxes))], neg_bboxes[:int(kept_ratio*len(neg_bboxes))]
-            bboxes = np.concatenate([pos_bboxes, neg_bboxes], axis=0)
-            np.random.shuffle(bboxes)
-        bboxes = bboxes[:rpn_post_nms_top]
+        # if not test_mode:
+        #     # compute iou with ground-truths
+        #     gt_k = gts[k]
+        #     gt_k = [x.cpu().numpy() for x in gt_k]
+        #     gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
+        #     if len(gt_k) == 0:
+        #         gt_k = [(0, 1)]
+        #     bboxes = np.asarray(bboxes)
+        #     rois = [(x[0], x[1]) for x in bboxes]
+        #     gt_k, rois = np.asarray(gt_k), np.asarray(rois)
+        #     rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1)
+        #     pos_bboxes, neg_bboxes = bboxes[rois_iou > 0.7], bboxes[rois_iou < 0.3]
+        #     # kept_num = min(min(len(pos_bboxes) * 3, len(neg_bboxes) * 3 / 2), rpn_post_nms_top)
+        #     if len(pos_bboxes) + len(neg_bboxes) > 0:
+        #         kept_ratio = rpn_post_nms_top / (len(pos_bboxes) + len(neg_bboxes))
+        #         np.random.shuffle(pos_bboxes), np.random.shuffle(neg_bboxes)
+        #         pos_bboxes, neg_bboxes = pos_bboxes[:int(kept_ratio*len(pos_bboxes))], neg_bboxes[:int(kept_ratio*len(neg_bboxes))]
+        #     bboxes = np.concatenate([pos_bboxes, neg_bboxes], axis=0)
+        #     np.random.shuffle(bboxes)
+        # bboxes = bboxes[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
 
