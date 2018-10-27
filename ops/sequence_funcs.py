@@ -105,11 +105,12 @@ def IOU(s1,e1,s2,e2):
     Aand=min(e1,e2)-max(s1,s2) + 1
     return float(Aand)/Aor
 
-def Soft_NMS(bboxes, length=128, score_ind=3):
+def Soft_NMS(bboxes, length=128., score_ind=3):
     tstart = np.array([x[0] for x in bboxes])
     tend = np.array([x[1] for x in bboxes])
     tscore = np.array([x[score_ind] for x in bboxes])
     order = scores.argsort()[::-1]
+    import pdb; pdb.set_trace()
     tstart, tend, tscore = list(tstart[order]), list(tend[order]), list(tscore[order])
     
     rstart=[]
