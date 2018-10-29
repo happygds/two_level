@@ -57,8 +57,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.9 * pstarts.max())[0])
             ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.9 * pends.max())[0])
             starts, ends = list(set(starts)), list(set(ends))
-            props += [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.3]
-            if scores.mean() > 0.3:
+            props += [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.1]
+            if scores.mean() > 0.1:
                 props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
             # import pdb; pdb.set_trace()
         else:
