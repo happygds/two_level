@@ -66,7 +66,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
         bboxes.extend(props)
         bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
-        bboxes.sort(key=lambda x: x[3], reverse=True)
+        # to remove duplicate proposals
+        bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
         # bboxes = bboxes[:rpn_post_nms_top]
         # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         bboxes = Soft_NMS(bboxes, length=len(scores))[:rpn_post_nms_top]
