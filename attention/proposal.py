@@ -57,13 +57,13 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.9 * pstarts.max())[0])
             ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.9 * pends.max())[0])
             starts, ends = list(set(starts)), list(set(ends))
-            props += [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.1]
+            props += [(x, y, 1, scores[x:y].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y].mean() > 0.1]
             if scores.mean() > 0.1:
                 props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
             # import pdb; pdb.set_trace()
         else:
             props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
-        props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
+        props = [(x[0], x[1], 1, scores[x[0]:x[1]].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
         bboxes.extend(props)
         bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
         # to remove duplicate proposals
