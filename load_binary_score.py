@@ -3,6 +3,7 @@ import torch.utils.data as data
 import os, glob
 import h5py
 import math
+import random
 from numpy.random import randint
 from ops.io import load_proposal_file
 from transforms import *
@@ -246,7 +247,7 @@ class BinaryDataSet(data.Dataset):
         gts = np.zeros((32, 2), dtype='float32')
         gts[:len(video.gts)] = (video.gts - begin_ind).clip(0., min_len)
 
-        if random.randint(2) % 2 == 0:
+        if random.randint(0, 1) % 2 == 0:
             assert begin_ind == 0, "{} != 0".format(begin_ind)
             gts[:len(video.gts)] = (min_len - video.gts)[:, ::-1]
             out_feat, out_label = out_feat[::-1], out_label[::-1]
