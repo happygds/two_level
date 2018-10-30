@@ -251,7 +251,7 @@ class BinaryDataSet(data.Dataset):
             assert begin_ind == 0, "{} != 0".format(begin_ind)
             gts[:len(video.gts)] = (min_len - video.gts)[:, ::-1].copy()
             out_feat, out_label = out_feat[::-1].copy(), out_label[::-1].copy()
-            out_starts, out_ends = out_starts[::-1].copy(), out_ends[::-1].copy()
+            out_starts, out_ends = out_ends[::-1].copy(), out_starts[::-1].copy()
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
