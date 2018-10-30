@@ -247,11 +247,11 @@ class BinaryDataSet(data.Dataset):
         gts = np.zeros((32, 2), dtype='float32')
         gts[:len(video.gts)] = (video.gts - begin_ind).clip(0., min_len)
 
-        if random.randint(0, 1) % 2 == 0:
-            assert begin_ind == 0, "{} != 0".format(begin_ind)
-            gts[:len(video.gts)] = (min_len - video.gts)[:, ::-1].copy()
-            out_feat, out_label = out_feat[::-1].copy(), out_label[::-1].copy()
-            out_starts, out_ends = out_ends[::-1].copy(), out_starts[::-1].copy()
+        # if random.randint(0, 1) % 2 == 0:
+        #     assert begin_ind == 0, "{} != 0".format(begin_ind)
+        #     gts[:len(video.gts)] = (min_len - video.gts)[:, ::-1].copy()
+        #     out_feat, out_label = out_feat[::-1].copy(), out_label[::-1].copy()
+        #     out_starts, out_ends = out_ends[::-1].copy(), out_starts[::-1].copy()
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
