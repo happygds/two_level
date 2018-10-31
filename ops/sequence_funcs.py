@@ -116,7 +116,7 @@ def Soft_NMS(bboxes, length=128., score_ind=3):
     rend=[]
     rscore=[]
 
-    while len(tscore)>1 and len(rscore)<101:
+    while len(tscore)>1 and len(rscore)<129:
         max_index=tscore.index(max(tscore))
         for idx in range(0,len(tscore)):
             if idx!=max_index:
