@@ -98,7 +98,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             tmp = np.concatenate([1. - rois_iou, rois_iou], axis=1)
             labels[k, :len(bboxes), :] = tmp
         else:
-            actness[k, :len(bboxes)] = np.asarray([scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)]) for x in bboxes])
+            actness[k, :len(bboxes)] = np.asarray([x[3] for x in bboxes])
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois[:, :, 1:]).mean(axis=2) > 0.).astype('float32')
     rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
