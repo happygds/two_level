@@ -242,6 +242,9 @@ class BinaryDataSet(data.Dataset):
                     elif end_nbegin == end_nend:
                         end_nbegin, end_nend = nend_ind-1, nend_ind+1
                     starts[start_nbegin:start_nend], ends[end_nbegin:end_nend] = 1., 1.
+            except IndexError:
+                print(len(self.ends), nbegin_ind, nend_ind)
+                import pdb; pdb.set_trace()
 
         out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len = self._sample_feat(feat, label, starts, ends)
         out_mask = np.zeros_like(out_label).astype('float32')
