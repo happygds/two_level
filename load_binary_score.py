@@ -237,11 +237,7 @@ class BinaryDataSet(data.Dataset):
                                 int(min(math.ceil(sample_duration * begin_ind + dura_i), len(label)-1))
                     end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
                                 int(min(math.ceil(sample_duration * end_ind + dura_i), len(label)-1))
-                    if start_nbegin == start_nend:
-                        start_nbegin, start_nend = nbegin_ind-1, nbegin_ind+1
-                    elif end_nbegin == end_nend:
-                        end_nbegin, end_nend = nend_ind-1, nend_ind+1
-                    starts[start_nbegin:start_nend], ends[end_nbegin:end_nend] = 1., 1.
+                    starts[start_nbegin:start_nend+1], ends[end_nbegin:end_nend+1] = 1., 1.
             except IndexError:
                 print(len(self.ends), nbegin_ind, nend_ind)
                 import pdb; pdb.set_trace()
