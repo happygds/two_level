@@ -229,8 +229,7 @@ class BinaryDataSet(data.Dataset):
             begin_ind, end_ind = gt / float(num_feat)
             nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             label[nbegin_ind:nend_ind+1] = 1.
-            ratio = np.random.rand(1) * 0.4 + 0.8
-            dura_i = sample_duration * (end_ind - begin_ind) / 10. * ratio
+            dura_i = sample_duration * (end_ind - begin_ind) / 10.
             try:
                 if nbegin_ind < nend_ind:
                     start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
