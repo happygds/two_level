@@ -202,7 +202,7 @@ class BinaryDataSet(data.Dataset):
         for i, gt in enumerate(video.gts):
             ratio = np.random.rand(2) * 0.02 - 0.01
             gt = gt / float(num_feat) + ratio
-            begin_ind, end_ind = gt / float(num_feat)
+            begin_ind, end_ind = gt
             nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             label[nbegin_ind:nend_ind] = 1.
             dura_i = sample_duration * (end_ind - begin_ind) / 10.
