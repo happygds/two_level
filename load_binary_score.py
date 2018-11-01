@@ -225,7 +225,7 @@ class BinaryDataSet(data.Dataset):
         num_feat = feat.shape[0]
 
         sample_duration = num_feat
-        for i, gt in enumerate(self._data.instance):
+        for i, gt in enumerate(video.gts):
             begin_ind, end_ind = gt / float(num_feat)
             nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             label[nbegin_ind:nend_ind] = 1.
