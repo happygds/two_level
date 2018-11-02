@@ -9,7 +9,7 @@ from ops.eval_utils import wrapper_segment_iou
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
-                   rpn_post_nms_top=64, feat_stride=16):
+                   rpn_post_nms_top=100, feat_stride=16):
     """
     Parameters
     ----------
@@ -54,11 +54,11 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         if len(scores) > 1:
             diff_pstarts, diff_pends = pstarts[1:,] - pstarts[:-1,], pends[1:,] - pends[:-1,]
             # gd_scores = gaussian_filter(diff_scores, bw)
-            starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.9 * pstarts.max())[0])
-            ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.9 * pends.max())[0])
+            starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
+            ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
             starts, ends = list(set(starts)), list(set(ends))
-            props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.3]
-            if scores.mean() > 0.3:
+            props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.]
+            if scores.mean() > 0.:
                 props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
             # import pdb; pdb.set_trace()
         else:
@@ -69,8 +69,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         # to remove duplicate proposals
         # bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
         # bboxes = bboxes[:rpn_post_nms_top]
-        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
-        # bboxes = Soft_NMS(bboxes, length=len(scores))[:rpn_post_nms_top]
+        # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+        bboxes = Soft_NMS(bboxes, length=len(scores))[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
 
