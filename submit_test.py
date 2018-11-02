@@ -226,7 +226,7 @@ submit_pred = {}
 submit_pred['version'] = "VERSION 1.3"
 external_data = {}
 external_data['used'] = True
-external_data['details'] = "two-level self-attention model"
+external_data['details'] = "two-stream I3D feature pretrained on kinectics"
 submit_pred['external_data'] = external_data
 
 results = {}
