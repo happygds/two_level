@@ -237,7 +237,7 @@ for _, vid_name in enumerate(vid_names):
     this_lst = []
     for _, pred in enumerate(this_preds):
         this_pred = {}
-        score, t_start, t_end, label = pred
+        score, t_start, t_end = pred
         this_pred['score'] = score
         this_pred['segment'] = list([t_start, t_end])
         this_lst.append(this_pred)
