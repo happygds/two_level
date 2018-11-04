@@ -114,7 +114,7 @@ class BinaryDataSet(data.Dataset):
                  bg_coverage_thresh=0.02, sample_duration=2048,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
-                 use_flow=True, num_local=8, submit_test=False,
+                 use_flow=True, num_local=8,
                  frame_path='/data1/matheguo/important/data/activitynet/activity_net_frames'):
 
         self.verbose = verbose
@@ -171,7 +171,7 @@ class BinaryDataSet(data.Dataset):
             raise NotImplementedError('this feature has been extracted !')
         print("using rgb feature from {}".format(rgb_h5_path))
 
-        if not submit_test:
+        if not prop_file:
             prop_info = load_proposal_file(prop_file)
             frame_counts = {}
             for i, vid_info in enumerate(prop_info):
