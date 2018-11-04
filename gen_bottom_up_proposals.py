@@ -63,11 +63,11 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     return video_info
     
 
-# video_list = db.get_subset_videos(args.subset)
-# video_list = [v for v in video_list if v.instances != []]
-# print("video list size: {}".format(len(video_list)))
-# video_list = [compute_frame_count(v, args.frame_path, 'frame*.jpg') for v in video_list]
-video_list = pickle.load(open('./video_list', 'rb'))
+video_list = db.get_subset_videos(args.subset)
+video_list = [v for v in video_list if v.instances != []]
+print("video list size: {}".format(len(video_list)))
+video_list = [compute_frame_count(v, args.frame_path, 'frame*.jpg') for v in video_list]
+# video_list = pickle.load(open('./video_list', 'rb'))
 
 # load scores
 print('loading scores...')
