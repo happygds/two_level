@@ -171,7 +171,7 @@ class BinaryDataSet(data.Dataset):
             raise NotImplementedError('this feature has been extracted !')
         print("using rgb feature from {}".format(rgb_h5_path))
 
-        if not prop_file:
+        if prop_file:
             prop_info = load_proposal_file(prop_file)
             frame_counts = {}
             for i, vid_info in enumerate(prop_info):
