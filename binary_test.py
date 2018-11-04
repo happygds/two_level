@@ -85,6 +85,8 @@ elif args.dataset == 'activitynet1.3':
         test_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['train_list'])
     elif args.subset == 'validation':    
         test_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['test_list'])
+    else:    
+        test_prop_file = None
 
 # set the directory for the rgb features
 if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
