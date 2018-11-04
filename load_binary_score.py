@@ -106,7 +106,7 @@ class BinaryVideoRecord:
 
 class BinaryDataSet(data.Dataset):
 
-    def __init__(self, feat_root, feat_model, prop_file,
+    def __init__(self, feat_root, feat_model, prop_file=None,
                  subset_videos=None, body_seg=5, video_centric=True,
                  test_mode=False, feat_stride=16, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
@@ -114,7 +114,7 @@ class BinaryDataSet(data.Dataset):
                  bg_coverage_thresh=0.02, sample_duration=2048,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
-                 use_flow=True, num_local=8, 
+                 use_flow=True, num_local=8, submit_test=False,
                  frame_path='/data1/matheguo/important/data/activitynet/activity_net_frames'):
 
         self.verbose = verbose
@@ -171,11 +171,12 @@ class BinaryDataSet(data.Dataset):
             raise NotImplementedError('this feature has been extracted !')
         print("using rgb feature from {}".format(rgb_h5_path))
 
-        prop_info = load_proposal_file(prop_file)
-        frame_counts = {}
-        for i, vid_info in enumerate(prop_info):
-            vid_name = os.path.split(vid_info[0])[1]
-            frame_counts[vid_name] = int(vid_info[1])
+        if not submit_test:
+            prop_info = load_proposal_file(prop_file)
+            frame_counts = {}
+            for i, vid_info in enumerate(prop_info):
+                vid_name = os.path.split(vid_info[0])[1]
+                frame_counts[vid_name] = int(vid_info[1])
         self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
                                              frame_counts, use_flow=use_flow, feat_stride=feat_stride, 
                                              sample_duration=self.sample_duration) for x in subset_videos]
