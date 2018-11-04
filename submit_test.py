@@ -204,7 +204,6 @@ for _, vid_name in enumerate(vid_names):
         this_pred['score'] = score
         this_pred['segment'] = list([t_start, t_end])
         this_lst.append(this_pred)
-        import pdb; pdb.set_trace()
     results[vid_name] = this_lst
 submit_pred['results'] = results
 
