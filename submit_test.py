@@ -173,43 +173,6 @@ handle = [pool.apply_async(gen_prop, args=(x, ), callback=call_back) for x in vi
 pool.close()
 pool.join()
 
-# evaluate proposal info
-proposal_list = [pr_dict[v.id] for v in video_list if v.id in pr_dict]
-gt_spans_full = [[(x.num_label, x.time_span) for x in v.instances] for v in video_list if v.id in pr_dict]
-gt_spans = [[item[1] for item in x] for x in gt_spans_full]
-score_list = [score_dict[v.id] for v in video_list if v.id in pr_dict]
-duration_list = [v.duration for v in video_list if v.id in pr_dict]
-proposal_score_list = [pr_score_dict[v.id] for v in video_list if v.id in pr_dict]
-print('{} groundtruth boxes from'.format(sum(map(len, gt_spans))))
-# import pdb ; pdb.set_trace()
-
-print('average # of proposals: {}'.format(np.mean(list(map(len, proposal_list)))))
-IOU_thresh = np.arange(0.5, 1.0, 0.05)
-p_list = []
-for th in IOU_thresh:
-    pv, pi = get_temporal_proposal_recall(proposal_list, gt_spans, th)
-    print('IOU threshold {}. per video recall: {:02f}, per instance recall: {:02f}'.format(th, pv * 100, pi * 100))
-    p_list.append((pv, pi))
-print('Average Recall: {:.04f} {:.04f}'.format(*(np.mean(p_list, axis=0)*100)))
-
-if args.write_proposals:
-
-    name_pattern = 'frame*.jpg'
-    frame_path = args.frame_path
-
-    named_proposal_list = [name_proposal(x, y) for x, y in zip(gt_spans_full, proposal_list)]
-    # allow_empty = args.dataset == 'activitynet' and args.subset == 'testing'
-    dumped_list = [dump_window_list(v, prs, frame_path, name_pattern, score=score, allow_empty=True) for v, prs, score in
-                   zip(filter(lambda x: x.id in pr_dict, video_list), named_proposal_list, score_list)]
-
-    with open(args.write_proposals, 'w') as of:
-        for i, e in enumerate(dumped_list):
-            of.write('# {}\n'.format(i + 1))
-            of.write(e)
-
-    print('list {} written. got {} videos'.format(args.write_proposals, len(dumped_list)))
-
-
 import pandas as pd
 video_lst, t_start_lst, t_end_lst, score_lst = [], [], [], []
 for k, v in pr_dict.items():
