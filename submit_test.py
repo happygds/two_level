@@ -244,5 +244,6 @@ for _, vid_name in enumerate(vid_names):
     results[vid_name] = this_lst
 submit_pred['results'] = results
 
+import json
 with open('{}.json'.format('submit_test'), 'w') as outfile:
     json.dump(submit_pred, outfile, indent=4, separators=(',', ': '))
