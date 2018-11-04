@@ -35,13 +35,13 @@ class BinaryInstance:
 
 class BinaryVideoRecord:
     def __init__(self, video_record, frame_path, flow_h5_path, rgb_h5_path,
-                 flow_feat_key, rgb_feat_key, frame_counts, use_flow=True, 
+                 flow_feat_key, rgb_feat_key, frame_counts=None, use_flow=True, 
                  feat_stride=8, sample_duration=100):
         self._data = video_record
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
         # frame_cnt = len(files)
-        frame_cnt = frame_counts[self.id]
+        # frame_cnt = frame_counts[self.id]
         vid_name = 'v_{}'.format(self.id)
 
         with h5py.File(rgb_h5_path, 'r') as f:
@@ -177,6 +177,8 @@ class BinaryDataSet(data.Dataset):
             for i, vid_info in enumerate(prop_info):
                 vid_name = os.path.split(vid_info[0])[1]
                 frame_counts[vid_name] = int(vid_info[1])
+        else:
+            frame_counts = None
         self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
                                              frame_counts, use_flow=use_flow, feat_stride=feat_stride, 
                                              sample_duration=self.sample_duration) for x in subset_videos]
