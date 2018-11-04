@@ -57,12 +57,12 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
             ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
             starts, ends = list(set(starts)), list(set(ends))
-            props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.]
+            props = [(x, y+1, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.]
             if scores.mean() > 0.:
-                props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
+                props += [(0, len(scores), 1, scores.mean()*(pstarts[0]*pends[-1]))]
             # import pdb; pdb.set_trace()
         else:
-            props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
+            props = [(0, len(scores), 1, scores.mean()*(pstarts[0]*pends[-1]))]
         # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
         bboxes.extend(props)
         bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
@@ -72,7 +72,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         bboxes = Soft_NMS(bboxes, length=len(scores))[:rpn_post_nms_top]
         if len(bboxes) == 0:
-            bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
+            bboxes = [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
 
         rpn_rois[k, :, 0] = k
         rois = [(x[0], x[1]) for x in bboxes]
