@@ -101,11 +101,7 @@ def dump_window_list(video_info, named_proposals, frame_path, name_pattern, allo
         video_name = video_info.id
         frame_cnt = video_info.frame_cnt
     except:
-        if allow_empty:
-            frame_cnt = score.shape[0] * 6
-            video_name = video_info.id
-        else:
-            raise
+        raise NotImplementedError()
 
     # convert time to frame number
     real_fps = float(frame_cnt) / float(video_info.duration)
