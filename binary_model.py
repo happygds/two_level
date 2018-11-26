@@ -81,7 +81,8 @@ class BinaryClassifier(torch.nn.Module):
             enc_output, enc_slf_attn = enc_layer(
                 enc_output, local_attn_mask=slf_local_mask, 
                 slf_attn_mask=slf_attn_mask)
-        score_output = F.sigmoid(self.scores(enc_output))
+        score_output_before = self.scores(enc_output)
+        score_output = F.sigmoid(score_output_before)
 
         # compute loss for training/validation stage
         if not test_mode:
@@ -93,7 +94,8 @@ class BinaryClassifier(torch.nn.Module):
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
         rois_size = rois.size()
-        roi_scores = F.softmax(self.roi_cls(roi_feats), dim=2)
+        roi_scores_before = self.roi_cls(roi_feats)
+        roi_scores = F.softmax(roi_scores_before, dim=2)
 
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
