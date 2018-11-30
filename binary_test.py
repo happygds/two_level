@@ -121,7 +121,7 @@ gpu_list = args.gpus if args.gpus is not None else range(4)
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     torch.cuda.set_device(gpu_id)
     net = BinaryClassifier(num_class, args.num_body_segments, args, dropout=args.dropout, test_mode=True)
-    # net = torch.nn.DataParallel(net, device_ids=[gpu_id])
+    net = torch.nn.DataParallel(net, device_ids=[gpu_id])
 
     net.load_state_dict(state_dict)
     net.eval()
