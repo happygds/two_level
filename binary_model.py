@@ -1,3 +1,4 @@
+import pickle
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -48,7 +49,8 @@ class BinaryClassifier(torch.nn.Module):
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
         self.roi_cls = nn.Linear(args.d_model, 2)
 
-    def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
+    def forward(self, feature, pos_ind, target=None, gts=None, 
+                feature_mask=None, test_mode=False, ensemble_stage=None, score_output_before=None):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
@@ -82,6 +84,12 @@ class BinaryClassifier(torch.nn.Module):
                 enc_output, local_attn_mask=slf_local_mask, 
                 slf_attn_mask=slf_attn_mask)
         score_output_before = self.scores(enc_output)
+        if ensemble_stage == '1':
+            return score_output_before
+        elif ensemble_stage == '2':
+            assert score_output_before is not None
+            score_output_before = pickle.load(open(score_output_before, 'rb'))
+
         score_output = F.sigmoid(score_output_before)
 
         # compute loss for training/validation stage
@@ -99,5 +107,6 @@ class BinaryClassifier(torch.nn.Module):
 
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
-
+        if ensemble_stage == '2':
+            return rois[:, :, 1:], actness, roi_scores_before
         return rois[:, :, 1:], actness, roi_scores
