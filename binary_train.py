@@ -146,7 +146,7 @@ def main():
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
             loss, score_loss, start_loss, end_loss, roi_loss = validate(
-                val_loader, model, criterion_stage1, criterion_stage2, (epoch + 1) * len(train_loader))
+                val_loader, model, criterion_stage1, criterion_stage2, (epoch + 1) * len(train_loader), epoch)
             # 1. Log scalar values (scalar summary)
             info = {'val_loss': loss,
                     'val_score_loss': score_loss,
@@ -196,7 +196,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
 
         # compute output
         score_output, enc_slf_attn, roi_scores, labels, rois_mask = model(
-            feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
+            feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=epoch)
         score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
             score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
         roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
@@ -261,7 +261,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
                   )
 
 
-def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
+def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch):
     batch_time = AverageMeter()
     attn_losses = AverageMeter()
     losses = AverageMeter()
@@ -283,7 +283,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter):
 
             # compute output
             score_output, enc_slf_attn, roi_scores, labels, rois_mask = model(
-                feature, pos_ind, target, gts=gts, feature_mask=feature_mask)
+                feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=epoch)
             score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
                 score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
             roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
