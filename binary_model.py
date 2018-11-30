@@ -48,7 +48,8 @@ class BinaryClassifier(torch.nn.Module):
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
         self.roi_cls = nn.Linear(args.d_model, 2)
 
-    def forward(self, feature, pos_ind, target=None, gts=None, feature_mask=None, test_mode=False):
+    def forward(self, feature, pos_ind, target=None, gts=None, 
+                feature_mask=None, test_mode=False, epoch_id=None):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
@@ -85,9 +86,11 @@ class BinaryClassifier(torch.nn.Module):
 
         # compute loss for training/validation stage
         if not test_mode:
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(score_output, feature_mask, gts=gts, test_mode=test_mode)
+            start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(
+                score_output, feature_mask, gts=gts, test_mode=test_mode, epoch_id=epoch_id)
         else:
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(score_output, feature_mask, test_mode=test_mode)
+            start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(
+                score_output, feature_mask, test_mode=test_mode)
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)

@@ -9,7 +9,7 @@ from ops.eval_utils import wrapper_segment_iou
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
-                   rpn_post_nms_top=100, feat_stride=16):
+                   rpn_post_nms_top=100, feat_stride=16, epoch_id=None):
     """
     Parameters
     ----------
@@ -67,10 +67,10 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         bboxes.extend(props)
         bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
         # to remove duplicate proposals
-        # bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
-        # bboxes = bboxes[:rpn_post_nms_top]
-        # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
-        bboxes = Soft_NMS(bboxes, length=len(scores))[:rpn_post_nms_top]
+        if epoch_id is not None and epoch_id < 3:
+            bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+        else:
+            bboxes = Soft_NMS(bboxes, length=len(scores))[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
 
