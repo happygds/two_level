@@ -206,6 +206,7 @@ if __name__ == '__main__':
         ensemble_outputs[model_id] = out_dict
         index_queue = None
         result_queue = None
+        ctx = None
 
     stage1_outs = {}
     for key in out_dict.keys():
@@ -252,6 +253,7 @@ if __name__ == '__main__':
         ensemble_outputs[model_id] = out_dict
         index_queue = None
         result_queue = None
+        ctx = None
 
     stage2_outs = {}
     for key in out_dict.keys():
