@@ -115,12 +115,6 @@ else:
     args.d_k = int(args.input_dim // args.n_head)
     args.d_v = args.d_k
 args.d_model = args.n_head * args.d_k
-multi_strides = [1]
-if args.multiscale == 3:
-    multi_strides += [4, 16]
-elif args.multiscale == 4:
-    multi_strides += [2, 4, 8]
-args.multi_strides = multi_strides
 
 gpu_list = args.gpus if args.gpus is not None else range(4)
 
