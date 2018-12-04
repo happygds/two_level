@@ -174,7 +174,7 @@ if __name__ == '__main__':
     # suppose ensemble models from seed1-seedN
     ensemble_outputs = {}
     for model_id in range(1, args.num_ensemble+1, 1):
-        this_path = args.weights[:]
+        this_path = (args.weights + '.')[:-1]
         this_path = this_path.replace("seed1", "seed"+str(model_id))
         ctx = multiprocessing.get_context('spawn')
         checkpoint = torch.load(this_path)
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     # suppose ensemble models from seed1-seedN
     ensemble_outputs = {}
     for model_id in range(1, args.num_ensemble+1, 1):
-        this_path = args.weights[:]
+        this_path = (args.weights + '.')[:-1]
         this_path = this_path.replace("seed1", "seed"+str(model_id))
         ctx = multiprocessing.get_context('spawn')
         checkpoint = torch.load(this_path)
