@@ -155,7 +155,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
                                                        test_mode=True, ensemble_stage=ensemble_stage,
                                                        score_output_before=score_output_before)
                 rois, actness, roi_scores_before = rois[0].cpu().numpy(
-                ), actness[0].cpu().numpy(), roi_scores_before[0].cpu().numpy()[:, 1]
+                ), actness[0].cpu().numpy(), roi_scores_before[0].cpu().numpy()
                 # import pdb; pdb.set_trace()
                 outputs = [rois, actness, roi_scores_before, num_feat]
 
@@ -255,7 +255,7 @@ if __name__ == '__main__':
                 this_mean = ensemble_outputs[model_id][key][2] / args.num_ensemble
             else:
                 this_mean += ensemble_outputs[model_id][key][2] / args.num_ensemble
-        this_mean = np_softmax(this_mean)
+        this_mean = np_softmax(this_mean)[:, 1]
         stage2_outs[key] = ensemble_outputs[model_id][key][:2] + [this_mean,] + ensemble_outputs[model_id][key][3:]
 
     if args.save_scores is not None:
