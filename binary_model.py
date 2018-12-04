@@ -20,7 +20,6 @@ class BinaryClassifier(torch.nn.Module):
             self.dropout = args.dropout
         else:
             self.dropout = 0.
-        self.multi_strides = args.multi_strides
         self.n_layers = args.n_layers
 
         if args.num_local > 0:
