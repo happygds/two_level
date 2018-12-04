@@ -79,17 +79,15 @@ class BinaryClassifier(torch.nn.Module):
         else:
             slf_local_mask = None
 
-        for i, enc_layer in enumerate(self.layer_stack):
-            enc_output, enc_slf_attn = enc_layer(
-                enc_output, local_attn_mask=slf_local_mask, 
-                slf_attn_mask=slf_attn_mask)
-        score_output_before = self.scores(enc_output)
         if ensemble_stage == '1':
+            for i, enc_layer in enumerate(self.layer_stack):
+                enc_output, enc_slf_attn = enc_layer(
+                    enc_output, local_attn_mask=slf_local_mask, 
+                    slf_attn_mask=slf_attn_mask)
+            score_output_before = self.scores(enc_output)
             return score_output_before
         elif ensemble_stage == '2':
             assert score_output_before is not None
-            score_output_before = pickle.load(open(score_output_before, 'rb'))
-
         score_output = F.sigmoid(score_output_before)
 
         # compute loss for training/validation stage

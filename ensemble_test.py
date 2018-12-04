@@ -1,6 +1,7 @@
 import argparse
 import time
 import pdb
+import torch
 import numpy as np
 
 from load_binary_score import BinaryDataSet
@@ -119,8 +120,14 @@ args.d_model = args.n_head * args.d_k
 
 gpu_list = args.gpus if args.gpus is not None else range(4)
 
+def np_softmax(x, axis=1):
+    x_max = np.max(x, axis=1axis, keepdims=True)
+    x = np.exp(x - x_max)
+    x = x / np.sum(x, axis=axis, keepdims=True)
+    return x
 
-def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
+def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
+                ensemble_stage, score_output_before):
     torch.cuda.set_device(gpu_id)
     net = BinaryClassifier(num_class, args.num_body_segments,
                            args, dropout=args.dropout, test_mode=True)
@@ -137,87 +144,122 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         pos_ind = pos_ind.cuda()
         video_id = video_id
         with torch.no_grad():
-            score_output_before = net(feature, pos_ind, feature_mask=feature_mask,
-                                      test_mode=True, ensemble_stage="1")
-            score_output_before = score_output_before[0].cpu().numpy()
+            if ensemble_stage == "1":
+                score_output_before = net(feature, pos_ind, feature_mask=feature_mask,
+                                          test_mode=True, ensemble_stage=ensemble_stage)
+                outputs = score_output_before[0].cpu().numpy()
+            elif ensemble_stage == '2':
+                assert score_output_before is not None
+                score_output_before = torch.from_numpy(score_output_before[video_id]).cuda()
+                rois, actness, roi_scores_before = net(feature, pos_ind, feature_mask=feature_mask,
+                                                       test_mode=True, ensemble_stage=ensemble_stage,
+                                                       score_output_before=score_output_before)
+                rois, actness, roi_scores_before = rois[0].cpu().numpy(
+                ), actness[0].cpu().numpy(), roi_scores_before[0].cpu().numpy()[:, 1]
+                # import pdb; pdb.set_trace()
+                outputs = [rois, actness, roi_scores_before, num_feat]
+
         result_queue.put(
-            (dataset.video_list[index].id.split('/')[-1], score_output_before))
-
-
-def process(loader, state_dict, net):
-    torch.cuda.set_device(0)
-    net.load_state_dict(state_dict)
-    net.eval()
-    net.cuda()
-    result = {}
-    for i, (feature, feature_mask, num_feat, pos_ind, video_id) in enumerate(loader):
-        feature = feature[0].cuda()
-        feature_mask = feature_mask[0].cuda()
-        pos_ind = pos_ind[0].cuda()
-        video_id = video_id[0]
-        with torch.no_grad():
-            score_output_before = net(
-                feature, pos_ind, feature_mask=feature_mask, test_mode=True, ensemble_stage="1")
-            score_output_before = score_output_before[0].cpu().numpy()
-            # import pdb; pdb.set_trace()
-            result[video_id] = score_output_before
-    return result
+            (dataset.video_list[index].id.split('/')[-1], outputs))
 
 
 if __name__ == '__main__':
-    ctx = multiprocessing.get_context('spawn')
-    net = BinaryClassifier(num_class, args.num_body_segments,
-                           args, dropout=args.dropout, test_mode=True)
-
-    checkpoint = torch.load(args.weights)
-
-    print("model epoch {} loss: {}".format(
-        checkpoint['epoch'], checkpoint['best_loss']))
-    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
-        checkpoint['state_dict'].items())}
     db = ANetDB.get_db("1.3")
     val_videos = db.get_subset_videos(args.subset)
-
-    # loader = torch.utils.data.DataLoader(
-    #     BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos,
-    #                   exclude_empty=True, body_seg=args.num_body_segments,
-    #                   input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow,
-    #                   test_interval=args.frame_interval, verbose=False, num_local=args.num_local),
-    #     batch_size=1, shuffle=False,
-    #     num_workers=8, pin_memory=True)
-    # out_dict = process(loader, base_dict, net)
-
     dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos,
                             exclude_empty=True, body_seg=args.num_body_segments,
                             input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow,
                             test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
 
-    index_queue = ctx.Queue()
-    result_queue = ctx.Queue()
-    workers = [ctx.Process(target=runner_func, args=(dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue))
-               for i in range(args.workers)]
+    # suppose ensemble models from seed1-seedN
+    ensemble_outputs = {}
+    for i in range(1, args.num_emsemble+1, 1):
+        this_path = args.weights
+        this_path = this_path.replace("seed1", "seed"+str(i))
+        ctx = multiprocessing.get_context('spawn')
+        checkpoint = torch.load(this_path)
 
-    del net
+        print("model epoch {} loss: {}".format(
+            checkpoint['epoch'], checkpoint['best_loss']))
+        base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+            checkpoint['state_dict'].items())}
 
-    max_num = args.max_num if args.max_num > 0 else len(dataset)
+        index_queue = ctx.Queue()
+        result_queue = ctx.Queue()
+        workers = [ctx.Process(target=runner_func, args=(
+            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
+            for i in range(args.workers)]
 
-    for i in range(max_num):
-        index_queue.put(i)
+        max_num = args.max_num if args.max_num > 0 else len(dataset)
 
-    for w in workers:
-        w.daemon = True
-        w.start()
+        for i in range(max_num):
+            index_queue.put(i)
 
-    proc_start_time = time.time()
-    out_dict = {}
-    for i in range(max_num):
-        rst = result_queue.get()
-        out_dict[rst[0]] = rst[1]
-        cnt_time = time.time() - proc_start_time
-        # print('video {} done, total {}/{}, average {:.04f} sec/video'.format(i, i + 1,
-        #                                                                 max_num,
-        #                                                                 float(cnt_time) / (i+1)))
+        for w in workers:
+            w.daemon = True
+            w.start()
+
+        out_dict = {}
+        for i in range(max_num):
+            rst = result_queue.get()
+            out_dict[rst[0]] = rst[1]
+        ensemble_outputs[i] = out_dict
+
+    stage1_outs = {}
+    for key in out_dict.keys():
+        for i in range(1, args.num_emsemble+1, 1):
+            if i == 1:
+                this_mean = ensemble_outputs[i][key] / args.num_emsemble
+            else:
+                this_mean += ensemble_outputs[i][key] / args.num_emsemble
+        stage1_outs[key] = this_mean
+
+    # suppose ensemble models from seed1-seedN
+    ensemble_outputs = {}
+    for i in range(1, args.num_emsemble+1, 1):
+        this_path = args.weights
+        this_path = this_path.replace("seed1", "seed"+str(i))
+        ctx = multiprocessing.get_context('spawn')
+        checkpoint = torch.load(this_path)
+
+        print("model epoch {} loss: {}".format(
+            checkpoint['epoch'], checkpoint['best_loss']))
+        base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+            checkpoint['state_dict'].items())}
+
+        index_queue = ctx.Queue()
+        result_queue = ctx.Queue()
+        workers = [ctx.Process(target=runner_func, args=(
+            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", stage1_outs))
+            for i in range(args.workers)]
+
+        max_num = args.max_num if args.max_num > 0 else len(dataset)
+
+        for i in range(max_num):
+            index_queue.put(i)
+
+        for w in workers:
+            w.daemon = True
+            w.start()
+
+        out_dict = {}
+        for i in range(max_num):
+            rst = result_queue.get()
+            out_dict[rst[0]] = rst[1]
+        ensemble_outputs[i] = out_dict
+
+    stage2_outs = {}
+    for key in out_dict.keys():
+        for i in range(1, args.num_emsemble+1, 1):
+            if i == 1:
+                this_mean = ensemble_outputs[i][key][2] / args.num_emsemble
+            else:
+                this_mean += ensemble_outputs[i][key][2] / args.num_emsemble
+        this_mean = np_softmax(this_mean)
+        stage2_outs[key] = ensemble_outputs[i][key][:2] + [this_mean,] + ensemble_outputs[i][key][3:]
+
     if args.save_scores is not None:
+        out_dict = stage2_outs
         save_dict = {k: v for k, v in out_dict.items()}
         import pickle
 
