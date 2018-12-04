@@ -106,13 +106,7 @@ else:
         args.input_dim, args.n_head)
     args.d_k = int(args.input_dim // args.n_head)
     args.d_v = args.d_k
-args.d_model = args.n_head * args.d_k    
-multi_strides = [1]
-if args.multiscale == 3:
-    multi_strides += [4, 16]
-elif args.multiscale == 4:
-    multi_strides += [2, 4, 8]
-args.multi_strides = multi_strides
+args.d_model = args.n_head * args.d_k
 
 gpu_list = args.gpus if args.gpus is not None else range(4)
 
@@ -128,11 +122,10 @@ def process(loader, state_dict, net):
         pos_ind = pos_ind[0].cuda()
         video_id = video_id[0]
         with torch.no_grad():
-            rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
-            rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
+            score_output_before = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True, ensemble_stage="1")
+            score_output_before = score_output_before[0].cpu().numpy()
             # import pdb; pdb.set_trace()
-            outputs = [rois, actness, roi_scores, num_feat]
-            result[video_id] = outputs
+            result[video_id] = score_output_before
     return result
 
 
