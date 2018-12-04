@@ -121,7 +121,7 @@ args.d_model = args.n_head * args.d_k
 gpu_list = args.gpus if args.gpus is not None else range(4)
 
 def np_softmax(x, axis=1):
-    x_max = np.max(x, axis=1axis, keepdims=True)
+    x_max = np.max(x, axis=axis, keepdims=True)
     x = np.exp(x - x_max)
     x = x / np.sum(x, axis=axis, keepdims=True)
     return x
