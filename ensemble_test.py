@@ -150,7 +150,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
                 outputs = score_output_before[0].cpu().numpy()
             elif ensemble_stage == '2':
                 assert score_output_before is not None
-                score_output_before = torch.from_numpy(score_output_before[video_id]).cuda()
+                score_output_before = torch.from_numpy(score_output_before[video_id].reshape((-1, 3))).cuda()
                 rois, actness, roi_scores_before = net(feature, pos_ind, feature_mask=feature_mask,
                                                        test_mode=True, ensemble_stage=ensemble_stage,
                                                        score_output_before=score_output_before)
