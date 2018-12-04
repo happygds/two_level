@@ -204,6 +204,8 @@ if __name__ == '__main__':
             rst = result_queue.get()
             out_dict[rst[0]] = rst[1]
         ensemble_outputs[model_id] = out_dict
+        index_queue = None
+        result_queue = None
 
     stage1_outs = {}
     for key in out_dict.keys():
@@ -248,6 +250,8 @@ if __name__ == '__main__':
             rst = result_queue.get()
             out_dict[rst[0]] = rst[1]
         ensemble_outputs[model_id] = out_dict
+        index_queue = None
+        result_queue = None
 
     stage2_outs = {}
     for key in out_dict.keys():
