@@ -14,9 +14,11 @@ from ops.anet_db import ANetDB
 from ops.utils import get_actionness_configs, get_reference_model_url
 
 global args
-parser = argparse.ArgumentParser(description = 'extract actionnes score')
-parser.add_argument('dataset', type=str, choices=['activitynet1.2', 'activitynet1.3', 'thumos14'])
-parser.add_argument('subset', type=str, choices=['training','validation','testing'])
+parser = argparse.ArgumentParser(description='extract actionnes score')
+parser.add_argument('dataset', type=str, choices=[
+                    'activitynet1.2', 'activitynet1.3', 'thumos14'])
+parser.add_argument('subset', type=str, choices=[
+                    'training', 'validation', 'testing'])
 parser.add_argument('weights', type=str)
 parser.add_argument('save_scores', type=str)
 parser.add_argument('--save_raw_scores', type=str, default=None)
@@ -70,20 +72,26 @@ num_class = dataset_configs['num_class']
 
 if args.dataset == 'thumos14':
     if args.subset == 'validation':
-        test_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['train_list'])
+        test_prop_file = 'data/{}_proposal_list.txt'.format(
+            dataset_configs['train_list'])
     elif args.subset == 'testing':
-        test_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['test_list'])
+        test_prop_file = 'data/{}_proposal_list.txt'.format(
+            dataset_configs['test_list'])
 elif args.dataset == 'activitynet1.2':
     if args.subset == 'training':
-        test_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['train_list'])
-    elif args.subset == 'validation':    
-        test_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['test_list'])
+        test_prop_file = 'data/{}_proposal_list.txt'.format(
+            dataset_configs['train_list'])
+    elif args.subset == 'validation':
+        test_prop_file = 'data/{}_proposal_list.txt'.format(
+            dataset_configs['test_list'])
 elif args.dataset == 'activitynet1.3':
     if args.subset == 'training':
-        test_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['train_list'])
-    elif args.subset == 'validation':    
-        test_prop_file = 'data/{}_proposal_list.txt'.format(dataset_configs['test_list'])
-    else:    
+        test_prop_file = 'data/{}_proposal_list.txt'.format(
+            dataset_configs['train_list'])
+    elif args.subset == 'validation':
+        test_prop_file = 'data/{}_proposal_list.txt'.format(
+            dataset_configs['test_list'])
+    else:
         test_prop_file = None
 
 # set the directory for the rgb features
@@ -110,9 +118,11 @@ args.d_model = args.n_head * args.d_k
 
 gpu_list = args.gpus if args.gpus is not None else range(4)
 
+
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     torch.cuda.set_device(gpu_id)
-    net = BinaryClassifier(num_class, args.num_body_segments, args, dropout=args.dropout, test_mode=True)
+    net = BinaryClassifier(num_class, args.num_body_segments,
+                           args, dropout=args.dropout, test_mode=True)
     # net = torch.nn.DataParallel(net, device_ids=[gpu_id])
 
     net.load_state_dict(state_dict)
@@ -120,16 +130,22 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     net.cuda()
     while True:
         index = index_queue.get()
-        feature, feature_mask, num_feat, pos_ind, _ = dataset[index]
+        feature, feature_mask, num_feat, pos_ind, video_id = dataset[index]
         feature = feature.cuda()
         feature_mask = feature_mask.cuda()
         pos_ind = pos_ind.cuda()
+        video_id = video_id
         with torch.no_grad():
-            rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
-            rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
-            outputs = [rois, actness, roi_scores]
+            rois, actness, roi_scores = net(
+                feature, pos_ind, feature_mask=feature_mask, test_mode=True)
+            rois, actness, roi_scores = rois[0].cpu().numpy(
+            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
+            # import pdb; pdb.set_trace()
+            outputs = [rois, actness, roi_scores, num_feat]
 
-        result_queue.put((dataset.video_list[index].id.split('/')[-1], outputs))
+        result_queue.put(
+            (dataset.video_list[index].id.split('/')[-1], outputs))
+
 
 def process(loader, state_dict, net):
     torch.cuda.set_device(0)
@@ -143,8 +159,10 @@ def process(loader, state_dict, net):
         pos_ind = pos_ind[0].cuda()
         video_id = video_id[0]
         with torch.no_grad():
-            rois, actness, roi_scores = net(feature, pos_ind, feature_mask=feature_mask, test_mode=True)
-            rois, actness, roi_scores = rois[0].cpu().numpy(), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
+            rois, actness, roi_scores = net(
+                feature, pos_ind, feature_mask=feature_mask, test_mode=True)
+            rois, actness, roi_scores = rois[0].cpu().numpy(
+            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
             # import pdb; pdb.set_trace()
             outputs = [rois, actness, roi_scores, num_feat]
             result[video_id] = outputs
@@ -154,59 +172,59 @@ def process(loader, state_dict, net):
 if __name__ == '__main__':
 
     ctx = multiprocessing.get_context('spawn')
-    net = BinaryClassifier(num_class, args.num_body_segments, args, dropout=args.dropout, test_mode=True)
+    net = BinaryClassifier(num_class, args.num_body_segments,
+                           args, dropout=args.dropout, test_mode=True)
 
     checkpoint = torch.load(args.weights)
 
-    print("model epoch {} loss: {}".format(checkpoint['epoch'], checkpoint['best_loss']))
-    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint['state_dict'].items())}
+    print("model epoch {} loss: {}".format(
+        checkpoint['epoch'], checkpoint['best_loss']))
+    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+        checkpoint['state_dict'].items())}
     db = ANetDB.get_db("1.3")
     val_videos = db.get_subset_videos(args.subset)
 
-    loader = torch.utils.data.DataLoader(
-        BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos, 
-                      exclude_empty=True, body_seg=args.num_body_segments,
-                      input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow, 
-                      test_interval=args.frame_interval, verbose=False, num_local=args.num_local),
-        batch_size=1, shuffle=False,
-        num_workers=8, pin_memory=True)
-    out_dict = process(loader, base_dict, net)
+    # loader = torch.utils.data.DataLoader(
+    #     BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos,
+    #                   exclude_empty=True, body_seg=args.num_body_segments,
+    #                   input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow,
+    #                   test_interval=args.frame_interval, verbose=False, num_local=args.num_local),
+    #     batch_size=1, shuffle=False,
+    #     num_workers=8, pin_memory=True)
+    # out_dict = process(loader, base_dict, net)
 
-    # dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos, 
-    #                         exclude_empty=True, body_seg=args.num_body_segments,
-    #                         input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow, 
-    #                         test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
+    dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos,
+                            exclude_empty=True, body_seg=args.num_body_segments,
+                            input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow,
+                            test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
 
-    # index_queue = ctx.Queue()
-    # result_queue = ctx.Queue()
-    # workers = [ctx.Process(target=runner_func, args=(dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue))
-    #            for i in range(args.workers)]
+    index_queue = ctx.Queue()
+    result_queue = ctx.Queue()
+    workers = [ctx.Process(target=runner_func, args=(dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue))
+               for i in range(args.workers)]
 
-    # del net
+    del net
 
-    # max_num = args.max_num if args.max_num > 0 else len(dataset)
+    max_num = args.max_num if args.max_num > 0 else len(dataset)
 
+    for i in range(max_num):
+        index_queue.put(i)
 
-    # for i in range(max_num):
-    #     index_queue.put(i)
+    for w in workers:
+        w.daemon = True
+        w.start()
 
-
-    # for w in workers:
-    #     w.daemon = True
-    #     w.start()
-
-
-    # proc_start_time = time.time()
-    # out_dict = {}
-    # for i in range(max_num):
-    #     rst = result_queue.get()
-    #     out_dict[rst[0]] = rst[1] 
-    #     cnt_time = time.time() - proc_start_time
-    #     # print('video {} done, total {}/{}, average {:.04f} sec/video'.format(i, i + 1,
-    #     #                                                                 max_num,
-    #     #                                                                 float(cnt_time) / (i+1)))
+    proc_start_time = time.time()
+    out_dict = {}
+    for i in range(max_num):
+        rst = result_queue.get()
+        out_dict[rst[0]] = rst[1]
+        cnt_time = time.time() - proc_start_time
+        # print('video {} done, total {}/{}, average {:.04f} sec/video'.format(i, i + 1,
+        #                                                                 max_num,
+        #                                                                 float(cnt_time) / (i+1)))
     if args.save_scores is not None:
-        save_dict = {k: v for k,v in out_dict.items()}
+        save_dict = {k: v for k, v in out_dict.items()}
         import pickle
 
         pickle.dump(save_dict, open(args.save_scores, 'wb'), 2)
