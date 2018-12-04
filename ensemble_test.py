@@ -173,9 +173,9 @@ if __name__ == '__main__':
 
     # suppose ensemble models from seed1-seedN
     ensemble_outputs = {}
-    for i in range(1, args.num_ensemble+1, 1):
+    for model_id in range(1, args.num_ensemble+1, 1):
         this_path = args.weights
-        this_path = this_path.replace("seed1", "seed"+str(i))
+        this_path = this_path.replace("seed1", "seed"+str(model_id))
         ctx = multiprocessing.get_context('spawn')
         checkpoint = torch.load(this_path)
 
@@ -203,22 +203,22 @@ if __name__ == '__main__':
         for i in range(max_num):
             rst = result_queue.get()
             out_dict[rst[0]] = rst[1]
-        ensemble_outputs[i] = out_dict
+        ensemble_outputs[model_id] = out_dict
 
     stage1_outs = {}
     for key in out_dict.keys():
-        for i in range(1, args.num_ensemble+1, 1):
-            if i == 1:
-                this_mean = ensemble_outputs[i][key] / args.num_ensemble
+        for model_id in range(1, args.num_ensemble+1, 1):
+            if model_id == 1:
+                this_mean = ensemble_outputs[model_id][key] / args.num_ensemble
             else:
-                this_mean += ensemble_outputs[i][key] / args.num_ensemble
+                this_mean += ensemble_outputs[model_id][key] / args.num_ensemble
         stage1_outs[key] = this_mean
 
     # suppose ensemble models from seed1-seedN
     ensemble_outputs = {}
-    for i in range(1, args.num_ensemble+1, 1):
+    for model_id in range(1, args.num_ensemble+1, 1):
         this_path = args.weights
-        this_path = this_path.replace("seed1", "seed"+str(i))
+        this_path = this_path.replace("seed1", "seed"+str(model_id))
         ctx = multiprocessing.get_context('spawn')
         checkpoint = torch.load(this_path)
 
@@ -246,17 +246,17 @@ if __name__ == '__main__':
         for i in range(max_num):
             rst = result_queue.get()
             out_dict[rst[0]] = rst[1]
-        ensemble_outputs[i] = out_dict
+        ensemble_outputs[model_id] = out_dict
 
     stage2_outs = {}
     for key in out_dict.keys():
-        for i in range(1, args.num_ensemble+1, 1):
-            if i == 1:
-                this_mean = ensemble_outputs[i][key][2] / args.num_ensemble
+        for model_id in range(1, args.num_ensemble+1, 1):
+            if model_id == 1:
+                this_mean = ensemble_outputs[model_id][key][2] / args.num_ensemble
             else:
-                this_mean += ensemble_outputs[i][key][2] / args.num_ensemble
+                this_mean += ensemble_outputs[model_id][key][2] / args.num_ensemble
         this_mean = np_softmax(this_mean)
-        stage2_outs[key] = ensemble_outputs[i][key][:2] + [this_mean,] + ensemble_outputs[i][key][3:]
+        stage2_outs[key] = ensemble_outputs[model_id][key][:2] + [this_mean,] + ensemble_outputs[model_id][key][3:]
 
     if args.save_scores is not None:
         out_dict = stage2_outs
