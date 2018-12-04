@@ -22,7 +22,7 @@ parser.add_argument('subset', type=str, choices=[
                     'training', 'validation', 'testing'])
 parser.add_argument('weights', type=str)
 parser.add_argument('save_scores', type=str)
-parser.add_argument('--num_emsemble', type=int, default=10)
+parser.add_argument('--num_ensemble', type=int, default=10)
 parser.add_argument('--save_raw_scores', type=str, default=None)
 parser.add_argument('--frame_interval', type=int, default=16)
 parser.add_argument('--test_batchsize', type=int, default=32)
@@ -173,7 +173,7 @@ if __name__ == '__main__':
 
     # suppose ensemble models from seed1-seedN
     ensemble_outputs = {}
-    for i in range(1, args.num_emsemble+1, 1):
+    for i in range(1, args.num_ensemble+1, 1):
         this_path = args.weights
         this_path = this_path.replace("seed1", "seed"+str(i))
         ctx = multiprocessing.get_context('spawn')
@@ -207,16 +207,16 @@ if __name__ == '__main__':
 
     stage1_outs = {}
     for key in out_dict.keys():
-        for i in range(1, args.num_emsemble+1, 1):
+        for i in range(1, args.num_ensemble+1, 1):
             if i == 1:
-                this_mean = ensemble_outputs[i][key] / args.num_emsemble
+                this_mean = ensemble_outputs[i][key] / args.num_ensemble
             else:
-                this_mean += ensemble_outputs[i][key] / args.num_emsemble
+                this_mean += ensemble_outputs[i][key] / args.num_ensemble
         stage1_outs[key] = this_mean
 
     # suppose ensemble models from seed1-seedN
     ensemble_outputs = {}
-    for i in range(1, args.num_emsemble+1, 1):
+    for i in range(1, args.num_ensemble+1, 1):
         this_path = args.weights
         this_path = this_path.replace("seed1", "seed"+str(i))
         ctx = multiprocessing.get_context('spawn')
@@ -250,11 +250,11 @@ if __name__ == '__main__':
 
     stage2_outs = {}
     for key in out_dict.keys():
-        for i in range(1, args.num_emsemble+1, 1):
+        for i in range(1, args.num_ensemble+1, 1):
             if i == 1:
-                this_mean = ensemble_outputs[i][key][2] / args.num_emsemble
+                this_mean = ensemble_outputs[i][key][2] / args.num_ensemble
             else:
-                this_mean += ensemble_outputs[i][key][2] / args.num_emsemble
+                this_mean += ensemble_outputs[i][key][2] / args.num_ensemble
         this_mean = np_softmax(this_mean)
         stage2_outs[key] = ensemble_outputs[i][key][:2] + [this_mean,] + ensemble_outputs[i][key][3:]
 
