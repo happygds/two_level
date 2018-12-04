@@ -64,14 +64,6 @@ def main():
         args.d_v = args.d_k
     args.d_model = args.n_head * args.d_k
 
-    global multi_strides
-    multi_strides = [1]
-    if args.multiscale == 3:
-        multi_strides += [4, 16]
-    elif args.multiscale == 4:
-        multi_strides += [2, 4, 8]
-    args.multi_strides = multi_strides
-
     if not os.path.exists(args.result_path):
         os.makedirs(args.result_path)
     if args.pos_enc:
@@ -84,8 +76,6 @@ def main():
         save_path = save_path + '_loc' + str(args.num_local) + args.local_type
         if args.dilated_mask:
             save_path += '_dilated'
-    if args.multiscale > 1:
-        save_path = save_path + '_S' + str(args.multiscale)
     if args.groupwise_heads > 0:
         save_path = save_path + '_G' + str(args.groupwise_heads)
     if len(args.roi_poolsize) > 0:

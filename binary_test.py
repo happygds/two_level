@@ -60,8 +60,6 @@ parser.add_argument('--prop_per_video', type=int, default=12)
 parser.add_argument('--num_local', type=int, default=0)
 parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
-parser.add_argument('--multiscale', type=int, default=0,
-                    help='multiscale output')
 parser.add_argument('--groupwise_heads', type=int, default=0)
 parser.add_argument('--roi_poolsize', type=str, default="1_3")
 
@@ -108,13 +106,7 @@ else:
         args.input_dim, args.n_head)
     args.d_k = int(args.input_dim // args.n_head)
     args.d_v = args.d_k
-args.d_model = args.n_head * args.d_k    
-multi_strides = [1]
-if args.multiscale == 3:
-    multi_strides += [4, 16]
-elif args.multiscale == 4:
-    multi_strides += [2, 4, 8]
-args.multi_strides = multi_strides
+args.d_model = args.n_head * args.d_k
 
 gpu_list = args.gpus if args.gpus is not None else range(4)
 
