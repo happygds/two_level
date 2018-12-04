@@ -215,7 +215,6 @@ if __name__ == '__main__':
             else:
                 this_mean += ensemble_outputs[model_id][key] / args.num_ensemble
         stage1_outs[key] = this_mean
-    # import pdb; pdb.set_trace()
 
     # suppose ensemble models from seed1-seedN
     ensemble_outputs = {}
@@ -260,6 +259,7 @@ if __name__ == '__main__':
                 this_mean = ensemble_outputs[model_id][key][2] / args.num_ensemble
             else:
                 this_mean += ensemble_outputs[model_id][key][2] / args.num_ensemble
+        import pdb; pdb.set_trace()
         this_mean = np_softmax(this_mean)[:, 1]
         stage2_outs[key] = ensemble_outputs[model_id][key][:2] + [this_mean,] + ensemble_outputs[model_id][key][3:]
 
