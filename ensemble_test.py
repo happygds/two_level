@@ -225,7 +225,6 @@ if __name__ == '__main__':
         stage1_outs[key] = this_mean
 
     # stage 2 : suppose ensemble models from seed1-seedN
-    ensemble_outputs = {}
     for model_id in range(1, args.num_ensemble+1, 1):
         ensemble_stage2 = {}
         for stage2_id in range(1, args.num_ensemble+1, 1):
@@ -272,16 +271,16 @@ if __name__ == '__main__':
             this_mean = np_softmax(this_mean)[:, 1]
             stage2_outs[key] = ensemble_stage2[stage2_id][key][:2] + [this_mean,] + ensemble_stage2[stage2_id][key][3:]
 
-    if model_id == 1:
-        ensemble_outputs = stage2_outs
-    else:
-        for key, stage2_out in stage2_outs.items():
-            last_ensemble_out = ensemble_outputs[key]
-            rois = np.concatenate([last_ensemble_out[0], stage2_out[0]], axis=0)
-            actness = np.concatenate([last_ensemble_out[1], stage2_out[1]], axis=0)
-            roi_scores = np.concatenate([last_ensemble_out[2], stage2_out[2]], axis=0)
-            num_feat = last_ensemble_out[3]
-            ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
+        if model_id == 1:
+            ensemble_outputs = stage2_outs
+        else:
+            for key, stage2_out in stage2_outs.items():
+                last_ensemble_out = ensemble_outputs[key]
+                rois = np.concatenate([last_ensemble_out[0], stage2_out[0]], axis=0)
+                actness = np.concatenate([last_ensemble_out[1], stage2_out[1]], axis=0)
+                roi_scores = np.concatenate([last_ensemble_out[2], stage2_out[2]], axis=0)
+                num_feat = last_ensemble_out[3]
+                ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
     
     for key, value in ensemble_outputs.items():
         rois, actness, roi_scores, num_feat = value
