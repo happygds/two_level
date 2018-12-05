@@ -149,7 +149,6 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
                                           test_mode=True, ensemble_stage=ensemble_stage)
                 outputs = score_output_before[0].cpu().numpy()
             elif ensemble_stage == '2':
-                assert score_output_before is not None
                 score_output = torch.from_numpy(score_output_before[video_id].reshape((1, -1, 3))).cuda()
                 rois, actness, roi_scores_before = net(feature, pos_ind, feature_mask=feature_mask,
                                                        test_mode=True, ensemble_stage=ensemble_stage,
@@ -241,7 +240,7 @@ if __name__ == '__main__':
         index_queue = ctx.Queue()
         result_queue = ctx.Queue()
         workers = [ctx.Process(target=runner_func, args=(
-            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", out_stage1))
+            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", None))
             for i in range(args.workers)]
 
         max_num = args.max_num if args.max_num > 0 else len(dataset)
