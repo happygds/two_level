@@ -225,6 +225,7 @@ if __name__ == '__main__':
         stage1_outs[key] = this_mean
 
     # stage 2 : suppose ensemble models from seed1-seedN
+    ensemble_outputs = {}
     for model_id in range(1, args.num_ensemble+1, 1):
         ensemble_stage2 = {}
         for stage2_id in range(1, args.num_ensemble+1, 1):
