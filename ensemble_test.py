@@ -224,51 +224,52 @@ if __name__ == '__main__':
         this_mean = 1. /  (1. + np.exp(-1. * this_mean))
         stage1_outs[key] = this_mean
 
-    ensemble_stage2 = {}
     # stage 2 : suppose ensemble models from seed1-seedN
-    for stage2_id in range(1, args.num_ensemble+1, 1):
-        this_path = (args.weights + '.')[:-1]
-        this_path = this_path.replace("seed1", "seed"+str(stage2_id))
-        ctx = multiprocessing.get_context('spawn')
-        checkpoint = torch.load(this_path)
-
-        print("model epoch {} loss: {}".format(
-            checkpoint['epoch'], checkpoint['best_loss']))
-        base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
-            checkpoint['state_dict'].items())}
-
-        index_queue = ctx.Queue()
-        result_queue = ctx.Queue()
-        workers = [ctx.Process(target=runner_func, args=(
-            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", None))
-            for i in range(args.workers)]
-
-        max_num = args.max_num if args.max_num > 0 else len(dataset)
-
-        for i in range(max_num):
-            index_queue.put(i)
-
-        for w in workers:
-            w.daemon = True
-            w.start()
-
-        out_stage2 = {}
-        for i in range(max_num):
-            rst = result_queue.get()
-            out_stage2[rst[0]] = rst[1]
-        ensemble_stage2[stage2_id] = out_stage2
-        for w in workers:
-            w.terminate()
-
-    stage2_outs = {}
-    for key in out_stage2.keys():
+    for model_id in range(1, args.num_ensemble+1, 1):
+        ensemble_stage2 = {}
         for stage2_id in range(1, args.num_ensemble+1, 1):
-            if stage2_id == 1:
-                this_mean = ensemble_stage2[stage2_id][key][2] / args.num_ensemble
-            else:
-                this_mean += ensemble_stage2[stage2_id][key][2] / args.num_ensemble
-        this_mean = np_softmax(this_mean)[:, 1]
-        stage2_outs[key] = ensemble_stage2[stage2_id][key][:2] + [this_mean,] + ensemble_stage2[stage2_id][key][3:]
+            this_path = (args.weights + '.')[:-1]
+            this_path = this_path.replace("seed1", "seed"+str(stage2_id))
+            ctx = multiprocessing.get_context('spawn')
+            checkpoint = torch.load(this_path)
+
+            print("model epoch {} loss: {}".format(
+                checkpoint['epoch'], checkpoint['best_loss']))
+            base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+                checkpoint['state_dict'].items())}
+
+            index_queue = ctx.Queue()
+            result_queue = ctx.Queue()
+            workers = [ctx.Process(target=runner_func, args=(
+                dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", ensemble_stage1[model_id]))
+                for i in range(args.workers)]
+
+            max_num = args.max_num if args.max_num > 0 else len(dataset)
+
+            for i in range(max_num):
+                index_queue.put(i)
+
+            for w in workers:
+                w.daemon = True
+                w.start()
+
+            out_stage2 = {}
+            for i in range(max_num):
+                rst = result_queue.get()
+                out_stage2[rst[0]] = rst[1]
+            ensemble_stage2[stage2_id] = out_stage2
+            for w in workers:
+                w.terminate()
+
+        stage2_outs = {}
+        for key in out_stage2.keys():
+            for stage2_id in range(1, args.num_ensemble+1, 1):
+                if stage2_id == 1:
+                    this_mean = ensemble_stage2[stage2_id][key][2] / args.num_ensemble
+                else:
+                    this_mean += ensemble_stage2[stage2_id][key][2] / args.num_ensemble
+            this_mean = np_softmax(this_mean)[:, 1]
+            stage2_outs[key] = ensemble_stage2[stage2_id][key][:2] + [this_mean,] + ensemble_stage2[stage2_id][key][3:]
 
     if model_id == 1:
         ensemble_outputs = stage2_outs
@@ -280,6 +281,13 @@ if __name__ == '__main__':
             roi_scores = np.concatenate([last_ensemble_out[2], stage2_out[2]], axis=0)
             num_feat = last_ensemble_out[3]
             ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
+    
+    for key, value in ensemble_outputs.items():
+        rois, actness, roi_scores, num_feat = value
+        scores = stage1_outs[key]
+        scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
+        actness = [scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)]) for x in rois]
+        ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
 
     if args.save_scores is not None:
         out_dict = ensemble_outputs
