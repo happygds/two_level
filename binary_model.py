@@ -79,7 +79,7 @@ class BinaryClassifier(torch.nn.Module):
         else:
             slf_local_mask = None
 
-        if ensemble_stage == '1':
+        if ensemble_stage == '1' or not ensemble_stage:
             for i, enc_layer in enumerate(self.layer_stack):
                 enc_output, enc_slf_attn = enc_layer(
                     enc_output, local_attn_mask=slf_local_mask, 
