@@ -261,7 +261,7 @@ if __name__ == '__main__':
                 actness = np.concatenate([last_ensemble_out[1], stage2_out[1]], axis=0)
                 roi_scores = np.concatenate([last_ensemble_out[2], stage2_out[2]], axis=0)
                 num_feat = last_ensemble_out[3]
-                ensemble_outputs[key] = [rois, actness, roi_scores_before, num_feat]
+                ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
 
     if args.save_scores is not None:
         out_dict = ensemble_outputs
