@@ -290,7 +290,7 @@ if __name__ == '__main__':
         rois, actness, roi_scores, num_feat = value
         scores = stage1_outs[key]
         scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
-        actness = [scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)]) for x in rois]
+        actness = [scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)]) for x in rois.astype('int')]
         ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
 
     if args.save_scores is not None:
