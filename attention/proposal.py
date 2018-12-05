@@ -38,7 +38,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     for k in range(batch_size):
         # the k-th sample
-        bboxes = []
         num_feat = int(feature_mask[k].sum())
         scores_k = score_output[k][:num_feat]
         # # use TAG
@@ -52,6 +51,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         # # use change point
         scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
         if ensemble_stage != '2':
+            bboxes = []
             if len(scores) > 1:
                 diff_pstarts, diff_pends = pstarts[1:,] - pstarts[:-1,], pends[1:,] - pends[:-1,]
                 # gd_scores = gaussian_filter(diff_scores, bw)
