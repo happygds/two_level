@@ -148,8 +148,8 @@ def gen_prop(v):
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
     bboxes = list(filter(lambda b: b[4] > 0.*roi_scores.max(), bboxes))
-    bboxes = temporal_nms(bboxes, 1. - 1.e-16)
-    # bboxes = Soft_NMS(bboxes, length=frm_cnt)
+    # bboxes = temporal_nms(bboxes, 1. - 1.e-16)
+    bboxes = Soft_NMS(bboxes, length=frm_cnt)
 
     if len(bboxes) == 0:
         bboxes = [(0, float(v.frame_cnt) / v.frame_interval, 1, 1)]
