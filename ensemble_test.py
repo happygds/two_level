@@ -249,6 +249,7 @@ if __name__ == '__main__':
                     this_mean = ensemble_stage2[stage2_id][key][2] / args.num_ensemble
                 else:
                     this_mean += ensemble_stage2[stage2_id][key][2] / args.num_ensemble
+            import pdb; pdb.set_trace()
             this_mean = np_softmax(this_mean)[:, 1]
             stage2_outs[key] = ensemble_stage2[stage2_id][key][:2] + [this_mean,] + ensemble_stage2[stage2_id][key][3:]
 
