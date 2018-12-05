@@ -79,12 +79,12 @@ class BinaryClassifier(torch.nn.Module):
         else:
             slf_local_mask = None
 
-        if ensemble_stage == '1' or not ensemble_stage:
-            for i, enc_layer in enumerate(self.layer_stack):
-                enc_output, enc_slf_attn = enc_layer(
-                    enc_output, local_attn_mask=slf_local_mask, 
-                    slf_attn_mask=slf_attn_mask)
-            score_output_before = self.scores(enc_output)
+        for i, enc_layer in enumerate(self.layer_stack):
+            enc_output, enc_slf_attn = enc_layer(
+                enc_output, local_attn_mask=slf_local_mask, 
+                slf_attn_mask=slf_attn_mask)
+        score_output_before = self.scores(enc_output)
+        if ensemble_stage == '1':
             return score_output_before
         elif ensemble_stage == '2':
             assert score_output_before is not None
