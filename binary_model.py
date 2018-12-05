@@ -84,12 +84,11 @@ class BinaryClassifier(torch.nn.Module):
         else:
             slf_local_mask = None
         
-        if score_output_before is None:
-            for i, enc_layer in enumerate(self.layer_stack):
-                enc_output, enc_slf_attn = enc_layer(
-                    enc_output, local_attn_mask=slf_local_mask,
-                    slf_attn_mask=slf_attn_mask)
-            score_output_before = self.scores(enc_output)
+        for i, enc_layer in enumerate(self.layer_stack):
+            enc_output, enc_slf_attn = enc_layer(
+                enc_output, local_attn_mask=slf_local_mask,
+                slf_attn_mask=slf_attn_mask)
+        score_output_before = self.scores(enc_output)
         score_output = F.sigmoid(score_output_before)
 
         # compute loss for training/validation stage
