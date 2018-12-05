@@ -51,7 +51,7 @@ class BinaryClassifier(torch.nn.Module):
 
     def forward(self, feature, pos_ind, target=None, gts=None,
                 feature_mask=None, test_mode=False, ensemble_stage=None,
-                score_output_before=None):
+                rois=None):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
@@ -90,19 +90,31 @@ class BinaryClassifier(torch.nn.Module):
                     enc_output, local_attn_mask=slf_local_mask,
                     slf_attn_mask=slf_attn_mask)
             score_output_before = self.scores(enc_output)
-        if ensemble_stage == '1':
-            return score_output_before
-        elif ensemble_stage == '2':
-            assert score_output_before is not None
         score_output = F.sigmoid(score_output_before)
 
         # compute loss for training/validation stage
-        if not test_mode:
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(
-                score_output, feature_mask, gts=gts, test_mode=test_mode)
+        if not ensemble_stage:
+            if not test_mode:
+                start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(
+                    score_output, feature_mask, gts=gts, test_mode=test_mode)
+            else:
+                start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(
+                    score_output, feature_mask, test_mode=test_mode)
         else:
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(
-                score_output, feature_mask, test_mode=test_mode)
+            if ensemble_stage == '1':
+                rois = proposal_layer(
+                    score_output, feature_mask, test_mode=test_mode, ensemble_stage=ensemble_stage)
+                return rois
+            elif ensemble_stage == '2':
+                assert rois is not None
+                if not test_mode:
+                    start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(
+                        score_output, feature_mask, gts=gts, test_mode=test_mode, 
+                        ensemble_stage=ensemble_stage, bboxes=rois)
+                else:
+                    start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(
+                        score_output, feature_mask, test_mode=test_mode, 
+                        ensemble_stage=ensemble_stage, bboxes=rois)
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)

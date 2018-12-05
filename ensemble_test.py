@@ -128,7 +128,7 @@ def np_softmax(x, axis=1):
     return x
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
-                ensemble_stage, score_output_before):
+                ensemble_stage, ensemble_rois):
     torch.cuda.set_device(gpu_id)
     net = BinaryClassifier(num_class, args.num_body_segments,
                            args, dropout=args.dropout, test_mode=True)
@@ -146,14 +146,14 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
         video_id = video_id
         with torch.no_grad():
             if ensemble_stage == "1":
-                score_output_before = net(feature, pos_ind, feature_mask=feature_mask,
+                rois = net(feature, pos_ind, feature_mask=feature_mask,
                                           test_mode=True, ensemble_stage=ensemble_stage)
-                outputs = score_output_before[0].cpu().numpy()
+                outputs = rois
             elif ensemble_stage == '2':
-                score_output = torch.from_numpy(score_output_before[video_id].reshape((1, -1, 3))).cuda()
+                this_rois = ensemble_rois[video_id]
                 rois, actness, roi_scores_before = net(feature, pos_ind, feature_mask=feature_mask,
                                                        test_mode=True, ensemble_stage=ensemble_stage,
-                                                       score_output_before=score_output)
+                                                       rois=this_rois)
                 rois, actness, roi_scores_before = rois[0].cpu().numpy(
                 ), actness[0].cpu().numpy(), roi_scores_before[0].cpu().numpy()
                 # import pdb; pdb.set_trace()
@@ -220,9 +220,9 @@ if __name__ == '__main__':
     for key in out_stage1.keys():
         for model_id in range(1, args.num_ensemble+1, 1):
             if model_id == 1:
-                this_mean = ensemble_stage1[model_id][key] / args.num_ensemble
+                this_mean = ensemble_stage1[model_id][key]
             else:
-                this_mean += ensemble_stage1[model_id][key] / args.num_ensemble
+                this_mean.extend(ensemble_stage1[model_id][key])
         # this_mean = 1. /  (1. + np.exp(-1. * this_mean))
         stage1_outs[key] = this_mean
 
