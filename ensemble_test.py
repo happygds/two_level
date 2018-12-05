@@ -251,11 +251,20 @@ if __name__ == '__main__':
                     this_mean += ensemble_stage2[stage2_id][key][2] / args.num_ensemble
             this_mean = np_softmax(this_mean)[:, 1]
             stage2_outs[key] = ensemble_stage2[stage2_id][key][:2] + [this_mean,] + ensemble_stage2[stage2_id][key][3:]
-        
-        ensemble_outputs[model_id] = stage2_outs
+
+        if model_id == 1:
+            ensemble_outputs = stage2_outs
+        else:
+            for key, stage2_out in stage2_outs.items():
+                last_ensemble_out = ensemble_outputs[key]
+                rois = np.concatenate([last_ensemble_out[0], stage2_out[0]], axis=0)
+                actness = np.concatenate([last_ensemble_out[1], stage2_out[1]], axis=0)
+                roi_scores = np.concatenate([last_ensemble_out[2], stage2_out[2]], axis=0)
+                num_feat = last_ensemble_out[3]
+                ensemble_outputs[key] = [rois, actness, roi_scores_before, num_feat]
 
     if args.save_scores is not None:
-        out_dict = stage2_outs
+        out_dict = ensemble_outputs
         save_dict = {k: v for k, v in out_dict.items()}
         import pickle
 
