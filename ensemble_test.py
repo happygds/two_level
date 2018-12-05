@@ -185,6 +185,7 @@ if __name__ == '__main__':
         this_path = (args.weights + '.')[:-1]
         this_path = this_path.replace("seed1", "seed"+str(model_id))
         ctx = multiprocessing.get_context('spawn')
+        print("loading weights from {}".format(this_path))
         checkpoint = torch.load(this_path)
 
         print("model epoch {} loss: {}".format(
@@ -232,6 +233,7 @@ if __name__ == '__main__':
         this_path = (args.weights + '.')[:-1]
         this_path = this_path.replace("seed1", "seed"+str(stage2_id))
         ctx = multiprocessing.get_context('spawn')
+        print("loading weights from {}".format(this_path))
         checkpoint = torch.load(this_path)
 
         print("model epoch {} loss: {}".format(
@@ -286,7 +288,7 @@ if __name__ == '__main__':
     # pickle.dump(ensemble_outputs, open('./ensemble_outputs.pkl', 'wb'), 2)
     # import pdb; pdb.set_trace()
     ensemble_outputs = stage2_outs
-    
+
     for key, value in ensemble_outputs.items():
         rois, actness, roi_scores, num_feat = value
         scores = stage1_outs[key]
