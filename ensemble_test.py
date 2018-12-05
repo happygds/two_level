@@ -223,7 +223,7 @@ if __name__ == '__main__':
                 this_mean = ensemble_stage1[model_id][key] / args.num_ensemble
             else:
                 this_mean += ensemble_stage1[model_id][key] / args.num_ensemble
-        this_mean = 1. /  (1. + np.exp(-1. * this_mean))
+        # this_mean = 1. /  (1. + np.exp(-1. * this_mean))
         stage1_outs[key] = this_mean
 
     # # stage 2 : suppose ensemble models from seed1-seedN
@@ -289,12 +289,12 @@ if __name__ == '__main__':
     # import pdb; pdb.set_trace()
     ensemble_outputs = stage2_outs
 
-    for key, value in ensemble_outputs.items():
-        rois, actness, roi_scores, num_feat = value
-        scores = stage1_outs[key]
-        scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
-        actness = [scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)]) for x in rois.astype('int')]
-        ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
+    # for key, value in ensemble_outputs.items():
+    #     rois, actness, roi_scores, num_feat = value
+    #     scores = stage1_outs[key]
+    #     scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
+    #     actness = [scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)]) for x in rois.astype('int')]
+    #     ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
 
     if args.save_scores is not None:
         out_dict = ensemble_outputs
