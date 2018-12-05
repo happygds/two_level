@@ -2,6 +2,7 @@ import argparse
 import time
 import pdb
 import torch
+import pickle
 import numpy as np
 
 from load_binary_score import BinaryDataSet
@@ -282,6 +283,9 @@ if __name__ == '__main__':
                 num_feat = last_ensemble_out[3]
                 ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
     
+    pickle.dump(ensemble_outputs, open('./ensemble_outputs.pkl', 'wb'), 2)
+    import pdb; pdb.set_trace()
+
     for key, value in ensemble_outputs.items():
         rois, actness, roi_scores, num_feat = value
         scores = stage1_outs[key]
@@ -292,6 +296,4 @@ if __name__ == '__main__':
     if args.save_scores is not None:
         out_dict = ensemble_outputs
         save_dict = {k: v for k, v in out_dict.items()}
-        import pickle
-
         pickle.dump(save_dict, open(args.save_scores, 'wb'), 2)
