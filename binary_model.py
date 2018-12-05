@@ -106,5 +106,5 @@ class BinaryClassifier(torch.nn.Module):
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
         if ensemble_stage == '2':
-            return rois[:, :, 1:], actness, roi_scores_before
+            return rois[:, :, 1:], actness, roi_scores
         return rois[:, :, 1:], actness, roi_scores
