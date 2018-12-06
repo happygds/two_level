@@ -9,7 +9,7 @@ from ops.eval_utils import wrapper_segment_iou
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
-                   rpn_post_nms_top=100, feat_stride=16, ensemble_stage=None, bboxes=None):
+                   rpn_post_nms_top=128, feat_stride=16, ensemble_stage=None, bboxes=None):
     """
     Parameters
     ----------
@@ -77,6 +77,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             assert bboxes is not None and len(bboxes) > 0
             # to remove duplicate proposals
             bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
+            print(len(bboxes))
 
         # bboxes = bboxes[:rpn_post_nms_top]
         # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
