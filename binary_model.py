@@ -103,7 +103,7 @@ class BinaryClassifier(torch.nn.Module):
             if ensemble_stage == '1':
                 rois = proposal_layer(
                     score_output, feature_mask, test_mode=test_mode, ensemble_stage=ensemble_stage)
-                return rois
+                return rois, score_output_before
             elif ensemble_stage == '2':
                 assert rois is not None
                 if not test_mode:

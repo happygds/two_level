@@ -121,11 +121,13 @@ args.d_model = args.n_head * args.d_k
 
 gpu_list = args.gpus if args.gpus is not None else range(4)
 
+
 def np_softmax(x, axis=1):
     x_max = np.max(x, axis=axis, keepdims=True)
     x = np.exp(x - x_max)
     x = x / np.sum(x, axis=axis, keepdims=True)
     return x
+
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
                 ensemble_stage, ensemble_rois):
@@ -146,9 +148,10 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
         video_id = video_id
         with torch.no_grad():
             if ensemble_stage == "1":
-                rois = net(feature, pos_ind, feature_mask=feature_mask,
-                                          test_mode=True, ensemble_stage=ensemble_stage)
-                outputs = rois
+                rois, score_output_before = net(feature, pos_ind, feature_mask=feature_mask,
+                                                test_mode=True, ensemble_stage=ensemble_stage)
+                score_output_before = roi_scores_before[0].cpu().numpy()
+                outputs = [rois, roi_scores_before]
             elif ensemble_stage == '2':
                 this_rois = ensemble_rois[video_id]
                 rois, actness, roi_scores_before = net(feature, pos_ind, feature_mask=feature_mask,
@@ -165,7 +168,6 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
                 ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
                 # import pdb; pdb.set_trace()
                 outputs = [rois, actness, roi_scores, num_feat]
-
 
         result_queue.put(
             (dataset.video_list[index].id.split('/')[-1], outputs))
@@ -219,12 +221,21 @@ if __name__ == '__main__':
     stage1_outs = {}
     for key in out_stage1.keys():
         for model_id in range(1, args.num_ensemble+1, 1):
+            rois, score_output_before = ensemble_stage1[model_id][key]
             if model_id == 1:
-                this_mean = ensemble_stage1[model_id][key]
+                this_rois = rois
+                this_score_mean = score_output_before / args.num_ensemble
             else:
-                this_mean.extend(ensemble_stage1[model_id][key])
-        # this_mean = 1. /  (1. + np.exp(-1. * this_mean))
-        stage1_outs[key] = this_mean
+                this_rois.extend(rois)
+                this_score_mean += score_output_before / args.num_ensemble
+        this_score_mean = 1. / (1. + np.exp(-1. * this_score_mean))
+
+        scores, pstarts, pends = this_score_mean[:, 0], \
+            this_score_mean[:, 1], this_score_mean[:, 2]
+        num_feat = len(scores)
+        this_rois = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*pstarts[x[0]]
+                      * pends[min(x[1], num_feat-1)]) for x in this_rois]
+        stage1_outs[key] = this_rois
 
     # # stage 2 : suppose ensemble models from seed1-seedN
     # for model_id in range(1, args.num_ensemble+1, 1):
@@ -268,11 +279,14 @@ if __name__ == '__main__':
     for key in out_stage2.keys():
         for stage2_id in range(1, args.num_ensemble+1, 1):
             if stage2_id == 1:
-                this_mean = ensemble_stage2[stage2_id][key][2] / args.num_ensemble
+                this_mean = ensemble_stage2[stage2_id][key][2] / \
+                    args.num_ensemble
             else:
-                this_mean += ensemble_stage2[stage2_id][key][2] / args.num_ensemble
+                this_mean += ensemble_stage2[stage2_id][key][2] / \
+                    args.num_ensemble
         this_mean = np_softmax(this_mean)[:, 1]
-        stage2_outs[key] = ensemble_stage2[stage2_id][key][:2] + [this_mean,] + ensemble_stage2[stage2_id][key][3:]
+        stage2_outs[key] = ensemble_stage2[stage2_id][key][:2] + \
+            [this_mean, ] + ensemble_stage2[stage2_id][key][3:]
 
         # if model_id == 1:
         #     ensemble_outputs = stage2_outs
@@ -284,7 +298,7 @@ if __name__ == '__main__':
         #         roi_scores = np.concatenate([last_ensemble_out[2], stage2_out[2]], axis=0)
         #         num_feat = last_ensemble_out[3]
         #         ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
-    
+
     # pickle.dump(ensemble_outputs, open('./ensemble_outputs.pkl', 'wb'), 2)
     # import pdb; pdb.set_trace()
     ensemble_outputs = stage2_outs
