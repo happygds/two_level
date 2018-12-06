@@ -40,6 +40,7 @@ def main():
     num_class = dataset_configs['num_class']
     args.dropout = 0.8
     torch.manual_seed(args.seed)
+    torch.cuda.manual_seed(args.seed)
     db = ANetDB.get_db("1.3")
 
     # set the directory for the rgb features
