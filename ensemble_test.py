@@ -150,8 +150,8 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
             if ensemble_stage == "1":
                 rois, score_output_before = net(feature, pos_ind, feature_mask=feature_mask,
                                                 test_mode=True, ensemble_stage=ensemble_stage)
-                score_output_before = roi_scores_before[0].cpu().numpy()
-                outputs = [rois, roi_scores_before]
+                score_output_before = score_output_before[0].cpu().numpy()
+                outputs = [rois, score_output_before]
             elif ensemble_stage == '2':
                 this_rois = ensemble_rois[video_id]
                 rois, actness, roi_scores_before = net(feature, pos_ind, feature_mask=feature_mask,
