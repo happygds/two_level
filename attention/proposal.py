@@ -69,6 +69,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
             # to remove duplicate proposals
             bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
+            bboxes = Soft_NMS(bboxes, length=len(scores))[:rpn_post_nms_top]
             if ensemble_stage == '1':
                 assert batch_size == 1
                 return bboxes

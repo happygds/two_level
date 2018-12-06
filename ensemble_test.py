@@ -230,11 +230,11 @@ if __name__ == '__main__':
                 this_score_mean += score_output_before / args.num_ensemble
         this_score_mean = 1. / (1. + np.exp(-1. * this_score_mean))
 
-        scores, pstarts, pends = this_score_mean[:, 0], \
-            this_score_mean[:, 1], this_score_mean[:, 2]
-        num_feat = len(scores)
-        this_rois = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*pstarts[x[0]]
-                      * pends[min(x[1], num_feat-1)]) for x in this_rois]
+        # scores, pstarts, pends = this_score_mean[:, 0], \
+        #     this_score_mean[:, 1], this_score_mean[:, 2]
+        # num_feat = len(scores)
+        # this_rois = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*pstarts[x[0]]
+        #               * pends[min(x[1], num_feat-1)]) for x in this_rois]
         stage1_outs[key] = this_rois
 
     # # stage 2 : suppose ensemble models from seed1-seedN
