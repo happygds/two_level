@@ -74,6 +74,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
                 return bboxes
         else:
             assert bboxes is not None and len(bboxes) > 0
+            # to remove duplicate proposals
+            bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
 
         # bboxes = bboxes[:rpn_post_nms_top]
         # bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
