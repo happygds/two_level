@@ -122,7 +122,7 @@ def main():
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay, nesterov=False)
 
-    model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
+    # model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
     criterion_stage2 = Rank_Criterion(epsilon=0.01)
 
@@ -138,14 +138,14 @@ def main():
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
             loss, score_loss, start_loss, end_loss, roi_loss = validate(
                 val_loader, model, criterion_stage1, criterion_stage2, (epoch + 1) * len(train_loader), epoch)
-            # 1. Log scalar values (scalar summary)
-            info = {'val_loss': loss,
-                    'val_score_loss': score_loss,
-                    'val_start_loss': start_loss,
-                    'val_end_loss': end_loss,
-                    'val_roi_loss': roi_loss}
-            for tag, value in info.items():
-                logger.scalar_summary(tag, value, epoch+1)
+            # # 1. Log scalar values (scalar summary)
+            # info = {'val_loss': loss,
+            #         'val_score_loss': score_loss,
+            #         'val_start_loss': start_loss,
+            #         'val_end_loss': end_loss,
+            #         'val_roi_loss': roi_loss}
+            # for tag, value in info.items():
+            #     logger.scalar_summary(tag, value, epoch+1)
 
         # remember best prec@1 and save checkpoint
             is_best = 1.0001 * loss < best_loss
@@ -212,21 +212,21 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
 
         optimizer.step()
 
-        # 1. Log scalar values (scalar summary)
-        info = {'train_loss': loss.item(),
-                'train_score_loss': score_loss.item(),
-                'train_start_loss': start_loss.item(),
-                'train_end_loss': end_loss.item(),
-                'train_roi_loss': roi_loss.item()}
-        for tag, value in info.items():
-            logger.scalar_summary(tag, value, i+epoch*len(train_loader)+1)
-        # 2. Log values and gradients of the parameters (histogram summary)
-        for tag, value in model.named_parameters():
-            tag_ = tag.replace('.', '/')
-            if np.isnan(value.grad.data.cpu().numpy()).any() or np.isnan(value.data.cpu().numpy()).any():
-                import pdb; pdb.set_trace()
-            logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
-            logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
+        # # 1. Log scalar values (scalar summary)
+        # info = {'train_loss': loss.item(),
+        #         'train_score_loss': score_loss.item(),
+        #         'train_start_loss': start_loss.item(),
+        #         'train_end_loss': end_loss.item(),
+        #         'train_roi_loss': roi_loss.item()}
+        # for tag, value in info.items():
+        #     logger.scalar_summary(tag, value, i+epoch*len(train_loader)+1)
+        # # 2. Log values and gradients of the parameters (histogram summary)
+        # for tag, value in model.named_parameters():
+        #     tag_ = tag.replace('.', '/')
+        #     if np.isnan(value.grad.data.cpu().numpy()).any() or np.isnan(value.data.cpu().numpy()).any():
+        #         import pdb; pdb.set_trace()
+        #     logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
+        #     logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
 
         del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask
         # optimizer.update_learning_rate()
