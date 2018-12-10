@@ -237,7 +237,7 @@ if __name__ == '__main__':
         # num_feat = len(scores)
         # this_rois = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*pstarts[x[0]]
         #               * pends[min(x[1], num_feat-1)]) for x in this_rois]
-        # stage1_outs[key] = this_rois
+        stage1_outs[key] = this_rois
 
     # # stage 2 : suppose ensemble models from seed1-seedN
     # for model_id in range(1, args.num_ensemble+1, 1):
