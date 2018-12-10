@@ -72,7 +72,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         if epoch_id is not None and epoch_id < 3:
             bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
         else:
-            bboxes = Soft_NMS(bboxes, length=len(scores))[:rpn_post_nms_top]
+            bboxes = Soft_NMS(bboxes, length=len(scores), max_num=rpn_post_nms_top+1)[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
 
