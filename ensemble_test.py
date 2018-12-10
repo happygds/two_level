@@ -232,7 +232,7 @@ if __name__ == '__main__':
                 this_scores.append(1. / (1. + np.exp(-1. * score_output_before)))
         this_score_mean = 1. / (1. + np.exp(-1. * this_score_mean))
 
-        scores, pstarts, pends = this_scores[model_id][:, 0], \
+        scores, pstarts, pends = this_scores[model_id-1][:, 0], \
             this_score_mean[:, 1], this_score_mean[:, 2]
         num_feat = len(scores)
         this_rois = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*pstarts[x[0]]
