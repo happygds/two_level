@@ -83,9 +83,9 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         rois_begin, rois_end = np.asarray(rois)[:, 0], np.asarray(rois)[:, 1]
         rois_dura = rois_end - rois_begin
         start_rois[k, :len(bboxes), 1], end_rois[k, :len(bboxes), 1] = \
-            np.floor(rois_begin - rois_dura / 5.).clip(0., num_feat), np.floor(rois_end - rois_dura / 5.).clip(0., num_feat)
+            np.floor(rois_begin - rois_dura / 5.), np.floor(rois_end - rois_dura / 5.)
         start_rois[k, :len(bboxes), 2], end_rois[k, :len(bboxes), 2] = \
-            np.ceil(rois_begin + rois_dura / 5.).clip(0., num_feat), np.ceil(rois_end + rois_dura / 5.).clip(0., num_feat)
+            np.ceil(rois_begin + rois_dura / 5.), np.ceil(rois_end + rois_dura / 5.)
         # import pdb; pdb.set_trace()
         if not test_mode:
             # compute iou with ground-truths
