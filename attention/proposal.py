@@ -8,7 +8,8 @@ from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, te
 from ops.eval_utils import wrapper_segment_iou
 
 
-def gen_prop(k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id):
+def gen_prop(x):
+    k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id = x
     # the k-th sample
     bboxes = []
     # num_feat = int(new_feature_mask[k].sum())
@@ -96,7 +97,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         assert batch_size == 1
         num_feat = int(feature_mask[0].sum())
         scores_k = score_output[0][:num_feat]
-        _, bboxes_dict[0], rois_iou_dict[0] = gen_prop(0, num_feat, scores_k, None, rpn_post_nms_top, epoch_id)
+        _, bboxes_dict[0], rois_iou_dict[0] = gen_prop([0, num_feat, scores_k, None, rpn_post_nms_top, epoch_id])
     else:
         sample_infos = {}
         for k in range(batch_size):
