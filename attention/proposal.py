@@ -40,8 +40,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     def gen_prop(k):
         # the k-th sample
         bboxes = []
-        num_feat = int(new_feature_mask[k].sum())
-        scores_k = new_score_output[k][:num_feat]
+        num_feat = int(feature_mask[k].sum())
+        scores_k = score_output[k][:num_feat]
         scores = scores_k
         
         # # use change point
