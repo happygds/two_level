@@ -79,7 +79,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         sys.stdout.flush()
 
     pool = mp.Pool(processes=16)
-    handle = [pool.apply_async(gen_prop, args=(k, ), callback=call_back) for k in range(batch_size)]
+    for k in range(batch_size):
+        pool.apply_async(gen_prop, args=(k,), callback=call_back)
     pool.close()
     pool.join()
     import pdb; pdb.set_trace()
