@@ -43,6 +43,7 @@ def gen_prop(k, num_feat, scores_k, rpn_post_nms_top, epoch_id):
         bboxes = Soft_NMS(bboxes, length=len(scores), max_num=rpn_post_nms_top)[:rpn_post_nms_top]
     if len(bboxes) == 0:
         bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
+    # bboxes_dict[k] = bboxes
     return k, bboxes
 
 def call_back(rst):
