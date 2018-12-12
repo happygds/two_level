@@ -91,8 +91,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     else:
         pool = mp.Pool(processes=16)
         for k in range(batch_size):
-            num_feat = int(feature_mask[k].sum())
-            scores_k = score_output[k][:num_feat]
+            num_feat = int(new_feature_mask[k].sum())
+            scores_k = new_score_output[k][:num_feat]
             pool.apply_async(gen_prop, args=(k, num_feat, scores_k, rpn_post_nms_top, epoch_id), callback=call_back)
         pool.close()
         pool.join()
