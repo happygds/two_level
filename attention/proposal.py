@@ -47,9 +47,9 @@ def gen_prop(k, num_feat, scores_k, rpn_post_nms_top, epoch_id):
 
 def call_back(rst):
     bboxes_dict[rst[0]] = rst[1]
-    # import sys
+    import sys
     # print(rst[0], len(rst[1]))
-    # sys.stdout.flush()
+    sys.stdout.flush()
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
                    rpn_post_nms_top=100, feat_stride=16, epoch_id=None):
