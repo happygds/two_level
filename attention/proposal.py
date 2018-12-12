@@ -90,7 +90,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         # print(rst[0], len(rst[1]))
         sys.stdout.flush()
 
-
     if test_mode:
         assert batch_size == 1
         num_feat = int(feature_mask[0].sum())
