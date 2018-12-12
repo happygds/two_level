@@ -35,8 +35,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
-    bboxes_dict = {}
 
+    bboxes_dict = {}
     new_feature_mask, new_score_output = {}, {}
     for k in range(batch_size):
         new_feature_mask[k], new_score_output[k] = feature_mask[k], score_output[k]
