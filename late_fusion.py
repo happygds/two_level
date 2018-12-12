@@ -129,8 +129,7 @@ print('generating proposals')
 pr_dict = {}
 pr_score_dict = {}
 topk = 1
-# import pdb
-# pdb.set_trace()
+score_dict = score_list[0]
 
 
 def gen_prop(v):
