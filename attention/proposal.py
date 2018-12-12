@@ -83,7 +83,10 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         sys.stdout.flush()
 
     pool = mp.Pool(processes=8)
-    handle = [pool.apply_async(gen_prop, args=(k, int(new_feature_mask[k].sum()), new_score_output[k], rpn_post_nms_top), callback=call_back) for k in range(batch_size)]
+    for k in range(batch_size):
+        num_feat = int(new_feature_mask[k].sum())
+        scores_k = new_score_output[k][:num_feat]
+        pool.apply_async(gen_prop, args=(k, num_feat, scores_k, rpn_post_nms_top), callback=call_back)
     pool.close()
     pool.join()
     del new_feature_mask, new_score_output
