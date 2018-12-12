@@ -81,6 +81,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
     if test_mode:
+        bboxes_dict = {}
         assert batch_size == 1
         num_feat = int(feature_mask[0].sum())
         scores_k = score_output[0][:num_feat]
