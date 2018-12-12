@@ -47,9 +47,9 @@ def gen_prop(k, num_feat, scores_k, rpn_post_nms_top, epoch_id):
 
 def call_back(rst):
     bboxes_dict[rst[0]] = rst[1]
-    import sys
+    # import sys
     # print(rst[0], len(rst[1]))
-    sys.stdout.flush()
+    # sys.stdout.flush()
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
                    rpn_post_nms_top=100, feat_stride=16, epoch_id=None):
@@ -79,7 +79,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
-    bboxes_dict = {}
     new_feature_mask, new_score_output = {}, {}
     for k in range(batch_size):
         new_feature_mask[k], new_score_output[k] = feature_mask[k], score_output[k]
@@ -91,8 +90,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     else:
         pool = mp.Pool(processes=16)
         for k in range(batch_size):
-            num_feat = int(new_feature_mask[k].sum())
-            scores_k = new_score_output[k][:num_feat]
+            num_feat = int(feature_mask[k].sum())
+            scores_k = score_output[k][:num_feat]
             pool.apply_async(gen_prop, args=(k, num_feat, scores_k, rpn_post_nms_top, epoch_id), callback=call_back)
         pool.close()
         pool.join()
