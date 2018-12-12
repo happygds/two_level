@@ -102,6 +102,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             gt_k = gts[k]
             gt_k = [x.cpu().numpy() for x in gt_k]
             gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
+            if len(gt_k) == 0:
+                gt_k = [(0, 1)]
             pool.apply_async(gen_prop, args=(k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id), callback=call_back)
         pool.close()
         pool.join()
