@@ -154,8 +154,8 @@ def gen_prop(v):
     if len(bboxes) == 0:
         bboxes = [(0, float(v.frame_cnt) / v.frame_interval, 1, 1)]
 
-    pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in bboxes]
-    # pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1] * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
+    # pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in bboxes]
+    pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1] * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
 
     return v.id, pr_box, [x[3] for x in bboxes]
 
