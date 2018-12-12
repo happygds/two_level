@@ -93,8 +93,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         pool.close()
         pool.join()
 
-    import pdb; pdb.set_trace()
-
     for k in range(batch_size):
         bboxes = bboxes_dict[k]
         rpn_rois[k, :, 0] = k
