@@ -7,6 +7,8 @@ from scipy.ndimage import gaussian_filter
 from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, temporal_nms, Soft_NMS
 from ops.eval_utils import wrapper_segment_iou
 
+global bboxes_dict
+bboxes_dict = {}
 
 def gen_prop(k, num_feat, scores_k, rpn_post_nms_top, epoch_id):
     # the k-th sample
@@ -78,8 +80,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
-    global bboxes_dict
-    bboxes_dict = {}
     if test_mode:
         assert batch_size == 1
         num_feat = int(feature_mask[0].sum())
