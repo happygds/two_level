@@ -1,6 +1,7 @@
 import torch.utils.data as data
 
-import os, glob
+import os
+import glob
 import h5py
 import math
 import random
@@ -35,7 +36,7 @@ class BinaryInstance:
 
 class BinaryVideoRecord:
     def __init__(self, video_record, frame_path, flow_h5_path, rgb_h5_path,
-                 flow_feat_key, rgb_feat_key, frame_counts=None, use_flow=True, 
+                 flow_feat_key, rgb_feat_key, frame_counts=None, use_flow=True,
                  feat_stride=8, sample_duration=100):
         self._data = video_record
         self.id = self._data.id
@@ -59,7 +60,8 @@ class BinaryVideoRecord:
         if rgb_feat.shape[0] % 2 != 0:
             rgb_feat = rgb_feat[:-1]
         shp = rgb_feat.shape
-        rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
+        rgb_feat = rgb_feat.reshape(
+            (-1, int(feat_stride // 8), shp[1])).mean(axis=1)
         shp = rgb_feat.shape
 
         # # # use linear interpolation to resize the feature into a fixed length
@@ -72,17 +74,19 @@ class BinaryVideoRecord:
         #     output = np.ones((sample_duration, 1)) * rgb_feat
         # rgb_feat = output.astype('float32')
         # assert rgb_feat.shape[0] == sample_duration
-        
-        self.feat = rgb_feat 
+
+        self.feat = rgb_feat
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
         self.starts = np.zeros((rgb_feat.shape[0],), dtype='float32')
         self.ends = np.zeros((rgb_feat.shape[0],), dtype='float32')
         gts = []
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
-            gts.append([frame_cnt * begin_ind / feat_stride, frame_cnt * end_ind / feat_stride])
+            gts.append([frame_cnt * begin_ind / feat_stride,
+                        frame_cnt * end_ind / feat_stride])
             # gts.append([sample_duration * begin_ind, sample_duration * end_ind])
-            nbegin_ind, nend_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
+            nbegin_ind, nend_ind = int(round(
+                frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
             # nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[nbegin_ind:nend_ind+1] = 1.
             dura_i = frame_cnt * (end_ind - begin_ind) / feat_stride / 10.
@@ -90,17 +94,21 @@ class BinaryVideoRecord:
             try:
                 if nbegin_ind < nend_ind:
                     start_nbegin, start_nend = int(max(math.floor(frame_cnt * begin_ind / feat_stride - dura_i), 0)), \
-                                int(min(math.ceil(frame_cnt * begin_ind / feat_stride + dura_i), len(self.label)-1))
+                        int(min(math.ceil(frame_cnt * begin_ind /
+                                          feat_stride + dura_i), len(self.label)-1))
                     end_nbegin, end_nend = int(max(math.floor(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
-                                int(min(math.ceil(frame_cnt * end_ind / feat_stride + dura_i), len(self.label)-1))
+                        int(min(math.ceil(frame_cnt * end_ind /
+                                          feat_stride + dura_i), len(self.label)-1))
                     # start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
                     #             int(min(math.ceil(sample_duration * begin_ind + dura_i), len(self.label)-1))
                     # end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
                     #             int(min(math.ceil(sample_duration * end_ind + dura_i), len(self.label)-1))
-                    self.starts[start_nbegin:start_nend+1], self.ends[end_nbegin:end_nend+1] = 1., 1.
+                    self.starts[start_nbegin:start_nend +
+                                1], self.ends[end_nbegin:end_nend+1] = 1., 1.
             except IndexError:
                 print(len(self.ends), nbegin_ind, nend_ind)
-                import pdb; pdb.set_trace()
+                import pdb
+                pdb.set_trace()
         self.gts = np.asarray(gts)
 
 
@@ -180,9 +188,8 @@ class BinaryDataSet(data.Dataset):
         else:
             frame_counts = None
         self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
-                                             frame_counts, use_flow=use_flow, feat_stride=feat_stride, 
+                                             frame_counts, use_flow=use_flow, feat_stride=feat_stride,
                                              sample_duration=self.sample_duration) for x in subset_videos]
-
 
     def __getitem__(self, index):
         real_index = index % len(self.video_list)
@@ -223,24 +230,8 @@ class BinaryDataSet(data.Dataset):
         starts, ends = video.starts, video.ends
         num_feat = feat.shape[0]
 
-        # sample_duration = num_feat
-        # for i, gt in enumerate(video.gts):
-        #     begin_ind, end_ind = gt / float(num_feat)
-        #     nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
-        #     label[nbegin_ind:nend_ind+1] = 1.
-        #     dura_i = sample_duration * (end_ind - begin_ind) / 10.
-        #     try:
-        #         if nbegin_ind < nend_ind:
-        #             start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
-        #                         int(min(math.ceil(sample_duration * begin_ind + dura_i), len(label)-1))
-        #             end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
-        #                         int(min(math.ceil(sample_duration * end_ind + dura_i), len(label)-1))
-        #             starts[start_nbegin:start_nend+1], ends[end_nbegin:end_nend+1] = 1., 1.
-        #     except IndexError:
-        #         print(len(self.ends), nbegin_ind, nend_ind)
-        #         import pdb; pdb.set_trace()
-
-        out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len = self._sample_feat(feat, label, starts, ends)
+        out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len = \
+            self._sample_feat(feat, label, starts, ends)
         out_mask = np.zeros_like(out_label).astype('float32')
         out_mask[:min_len] = 1.
 
@@ -251,7 +242,8 @@ class BinaryDataSet(data.Dataset):
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
         out_label = torch.from_numpy(out_label)
-        out_starts, out_ends = torch.from_numpy(out_starts), torch.from_numpy(out_ends)
+        out_starts, out_ends = torch.from_numpy(
+            out_starts), torch.from_numpy(out_ends)
         out_mask = torch.from_numpy(out_mask)
 
         # print(out_feats.size(), out_prop_type.size())
