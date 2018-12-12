@@ -124,16 +124,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             np.ceil(rois_begin + rois_dura / 5.), np.ceil(rois_end + rois_dura / 5.)
         # import pdb; pdb.set_trace()
         if not test_mode:
-            # compute iou with ground-truths
-            # import pdb; pdb.set_trace()
-            # gt_k = gts[k]
-            # gt_k = [x.cpu().numpy() for x in gt_k]
-            # gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
-            # if len(gt_k) == 0:
-            #     gt_k = [(0, 1)]
-            # gt_k, rois = np.asarray(gt_k), np.asarray(rois)
-            # rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
-            # tmp = np.concatenate([1. - rois_iou, rois_iou], axis=1)
             labels[k, :len(bboxes), :] = rois_iou_dict[k]
         else:
             actness[k, :len(bboxes)] = rois_iou_dict[k]
