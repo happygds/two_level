@@ -7,7 +7,7 @@ from scipy.ndimage import gaussian_filter
 from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, temporal_nms, Soft_NMS
 from ops.eval_utils import wrapper_segment_iou
 
-global bboxes_dict
+# global bboxes_dict
 bboxes_dict = {}
 
 def gen_prop(k, num_feat, scores_k, rpn_post_nms_top, epoch_id):
@@ -123,7 +123,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             labels[k, :len(bboxes), :] = tmp
         else:
             actness[k, :len(bboxes)] = np.asarray([x[3] for x in bboxes])
-    # del bboxes_dict
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois[:, :, 1:]).mean(axis=2) > 0.).astype('float32')
     rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
