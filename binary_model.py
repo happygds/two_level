@@ -90,7 +90,6 @@ class BinaryClassifier(torch.nn.Module):
         else:
             start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(
                 score_output, feature_mask, test_mode=test_mode)
-        del bboxes_dict
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)

@@ -97,7 +97,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k]
-        print(len(bboxes))
+        # print(len(bboxes))
         rpn_rois[k, :, 0] = k
         rois = [(x[0], x[1]) for x in bboxes]
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)

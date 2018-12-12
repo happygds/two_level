@@ -228,7 +228,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         #     logger.histo_summary(tag_, value.data.cpu().numpy(), i+epoch*len(train_loader)+1)
         #     logger.histo_summary(tag_+'/grad', value.grad.data.cpu().numpy(), i+epoch*len(train_loader)+1)
 
-        del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask
+        del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask, bboxes_dict
         # optimizer.update_learning_rate()
         optimizer.zero_grad()
         # measure elapsed time
@@ -286,7 +286,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             losses.update(loss.item(), feature.size(0))
             if np.isnan(loss.data.cpu().numpy()).any():
                 import pdb; pdb.set_trace()
-        del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask
+        del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask, bboxes_dict
 
         batch_time.update(time.time() - end_time)
         end_time = time.time()
