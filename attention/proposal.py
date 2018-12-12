@@ -8,6 +8,47 @@ from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, te
 from ops.eval_utils import wrapper_segment_iou
 
 
+def gen_prop(k, num_feat, scores_k, rpn_post_nms_top):
+    # the k-th sample
+    bboxes = []
+    # num_feat = int(new_feature_mask[k].sum())
+    # scores_k = new_score_output[k][:num_feat]
+    scores = scores_k[:num_feat]
+    
+    # # use change point
+    scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
+    if len(scores) > 1:
+        diff_pstarts, diff_pends = pstarts[1:,] - pstarts[:-1,], pends[1:,] - pends[:-1,]
+        # gd_scores = gaussian_filter(diff_scores, bw)
+        starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
+        ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
+        starts, ends = list(set(starts)), list(set(ends))
+        props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.]
+        if scores.mean() > 0.:
+            props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
+        # import pdb; pdb.set_trace()
+    else:
+        props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
+    # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
+    bboxes.extend(props)
+    # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
+    # to remove duplicate proposals
+    bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
+    # bboxes = bboxes[:rpn_post_nms_top]
+    if epoch_id is not None and epoch_id < 3:
+        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+    else:
+        bboxes = Soft_NMS(bboxes, length=len(scores), max_num=rpn_post_nms_top)[:rpn_post_nms_top]
+    if len(bboxes) == 0:
+        bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
+    return k, bboxes
+
+def call_back(rst):
+    bboxes_dict[rst[0]] = rst[1]
+    import sys
+    print(rst[0], len(rst[1]))
+    sys.stdout.flush()
+
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
                    rpn_post_nms_top=100, feat_stride=16, epoch_id=None):
     """
@@ -40,47 +81,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     new_feature_mask, new_score_output = {}, {}
     for k in range(batch_size):
         new_feature_mask[k], new_score_output[k] = feature_mask[k], score_output[k]
-
-    def gen_prop(k, num_feat, scores_k, rpn_post_nms_top):
-        # the k-th sample
-        bboxes = []
-        # num_feat = int(new_feature_mask[k].sum())
-        # scores_k = new_score_output[k][:num_feat]
-        scores = scores_k[:num_feat]
-        
-        # # use change point
-        scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
-        if len(scores) > 1:
-            diff_pstarts, diff_pends = pstarts[1:,] - pstarts[:-1,], pends[1:,] - pends[:-1,]
-            # gd_scores = gaussian_filter(diff_scores, bw)
-            starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
-            ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
-            starts, ends = list(set(starts)), list(set(ends))
-            props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.]
-            if scores.mean() > 0.:
-                props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
-            # import pdb; pdb.set_trace()
-        else:
-            props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
-        # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
-        bboxes.extend(props)
-        # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
-        # to remove duplicate proposals
-        bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
-        # bboxes = bboxes[:rpn_post_nms_top]
-        if epoch_id is not None and epoch_id < 3:
-            bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
-        else:
-            bboxes = Soft_NMS(bboxes, length=len(scores), max_num=rpn_post_nms_top)[:rpn_post_nms_top]
-        if len(bboxes) == 0:
-            bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
-        return k, bboxes
-
-    def call_back(rst):
-        bboxes_dict[rst[0]] = rst[1]
-        import sys
-        print(rst[0], len(rst[1]))
-        sys.stdout.flush()
 
     pool = mp.Pool(processes=8)
     for k in range(batch_size):
