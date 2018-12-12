@@ -41,7 +41,7 @@ class BinaryVideoRecord:
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
         # frame_cnt = len(files)
-        # frame_cnt = frame_counts[self.id]
+        frame_cnt = frame_counts[self.id]
         vid_name = 'v_{}'.format(self.id)
 
         with h5py.File(rgb_h5_path, 'r') as f:
@@ -62,16 +62,16 @@ class BinaryVideoRecord:
         rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
         shp = rgb_feat.shape
 
-        # # use linear interpolation to resize the feature into a fixed length
-        ori_grids = np.arange(0, shp[0])
-        if shp[0] > 1:
-            f = interpolate.interp1d(ori_grids, rgb_feat, axis=0)
-            x_new=[i*float(shp[0]-1)/(sample_duration-1) for i in range(sample_duration)]
-            output = f(x_new)
-        else:
-            output = np.ones((sample_duration, 1)) * rgb_feat
-        rgb_feat = output.astype('float32')
-        assert rgb_feat.shape[0] == sample_duration
+        # # # use linear interpolation to resize the feature into a fixed length
+        # ori_grids = np.arange(0, shp[0])
+        # if shp[0] > 1:
+        #     f = interpolate.interp1d(ori_grids, rgb_feat, axis=0)
+        #     x_new=[i*float(shp[0]-1)/(sample_duration-1) for i in range(sample_duration)]
+        #     output = f(x_new)
+        # else:
+        #     output = np.ones((sample_duration, 1)) * rgb_feat
+        # rgb_feat = output.astype('float32')
+        # assert rgb_feat.shape[0] == sample_duration
         
         self.feat = rgb_feat 
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
@@ -80,23 +80,23 @@ class BinaryVideoRecord:
         gts = []
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
-            # gts.append([frame_cnt * begin_ind / feat_stride, frame_cnt * end_ind / feat_stride])
-            gts.append([sample_duration * begin_ind, sample_duration * end_ind])
-            # nbegin_ind, nend_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
-            nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
+            gts.append([frame_cnt * begin_ind / feat_stride, frame_cnt * end_ind / feat_stride])
+            # gts.append([sample_duration * begin_ind, sample_duration * end_ind])
+            nbegin_ind, nend_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
+            # nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[nbegin_ind:nend_ind+1] = 1.
-            # dura_i = frame_cnt * (end_ind - begin_ind) / feat_stride / 10.
-            dura_i = sample_duration * (end_ind - begin_ind) / 10.
+            dura_i = frame_cnt * (end_ind - begin_ind) / feat_stride / 10.
+            # dura_i = sample_duration * (end_ind - begin_ind) / 10.
             try:
                 if nbegin_ind < nend_ind:
-                    # start_nbegin, start_nend = int(max(math.floor(frame_cnt * begin_ind / feat_stride - dura_i), 0)), \
-                    #             int(min(math.ceil(frame_cnt * begin_ind / feat_stride + dura_i), len(self.label)-1))
-                    # end_nbegin, end_nend = int(max(math.floor(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
-                    #             int(min(math.ceil(frame_cnt * end_ind / feat_stride + dura_i), len(self.label)-1))
-                    start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
-                                int(min(math.ceil(sample_duration * begin_ind + dura_i), len(self.label)-1))
-                    end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
-                                int(min(math.ceil(sample_duration * end_ind + dura_i), len(self.label)-1))
+                    start_nbegin, start_nend = int(max(math.floor(frame_cnt * begin_ind / feat_stride - dura_i), 0)), \
+                                int(min(math.ceil(frame_cnt * begin_ind / feat_stride + dura_i), len(self.label)-1))
+                    end_nbegin, end_nend = int(max(math.floor(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
+                                int(min(math.ceil(frame_cnt * end_ind / feat_stride + dura_i), len(self.label)-1))
+                    # start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
+                    #             int(min(math.ceil(sample_duration * begin_ind + dura_i), len(self.label)-1))
+                    # end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
+                    #             int(min(math.ceil(sample_duration * end_ind + dura_i), len(self.label)-1))
                     self.starts[start_nbegin:start_nend+1], self.ends[end_nbegin:end_nend+1] = 1., 1.
             except IndexError:
                 print(len(self.ends), nbegin_ind, nend_ind)
@@ -111,7 +111,7 @@ class BinaryDataSet(data.Dataset):
                  test_mode=False, feat_stride=16, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
-                 bg_coverage_thresh=0.02, sample_duration=2048,
+                 bg_coverage_thresh=0.02, sample_duration=8192,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True, num_local=8,
