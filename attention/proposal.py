@@ -7,8 +7,6 @@ from scipy.ndimage import gaussian_filter
 from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, temporal_nms, Soft_NMS
 from ops.eval_utils import wrapper_segment_iou
 
-global bboxes_dict, rois_iou_dict
-bboxes_dict, rois_iou_dict = {}, {}
 
 def gen_prop(k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id):
     # the k-th sample
@@ -54,12 +52,6 @@ def gen_prop(k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id):
         rois_iou = np.asarray([x[3] for x in bboxes])
     return k, bboxes, rois_iou
 
-def call_back(rst):
-    bboxes_dict[rst[0]] = rst[1]
-    rois_iou_dict[rst[0]] = rst[2]
-    import sys
-    # print(rst[0], len(rst[1]))
-    sys.stdout.flush()
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
                    rpn_post_nms_top=100, feat_stride=16, epoch_id=None):
@@ -88,6 +80,16 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
+
+    # global bboxes_dict, rois_iou_dict
+    bboxes_dict, rois_iou_dict = {}, {}
+    def call_back(rst):
+        bboxes_dict[rst[0]] = rst[1]
+        rois_iou_dict[rst[0]] = rst[2]
+        import sys
+        # print(rst[0], len(rst[1]))
+        sys.stdout.flush()
+
 
     if test_mode:
         assert batch_size == 1
