@@ -112,7 +112,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         handle=[pool.apply_async(gen_prop, args=(x,), callback=call_back) for x in sample_infos]
         pool.close()
         pool.join()
-        del pool
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k]
