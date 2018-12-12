@@ -86,9 +86,9 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     def call_back(rst):
         bboxes_dict[rst[0]] = rst[1]
         rois_iou_dict[rst[0]] = rst[2]
-        # import sys
+        import sys
         # print(rst[0], len(rst[1]))
-        # sys.stdout.flush()
+        sys.stdout.flush()
 
     if test_mode:
         assert batch_size == 1
