@@ -86,7 +86,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         print(rst[0], len(bboxes_dict[rst[0]]))
         sys.stdout.flush()
 
-
     new_feature_mask, new_score_output = {}, {}
     for k in range(batch_size):
         new_feature_mask[k], new_score_output[k] = feature_mask[k], score_output[k]
