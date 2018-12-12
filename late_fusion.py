@@ -139,7 +139,8 @@ def gen_prop(v):
         vid = v.path.split('/')[-1].split('.')[0]
     rois, actness, roi_scores, frm_cnt = score_list[0][vid]
     # merge other pkl files
-    for i in range(1, len(score_list)):
+    N = len(score_list)
+    for i in range(1, N):
         this_rois, this_actness, this_roi_scores, _ = score_list[0][vid]
         this_ious = iou(rois, this_rois)
         argmax_ious = this_ious.argmax(axis=1)
@@ -147,6 +148,7 @@ def gen_prop(v):
             this_actness[argmax_ious], this_roi_scores[argmax_ious]
         actness *= sel_actness
         roi_scores *= sel_roi_scores
+    actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
 
     bboxes = [(roi[0], roi[1], 1, roi_score*act_score, roi_score)
               for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
