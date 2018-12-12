@@ -10,7 +10,7 @@ from ops.eval_utils import wrapper_segment_iou
 global bboxes_dict
 bboxes_dict = {}
 
-def gen_prop(k, num_feat, scores_k, rpn_post_nms_top):
+def gen_prop(k, num_feat, scores_k, rpn_post_nms_top, epoch_id):
     # the k-th sample
     bboxes = []
     # num_feat = int(new_feature_mask[k].sum())
@@ -88,7 +88,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     for k in range(batch_size):
         num_feat = int(new_feature_mask[k].sum())
         scores_k = new_score_output[k][:num_feat]
-        pool.apply_async(gen_prop, args=(k, num_feat, scores_k, rpn_post_nms_top), callback=call_back)
+        pool.apply_async(gen_prop, args=(k, num_feat, scores_k, rpn_post_nms_top, epoch_id), callback=call_back)
     pool.close()
     pool.join()
 
