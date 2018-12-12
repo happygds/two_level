@@ -39,7 +39,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     new_feature_mask, new_score_output = {}, {}
     for k in range(batch_size):
-        new_feature_mask[k], new_score_output = feature_mask[k], score_output[k]
+        new_feature_mask[k], new_score_output[k] = feature_mask[k], score_output[k]
 
     def gen_prop(k):
         # the k-th sample
