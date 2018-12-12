@@ -7,10 +7,10 @@ from scipy.ndimage import gaussian_filter
 from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, temporal_nms, Soft_NMS
 from ops.eval_utils import wrapper_segment_iou
 
-global bboxes_dict
-bboxes_dict = {}
+global bboxes_dict, rois_iou_dict
+bboxes_dict, rois_iou_dict = {}, {}
 
-def gen_prop(k, num_feat, scores_k, rpn_post_nms_top, epoch_id):
+def gen_prop(k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id):
     # the k-th sample
     bboxes = []
     # num_feat = int(new_feature_mask[k].sum())
@@ -43,11 +43,20 @@ def gen_prop(k, num_feat, scores_k, rpn_post_nms_top, epoch_id):
         bboxes = Soft_NMS(bboxes, length=len(scores), max_num=rpn_post_nms_top)[:rpn_post_nms_top]
     if len(bboxes) == 0:
         bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
-    # bboxes_dict[k] = bboxes
-    return k, bboxes
+    
+    # compute iou with ground-truths
+    if gt_k is not None:
+        rois = [(x[0], x[1]) for x in bboxes]
+        gt_k, rois = np.asarray(gt_k), np.asarray(rois)
+        rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
+        rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
+    else:
+        rois_iou = np.asarray([x[3] for x in bboxes])
+    return k, bboxes, rois_iou
 
 def call_back(rst):
     bboxes_dict[rst[0]] = rst[1]
+    rois_iou_dict[rst[0]] = rst[2]
     import sys
     # print(rst[0], len(rst[1]))
     sys.stdout.flush()
@@ -84,13 +93,16 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         assert batch_size == 1
         num_feat = int(feature_mask[0].sum())
         scores_k = score_output[0][:num_feat]
-        bboxes_dict[0] = gen_prop(0, num_feat, scores_k, rpn_post_nms_top, epoch_id)
+        _, bboxes_dict[0], rois_iou_dict[0] = gen_prop(0, num_feat, scores_k, None, rpn_post_nms_top, epoch_id)
     else:
         pool = mp.Pool(processes=16)
         for k in range(batch_size):
             num_feat = int(feature_mask[k].sum())
             scores_k = score_output[k][:num_feat]
-            pool.apply_async(gen_prop, args=(k, num_feat, scores_k, rpn_post_nms_top, epoch_id), callback=call_back)
+            gt_k = gts[k]
+            gt_k = [x.cpu().numpy() for x in gt_k]
+            gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
+            pool.apply_async(gen_prop, args=(k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id), callback=call_back)
         pool.close()
         pool.join()
         del pool
@@ -112,17 +124,17 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         if not test_mode:
             # compute iou with ground-truths
             # import pdb; pdb.set_trace()
-            gt_k = gts[k]
-            gt_k = [x.cpu().numpy() for x in gt_k]
-            gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
-            if len(gt_k) == 0:
-                gt_k = [(0, 1)]
-            gt_k, rois = np.asarray(gt_k), np.asarray(rois)
-            rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
-            tmp = np.concatenate([1. - rois_iou, rois_iou], axis=1)
-            labels[k, :len(bboxes), :] = tmp
+            # gt_k = gts[k]
+            # gt_k = [x.cpu().numpy() for x in gt_k]
+            # gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
+            # if len(gt_k) == 0:
+            #     gt_k = [(0, 1)]
+            # gt_k, rois = np.asarray(gt_k), np.asarray(rois)
+            # rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
+            # tmp = np.concatenate([1. - rois_iou, rois_iou], axis=1)
+            labels[k, :len(bboxes), :] = rois_iou_dict[k]
         else:
-            actness[k, :len(bboxes)] = np.asarray([x[3] for x in bboxes])
+            actness[k, :len(bboxes)] = rois_iou_dict[k]
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois[:, :, 1:]).mean(axis=2) > 0.).astype('float32')
     rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
