@@ -177,7 +177,7 @@ class BinaryDataSet(data.Dataset):
             rgb_feat_key = 'inception_resnet_v2'
         else:
             raise NotImplementedError('this feature has been extracted !')
-        print("using rgb feature from {}".format(rgb_h5_path))
+        print("using rgb feature from {}, sample_duration is {}".format(rgb_h5_path, self.sample_duration))
 
         if prop_file:
             prop_info = load_proposal_file(prop_file)
