@@ -80,6 +80,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
+    print(type(bboxes_dict))
     if test_mode:
         assert batch_size == 1
         num_feat = int(feature_mask[0].sum())
