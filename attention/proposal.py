@@ -6,6 +6,7 @@ from scipy.ndimage import gaussian_filter
 
 from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, temporal_nms, Soft_NMS
 from ops.eval_utils import wrapper_segment_iou
+pool = mp.Pool(processes=8)
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
@@ -82,7 +83,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         print(rst[0], len(rst[1]))
         sys.stdout.flush()
 
-    pool = mp.Pool(processes=8)
     for k in range(batch_size):
         num_feat = int(new_feature_mask[k].sum())
         scores_k = new_score_output[k][:num_feat]
