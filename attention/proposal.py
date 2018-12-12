@@ -87,7 +87,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         assert batch_size == 1
         num_feat = int(feature_mask[0].sum())
         scores_k = score_output[0][:num_feat]
-        bboxes_dict[0] = gen_prop(0, num_feat, scores_k, rpn_post_nms_top, epoch_id)
+        bboxes_dict[0] = gen_prop(0, num_feat, scores_k, rpn_post_nms_top, epoch_id)[1]
     else:
         pool = mp.Pool(processes=16)
         for k in range(batch_size):
