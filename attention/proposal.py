@@ -7,7 +7,8 @@ from scipy.ndimage import gaussian_filter
 from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, temporal_nms, Soft_NMS
 from ops.eval_utils import wrapper_segment_iou
 
-global bboxes_dict = {}
+bboxes_dict = {}
+global bboxes_dict
 
 def gen_prop(k, num_feat, scores_k, rpn_post_nms_top, epoch_id):
     # the k-th sample
