@@ -5,7 +5,6 @@ import glob
 import math
 import pandas as pd
 import numpy as np
-import multiprocessing
 from sklearn.metrics import confusion_matrix
 import time
 import pickle
