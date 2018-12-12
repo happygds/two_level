@@ -108,6 +108,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             pool.apply_async(gen_prop, args=(k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id), callback=call_back)
         pool.close()
         pool.join()
+        del pool
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k]
