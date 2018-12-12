@@ -37,7 +37,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
     bboxes_dict = {}
 
-    global new_feature_mask, global new_score_output = {}, {}
+    global new_feature_mask, new_score_output = {}, {}
     for k in range(batch_size):
         new_feature_mask[k], new_score_output[k] = feature_mask[k], score_output[k]
 
@@ -86,6 +86,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     handle = [pool.apply_async(gen_prop, args=(k, ), callback=call_back) for k in range(batch_size)]
     pool.close()
     pool.join()
+    del new_feature_mask, new_score_output
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k]
