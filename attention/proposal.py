@@ -82,6 +82,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     handle = [pool.apply_async(gen_prop, args=(k, ), callback=call_back) for k in range(batch_size)]
     pool.close()
     pool.join()
+    import pdb; pdb.set_trace()
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k]
