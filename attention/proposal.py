@@ -35,18 +35,13 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
+    bboxes_dict = {}
 
-    for k in range(batch_size):
+    def gen_prop(k):
         # the k-th sample
         bboxes = []
         num_feat = int(feature_mask[k].sum())
         scores_k = score_output[k][:num_feat]
-        # # use TAG
-        # scores = scores_k[:, :1]
-        # scores = np.concatenate((1-scores, scores), axis=1)
-        # topk_labels = label_frame_by_threshold(scores, topk_cls, bw=bw, thresh=thresh, multicrop=False)
-        # props = build_box_by_search(topk_labels, np.array(tol_lst))
-        # props = [(x[0], x[1], 1, x[3]) for x in props]
         scores = scores_k
         
         # # use change point
@@ -75,7 +70,22 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             bboxes = Soft_NMS(bboxes, length=len(scores), max_num=rpn_post_nms_top)[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
+        return k, bboxes
 
+    def call_back(rst):
+        bboxes_dict[rst[0]] = rst[1]
+        import sys
+        # print(rst[0], len(pr_dict), len(rst[1]))
+        sys.stdout.flush()
+
+    pool = mp.Pool(processes=32)
+    lst = []
+    handle = [pool.apply_async(gen_prop, args=(k, ), callback=call_back) k in range(batch_size)]
+    pool.close()
+    pool.join()
+
+    for k in range(batch_size):
+        bboxes = bboxes_dict[k]
         rpn_rois[k, :, 0] = k
         rois = [(x[0], x[1]) for x in bboxes]
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
