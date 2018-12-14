@@ -142,7 +142,7 @@ def gen_prop(v):
     rois, actness, roi_scores, frm_cnt = score_list[0][vid]
     # merge other pkl files
     for i in range(1, N):
-        this_rois, this_actness, this_roi_scores, _ = score_list[0][vid]
+        this_rois, this_actness, this_roi_scores, _ = score_list[i][vid]
         this_ious = iou(rois, this_rois)
         argmax_ious = this_ious.argmax(axis=1)
         sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
