@@ -261,6 +261,7 @@ if __name__ == '__main__':
     for key in out_stage1.keys():
         bboxes, score_output_before = ensemble_stage1['fix_len'][key]
         v, frm_cnt = vid_infos[key], len(score_output_before)
+        assert frm_cnt == 128
         bboxes = [(x[0] / float(frm_cnt) * v.duration, 
                    x[1] / float(frm_cnt) * v.duration,
                    x[2], x[3]) for x in bboxes]
