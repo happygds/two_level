@@ -123,7 +123,25 @@ else:
 args.d_model = args.n_head * args.d_k
 
 gpu_list = args.gpus if args.gpus is not None else range(4)
-video_list = pickle.load(open('./video_list', 'rb'))
+
+def compute_frame_count(video_info, frame_path, name_pattern):    
+    # first count frame numbers
+    try:
+        video_name = video_info.id
+        files = glob.glob(os.path.join(frame_path, video_name, name_pattern))
+        frame_cnt = len(files)
+    except:
+        print("video {} not exist frame images".format(video_info.id))
+        frame_cnt = int(round(video_info.duration * 24))
+    video_info.frame_cnt = frame_cnt
+    video_info.frame_interval = args.frame_interval
+    return video_info
+    
+video_list = db.get_subset_videos(args.subset)
+# video_list = [v for v in video_list if v.instances != []]
+print("video list size: {}".format(len(video_list)))
+video_list = [compute_frame_count(v, args.feat_root+'/activity_net_frames', 'frame*.jpg') for v in video_list]
+# video_list = pickle.load(open('./video_list', 'rb'))
 vid_infos = {}
 for v in video_list:
     vid_infos[v.id] = v
