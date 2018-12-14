@@ -228,7 +228,7 @@ if __name__ == '__main__':
     # load ori-len model weights
     ctx = multiprocessing.get_context('spawn')
     print("loading weights from {}".format(args.ori_weights))
-    checkpoint = torch.load(args.weights)
+    checkpoint = torch.load(args.ori_weights)
 
     print("model epoch {} loss: {}".format(
         checkpoint['epoch'], checkpoint['best_loss']))
@@ -315,7 +315,7 @@ if __name__ == '__main__':
 
     ctx = multiprocessing.get_context('spawn')
     print("loading weights from {}".format(args.ori_weights))
-    checkpoint = torch.load(args.weights)
+    checkpoint = torch.load(args.ori_weights)
     print("model epoch {} loss: {}".format(
         checkpoint['epoch'], checkpoint['best_loss']))
     base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
