@@ -259,13 +259,13 @@ if __name__ == '__main__':
     stage1_outs = {}
     stage1_outs['fix_len'], stage1_outs['ori_len'] = {}, {}
     for key in out_stage1.keys():
-        rois, score_output_before = ensemble_stage1['fix_len'][key]
+        bboxes, score_output_before = ensemble_stage1['fix_len'][key]
         v, frm_cnt = vid_infos[key], len(score_output_before)
         bboxes = [(x[0] / float(frm_cnt) * v.duration, 
                    x[1] / float(frm_cnt) * v.duration,
                    x[2], x[3]) for x in bboxes]
         bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
-        ori_rois, _ = ensemble_stage1['ori_len'][key]
+        ori_bboxes, _ = ensemble_stage1['ori_len'][key]
         ori_bboxes = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration,
                        x[1] * v.frame_interval / float(v.frame_cnt) * v.duration,
                        x[2], x[3]) for x in ori_bboxes]
