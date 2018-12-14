@@ -124,7 +124,7 @@ for fname in args.score_files:
     score_list.append(pickle.load(open(fname, 'rb')))
 print('load {} piles of scores'.format(len(score_list)))
 N = len(score_list)
-# assert N == 2
+assert N == 2
 
 # bottom-up generate proposals
 print('generating proposals')
@@ -140,30 +140,39 @@ def gen_prop(v):
     else:
         vid = v.path.split('/')[-1].split('.')[0]
     rois, actness, roi_scores, frm_cnt = score_list[0][vid]
-    # merge other pkl files
-    for i in range(1, N):
-        this_rois, this_actness, this_roi_scores, _ = score_list[i][vid]
-        this_ious = iou(rois, this_rois)
-        argmax_ious = this_ious.argmax(axis=1)
-        sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
-            this_actness[argmax_ious], this_roi_scores[argmax_ious]
-        actness *= sel_actness
-        roi_scores *= sel_roi_scores
-    actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
+    # # merge other pkl files
+    # for i in range(1, N):
+    #     this_rois, this_actness, this_roi_scores, _ = score_list[i][vid]
+    #     this_ious = iou(rois, this_rois)
+    #     argmax_ious = this_ious.argmax(axis=1)
+    #     sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
+    #         this_actness[argmax_ious], this_roi_scores[argmax_ious]
+    #     actness *= sel_actness
+    #     roi_scores *= sel_roi_scores
+    # actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
 
-    bboxes = [(roi[0], roi[1], 1, roi_score*act_score, roi_score)
+    bboxes = [(roi[0] / float(frm_cnt) * v.duration, roi[1] / float(frm_cnt) * v.duration,
+               1, roi_score*act_score, roi_score)
               for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
     # filter out too short proposals
-    bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
-    bboxes = list(filter(lambda b: b[4] > 0.*roi_scores.max(), bboxes))
+    bboxes = list(filter(lambda b: b[1] - b[0] > 25, bboxes))
+
+    ori_rois, ori_actness, ori_roi_scores, ori_frm_cnt = score_list[1][vid]
+    ori_bboxes = [(roi[0] * v.frame_interval / float(v.frame_cnt) * v.duration,
+                   roi[1] * v.frame_interval / float(v.frame_cnt) * v.duration,
+                   1, roi_score*act_score, roi_score)
+                  for (roi, act_score, roi_score) in zip(ori_rois, ori_actness, ori_roi_scores)]
+    # filter out too short proposals
+    ori_bboxes = list(filter(lambda b: b[1] - b[0] <= 25, ori_bboxes))
+    bboxes = bboxes + ori_bboxes
+
     # bboxes = temporal_nms(bboxes, 1. - 1.e-16)
     # bboxes = Soft_NMS(bboxes, length=frm_cnt)
 
     if len(bboxes) == 0:
-        bboxes = [(0, float(v.frame_cnt) / v.frame_interval, 1, 1)]
+        bboxes = [(0, v.duration, 1, 1)]
 
-    pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] /
-               float(frm_cnt) * v.duration) for x in bboxes]
+    pr_box = [(x[0], x[1]) for x in bboxes]
     # pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1] * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
 
     return v.id, pr_box, [x[3] for x in bboxes]
