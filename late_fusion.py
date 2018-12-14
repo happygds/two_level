@@ -123,6 +123,8 @@ score_list = []
 for fname in args.score_files:
     score_list.append(pickle.load(open(fname, 'rb')))
 print('load {} piles of scores'.format(len(score_list)))
+N = len(score_list)
+assert N == 2
 
 # bottom-up generate proposals
 print('generating proposals')
@@ -139,7 +141,6 @@ def gen_prop(v):
         vid = v.path.split('/')[-1].split('.')[0]
     rois, actness, roi_scores, frm_cnt = score_list[0][vid]
     # merge other pkl files
-    N = len(score_list)
     for i in range(1, N):
         this_rois, this_actness, this_roi_scores, _ = score_list[0][vid]
         this_ious = iou(rois, this_rois)
