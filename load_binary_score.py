@@ -39,9 +39,11 @@ class BinaryVideoRecord:
                  feat_stride=8, sample_duration=100, ori_len=False):
         self._data = video_record
         self.id = self._data.id
-        # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
-        # frame_cnt = len(files)
-        frame_cnt = frame_counts[self.id]
+        if frame_counts is None:
+            files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
+            frame_cnt = len(files)
+        else:
+            frame_cnt = frame_counts[self.id]
         vid_name = 'v_{}'.format(self.id)
 
         with h5py.File(rgb_h5_path, 'r') as f:
