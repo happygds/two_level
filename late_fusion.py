@@ -167,7 +167,7 @@ def gen_prop(v):
     bboxes = bboxes + ori_bboxes
 
     # bboxes = temporal_nms(bboxes, 1. - 1.e-16)
-    # bboxes = Soft_NMS(bboxes, length=frm_cnt)
+    bboxes = Soft_NMS(bboxes, length=v.duration)
 
     if len(bboxes) == 0:
         bboxes = [(0, v.duration, 1, 1)]
