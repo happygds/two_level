@@ -124,7 +124,7 @@ for fname in args.score_files:
     score_list.append(pickle.load(open(fname, 'rb')))
 print('load {} piles of scores'.format(len(score_list)))
 N = len(score_list)
-assert N == 2
+# assert N == 2
 
 # bottom-up generate proposals
 print('generating proposals')
