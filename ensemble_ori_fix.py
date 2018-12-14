@@ -22,8 +22,9 @@ parser.add_argument('dataset', type=str, choices=[
 parser.add_argument('subset', type=str, choices=[
                     'training', 'validation', 'testing'])
 parser.add_argument('weights', type=str)
+parser.add_argument('ori_weights', type=str)
 parser.add_argument('save_scores', type=str)
-parser.add_argument('--num_ensemble', type=int, default=10)
+parser.add_argument('--num_ensemble', type=int, default=1)
 parser.add_argument('--save_raw_scores', type=str, default=None)
 parser.add_argument('--frame_interval', type=int, default=16)
 parser.add_argument('--test_batchsize', type=int, default=32)
@@ -67,6 +68,8 @@ parser.add_argument('--local_type', type=str, default='qkv')
 parser.add_argument('--dilated_mask', type=int, default=True)
 parser.add_argument('--groupwise_heads', type=int, default=0)
 parser.add_argument('--roi_poolsize', type=str, default="1_3")
+parser.add_argument("--minimum_len", type=float, default=0,
+                    help='minimum length of a proposal, in second')
 
 args = parser.parse_args()
 
@@ -180,63 +183,79 @@ if __name__ == '__main__':
                             exclude_empty=True, body_seg=args.num_body_segments,
                             input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow,
                             test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
+    ori_dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos,
+                                exclude_empty=True, body_seg=args.num_body_segments, ori_len=True,
+                                input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow,
+                                test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
 
     # suppose ensemble models from seed1-seedN
     ensemble_stage1 = {}
-    for model_id in range(1, args.num_ensemble+1, 1):
-        this_path = (args.weights + '.')[:-1]
-        this_path = this_path.replace("seed1", "seed"+str(model_id))
-        ctx = multiprocessing.get_context('spawn')
-        print("loading weights from {}".format(this_path))
-        checkpoint = torch.load(this_path)
+    # load fix-len model weights
+    ctx = multiprocessing.get_context('spawn')
+    print("loading weights from {}".format(args.weights))
+    checkpoint = torch.load(args.weights)
 
-        print("model epoch {} loss: {}".format(
-            checkpoint['epoch'], checkpoint['best_loss']))
-        base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
-            checkpoint['state_dict'].items())}
+    print("model epoch {} loss: {}".format(
+        checkpoint['epoch'], checkpoint['best_loss']))
+    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+        checkpoint['state_dict'].items())}
 
-        index_queue = ctx.Queue()
-        result_queue = ctx.Queue()
-        workers = [ctx.Process(target=runner_func, args=(
-            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
-            for i in range(args.workers)]
+    index_queue = ctx.Queue()
+    result_queue = ctx.Queue()
+    workers = [ctx.Process(target=runner_func, args=(
+        dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
+        for i in range(args.workers)]
 
-        max_num = args.max_num if args.max_num > 0 else len(dataset)
+    max_num = args.max_num if args.max_num > 0 else len(dataset)
+    for i in range(max_num):
+        index_queue.put(i)
+    for w in workers:
+        w.daemon = True
+        w.start()
 
-        for i in range(max_num):
-            index_queue.put(i)
+    out_stage1 = {}
+    for i in range(max_num):
+        rst = result_queue.get()
+        out_stage1[rst[0]] = rst[1]
+    for w in workers:
+        w.terminate()
+    ensemble_stage1['fix_len'] = out_stage1
 
-        for w in workers:
-            w.daemon = True
-            w.start()
+    # load ori-len model weights
+    ctx = multiprocessing.get_context('spawn')
+    print("loading weights from {}".format(args.ori_weights))
+    checkpoint = torch.load(args.weights)
 
-        out_stage1 = {}
-        for i in range(max_num):
-            rst = result_queue.get()
-            out_stage1[rst[0]] = rst[1]
-        for w in workers:
-            w.terminate()
-        ensemble_stage1[model_id] = out_stage1
+    print("model epoch {} loss: {}".format(
+        checkpoint['epoch'], checkpoint['best_loss']))
+    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+        checkpoint['state_dict'].items())}
+
+    index_queue = ctx.Queue()
+    result_queue = ctx.Queue()
+    workers = [ctx.Process(target=runner_func, args=(
+        ori_dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
+        for i in range(args.workers)]
+
+    max_num = args.max_num if args.max_num > 0 else len(dataset)
+    for i in range(max_num):
+        index_queue.put(i)
+    for w in workers:
+        w.daemon = True
+        w.start()
+
+    out_stage1 = {}
+    for i in range(max_num):
+        rst = result_queue.get()
+        out_stage1[rst[0]] = rst[1]
+    for w in workers:
+        w.terminate()
+    ensemble_stage1['ori_len'] = out_stage1
 
     stage1_outs = {}
     for key in out_stage1.keys():
-        for model_id in range(1, args.num_ensemble+1, 1):
-            rois, score_output_before = ensemble_stage1[model_id][key]
-            if model_id == 1:
-                this_rois = rois
-                this_score_mean = score_output_before / args.num_ensemble
-                this_scores = [1. / (1. + np.exp(-1. * score_output_before))]
-            else:
-                this_rois.extend(rois)
-                this_score_mean += score_output_before / args.num_ensemble
-                this_scores.append(1. / (1. + np.exp(-1. * score_output_before)))
-        this_score_mean = 1. / (1. + np.exp(-1. * this_score_mean))
-
-        # scores, pstarts, pends = this_scores[model_id-1][:, 0], \
-        #     this_score_mean[:, 1], this_score_mean[:, 2]
-        # num_feat = len(scores)
-        # this_rois = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*pstarts[x[0]]
-        #               * pends[min(x[1], num_feat-1)]) for x in this_rois]
+        rois, _ = ensemble_stage1['fix_len'][key]
+        ori_rois, _ = ensemble_stage1['ori_len'][key]
         stage1_outs[key] = this_rois
 
     # # stage 2 : suppose ensemble models from seed1-seedN
