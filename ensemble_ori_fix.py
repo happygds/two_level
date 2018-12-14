@@ -275,7 +275,8 @@ if __name__ == '__main__':
         bboxes += ori_bboxes
         # convert to fix_len or ori_len
         stage1_outs['fix_len'][key] =  [(
-            x[0] * float(frm_cnt) / v.duration, x[1] * float(frm_cnt) / v.duration, 
+            x[0] * float(frm_cnt) / v.duration, 
+            x[1] * float(frm_cnt) / v.duration, 
             x[2], x[3]) for x in bboxes]
         stage1_outs['ori_len'][key] =  [(
             x[0] / v.frame_interval * float(v.frame_cnt) / v.duration,
