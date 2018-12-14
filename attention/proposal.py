@@ -75,7 +75,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
                 return bboxes
         else:
             if len(bboxes) == 0:
-                import pdb; pdb.set_trace()
+                bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
             assert bboxes is not None and len(bboxes) > 0
             # to remove duplicate proposals
             bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
