@@ -413,8 +413,6 @@ if __name__ == '__main__':
         #         num_feat = last_ensemble_out[3]
         #         ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
 
-    # pickle.dump(ensemble_outputs, open('./ensemble_outputs.pkl', 'wb'), 2)
-    # import pdb; pdb.set_trace()
     ensemble_outputs = stage2_outs
 
     # for key, value in ensemble_outputs.items():
