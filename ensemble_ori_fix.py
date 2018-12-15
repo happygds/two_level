@@ -136,12 +136,14 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     video_info.frame_cnt = frame_cnt
     video_info.frame_interval = args.frame_interval
     return video_info
-    
-video_list = db.get_subset_videos(args.subset)
-# video_list = [v for v in video_list if v.instances != []]
-print("video list size: {}".format(len(video_list)))
-video_list = [compute_frame_count(v, args.feat_root+'/activity_net_frames', 'frame*.jpg') for v in video_list]
-# video_list = pickle.load(open('./video_list', 'rb'))
+
+if args.subset == 'testing':
+    video_list = db.get_subset_videos(args.subset)
+    # video_list = [v for v in video_list if v.instances != []]
+    print("video list size: {}".format(len(video_list)))
+    video_list = [compute_frame_count(v, args.feat_root+'/activity_net_frames', 'frame*.jpg') for v in video_list]
+else:
+    video_list = pickle.load(open('./video_list', 'rb'))
 vid_infos = {}
 for v in video_list:
     vid_infos[v.id] = v
@@ -213,66 +215,80 @@ if __name__ == '__main__':
     # suppose ensemble models from seed1-seedN
     ensemble_stage1 = {}
     # load fix-len model weights
-    ctx = multiprocessing.get_context('spawn')
-    print("loading weights from {}".format(args.weights))
-    checkpoint = torch.load(args.weights)
+    for model_id in range(1, args.num_ensemble+1, 1):
+        this_path = (args.weights + '.')[:-1]
+        this_path = this_path.replace("seed1", "seed"+str(model_id))
+        ctx = multiprocessing.get_context('spawn')
+        print("loading weights from {}".format(this_path))
+        checkpoint = torch.load(this_path)
 
-    print("model epoch {} loss: {}".format(
-        checkpoint['epoch'], checkpoint['best_loss']))
-    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
-        checkpoint['state_dict'].items())}
+        print("model epoch {} loss: {}".format(
+            checkpoint['epoch'], checkpoint['best_loss']))
+        base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+            checkpoint['state_dict'].items())}
 
-    index_queue = ctx.Queue()
-    result_queue = ctx.Queue()
-    workers = [ctx.Process(target=runner_func, args=(
-        dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
-        for i in range(args.workers)]
+        index_queue = ctx.Queue()
+        result_queue = ctx.Queue()
+        workers = [ctx.Process(target=runner_func, args=(
+            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
+            for i in range(args.workers)]
 
-    max_num = args.max_num if args.max_num > 0 else len(dataset)
-    for i in range(max_num):
-        index_queue.put(i)
-    for w in workers:
-        w.daemon = True
-        w.start()
+        max_num = args.max_num if args.max_num > 0 else len(dataset)
+        for i in range(max_num):
+            index_queue.put(i)
+        for w in workers:
+            w.daemon = True
+            w.start()
 
-    out_stage1 = {}
-    for i in range(max_num):
-        rst = result_queue.get()
-        out_stage1[rst[0]] = rst[1]
-    for w in workers:
-        w.terminate()
-    ensemble_stage1['fix_len'] = out_stage1
+        out_stage1 = {}
+        for i in range(max_num):
+            rst = result_queue.get()
+            out_stage1[rst[0]] = rst[1]
+        for w in workers:
+            w.terminate()
+        if model_id == 1:
+            ensemble_stage1['fix_len'] = out_stage1
+        else:
+            for key, value in out_stage1.items():
+                ensemble_stage1['fix_len'][key][0] += value[0]
 
     # load ori-len model weights
-    ctx = multiprocessing.get_context('spawn')
-    print("loading weights from {}".format(args.ori_weights))
-    checkpoint = torch.load(args.ori_weights)
+    for model_id in range(1, args.num_ensemble+1, 1):
+        this_path = (args.ori_weights + '.')[:-1]
+        this_path = this_path.replace("seed1", "seed"+str(model_id))
+        ctx = multiprocessing.get_context('spawn')
+        print("loading weights from {}".format(this_path))
+        checkpoint = torch.load(this_path)
+        
+        print("model epoch {} loss: {}".format(
+            checkpoint['epoch'], checkpoint['best_loss']))
+        base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+            checkpoint['state_dict'].items())}
 
-    print("model epoch {} loss: {}".format(
-        checkpoint['epoch'], checkpoint['best_loss']))
-    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
-        checkpoint['state_dict'].items())}
+        index_queue = ctx.Queue()
+        result_queue = ctx.Queue()
+        workers = [ctx.Process(target=runner_func, args=(
+            ori_dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
+            for i in range(args.workers)]
 
-    index_queue = ctx.Queue()
-    result_queue = ctx.Queue()
-    workers = [ctx.Process(target=runner_func, args=(
-        ori_dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
-        for i in range(args.workers)]
+        max_num = args.max_num if args.max_num > 0 else len(dataset)
+        for i in range(max_num):
+            index_queue.put(i)
+        for w in workers:
+            w.daemon = True
+            w.start()
 
-    max_num = args.max_num if args.max_num > 0 else len(dataset)
-    for i in range(max_num):
-        index_queue.put(i)
-    for w in workers:
-        w.daemon = True
-        w.start()
-
-    out_stage1 = {}
-    for i in range(max_num):
-        rst = result_queue.get()
-        out_stage1[rst[0]] = rst[1]
-    for w in workers:
-        w.terminate()
-    ensemble_stage1['ori_len'] = out_stage1
+        out_stage1 = {}
+        for i in range(max_num):
+            rst = result_queue.get()
+            out_stage1[rst[0]] = rst[1]
+        for w in workers:
+            w.terminate()
+        if model_id == 1:
+            ensemble_stage1['ori_len'] = out_stage1
+        else:
+            for key, value in out_stage1.items():
+                ensemble_stage1['ori_len'][key][0] += value[0]
 
     stage1_outs = {}
     stage1_outs['fix_len'], stage1_outs['ori_len'] = {}, {}
@@ -303,72 +319,85 @@ if __name__ == '__main__':
 
     # # stage 2 : suppose ensemble models from seed1-seedN
     ensemble_stage2 = {}
+    for model_id in range(1, args.num_ensemble+1, 1):
+        this_path = (args.weights + '.')[:-1]
+        this_path = this_path.replace("seed1", "seed"+str(model_id))
+        ctx = multiprocessing.get_context('spawn')
+        print("loading weights from {}".format(this_path))
+        checkpoint = torch.load(this_path)
+        print("model epoch {} loss: {}".format(
+            checkpoint['epoch'], checkpoint['best_loss']))
+        base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+            checkpoint['state_dict'].items())}
 
-    ctx = multiprocessing.get_context('spawn')
-    print("loading weights from {}".format(args.weights))
-    checkpoint = torch.load(args.weights)
-    print("model epoch {} loss: {}".format(
-        checkpoint['epoch'], checkpoint['best_loss']))
-    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
-        checkpoint['state_dict'].items())}
+        index_queue = ctx.Queue()
+        result_queue = ctx.Queue()
+        workers = [ctx.Process(target=runner_func, args=(
+            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", stage1_outs['fix_len']))
+            for i in range(args.workers)]
 
-    index_queue = ctx.Queue()
-    result_queue = ctx.Queue()
-    workers = [ctx.Process(target=runner_func, args=(
-        dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", stage1_outs['fix_len']))
-        for i in range(args.workers)]
+        max_num = args.max_num if args.max_num > 0 else len(dataset)
+        for i in range(max_num):
+            index_queue.put(i)
+        for w in workers:
+            w.daemon = True
+            w.start()
 
-    max_num = args.max_num if args.max_num > 0 else len(dataset)
-    for i in range(max_num):
-        index_queue.put(i)
-    for w in workers:
-        w.daemon = True
-        w.start()
+        out_stage2 = {}
+        for i in range(max_num):
+            rst = result_queue.get()
+            out_stage2[rst[0]] = rst[1]
+        for w in workers:
+            w.terminate()
+        if model_id == 1:
+            ensemble_stage2['fix_len'] = out_stage2
+        else:
+            for key, value in out_stage2.items():
+                ensemble_stage1['fix_len'][key][2] += value[2]
 
-    out_stage2 = {}
-    for i in range(max_num):
-        rst = result_queue.get()
-        out_stage2[rst[0]] = rst[1]
-    for w in workers:
-        w.terminate()
-    ensemble_stage2['fix_len'] = out_stage2
+    for model_id in range(1, args.num_ensemble+1, 1):
+        this_path = (args.ori_weights + '.')[:-1]
+        this_path = this_path.replace("seed1", "seed"+str(model_id))
+        ctx = multiprocessing.get_context('spawn')
+        print("loading weights from {}".format(this_path))
+        checkpoint = torch.load(this_path)
+        print("model epoch {} loss: {}".format(
+            checkpoint['epoch'], checkpoint['best_loss']))
+        base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
+            checkpoint['state_dict'].items())}
 
-    ctx = multiprocessing.get_context('spawn')
-    print("loading weights from {}".format(args.ori_weights))
-    checkpoint = torch.load(args.ori_weights)
-    print("model epoch {} loss: {}".format(
-        checkpoint['epoch'], checkpoint['best_loss']))
-    base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
-        checkpoint['state_dict'].items())}
+        index_queue = ctx.Queue()
+        result_queue = ctx.Queue()
+        workers = [ctx.Process(target=runner_func, args=(
+            ori_dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", stage1_outs['ori_len']))
+            for i in range(args.workers)]
 
-    index_queue = ctx.Queue()
-    result_queue = ctx.Queue()
-    workers = [ctx.Process(target=runner_func, args=(
-        ori_dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", stage1_outs['ori_len']))
-        for i in range(args.workers)]
+        max_num = args.max_num if args.max_num > 0 else len(dataset)
+        for i in range(max_num):
+            index_queue.put(i)
+        for w in workers:
+            w.daemon = True
+            w.start()
 
-    max_num = args.max_num if args.max_num > 0 else len(dataset)
-    for i in range(max_num):
-        index_queue.put(i)
-    for w in workers:
-        w.daemon = True
-        w.start()
-
-    out_stage2 = {}
-    for i in range(max_num):
-        rst = result_queue.get()
-        out_stage2[rst[0]] = rst[1]
-    for w in workers:
-        w.terminate()
-    ensemble_stage2['ori_len'] = out_stage2
+        out_stage2 = {}
+        for i in range(max_num):
+            rst = result_queue.get()
+            out_stage2[rst[0]] = rst[1]
+        for w in workers:
+            w.terminate()
+        if model_id == 1:
+            ensemble_stage2['ori_len'] = out_stage2
+        else:
+            for key, value in out_stage2.items():
+                ensemble_stage1['ori_len'][key][2] += value[2]
 
     stage2_outs = {}
     for key in out_stage2.keys():
         for stage2_id in ['fix_len', 'ori_len']:
             if stage2_id == 'fix_len':
-                this_mean = ensemble_stage2[stage2_id][key][2] / 2.
+                this_mean = ensemble_stage2[stage2_id][key][2] / (2. * args.num_ensemble)
             else:
-                this_mean += ensemble_stage2[stage2_id][key][2] / 2.
+                this_mean += ensemble_stage2[stage2_id][key][2] / (2. * args.num_ensemble)
         this_mean = np_softmax(this_mean)[:, 1]
         stage2_outs[key] = ensemble_stage2['fix_len'][key][:2] + \
             [this_mean, ] + ensemble_stage2['fix_len'][key][3:]
