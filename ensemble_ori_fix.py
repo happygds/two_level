@@ -299,7 +299,7 @@ if __name__ == '__main__':
         bboxes = [(x[0] / float(frm_cnt) * v.duration, 
                    x[1] / float(frm_cnt) * v.duration,
                    x[2], x[3]) for x in bboxes]
-        bboxes = list(filter(lambda b: b[1] - b[0] > 0.1 * v.duration, bboxes))
+        bboxes = list(filter(lambda b: b[1] - b[0] >= 0.1 * v.duration, bboxes))
         ori_bboxes, _ = ensemble_stage1['ori_len'][key]
         ori_bboxes = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration,
                        x[1] * v.frame_interval / float(v.frame_cnt) * v.duration,
