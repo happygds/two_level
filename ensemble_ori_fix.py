@@ -353,7 +353,7 @@ if __name__ == '__main__':
             ensemble_stage2['fix_len'] = out_stage2
         else:
             for key, value in out_stage2.items():
-                ensemble_stage1['fix_len'][key][2] += value[2]
+                ensemble_stage2['fix_len'][key][2] += value[2]
 
     for model_id in range(1, args.num_ensemble+1, 1):
         this_path = (args.ori_weights + '.')[:-1]
@@ -389,7 +389,7 @@ if __name__ == '__main__':
             ensemble_stage2['ori_len'] = out_stage2
         else:
             for key, value in out_stage2.items():
-                ensemble_stage1['ori_len'][key][2] += value[2]
+                ensemble_stage2['ori_len'][key][2] += value[2]
 
     stage2_outs = {}
     for key in out_stage2.keys():
