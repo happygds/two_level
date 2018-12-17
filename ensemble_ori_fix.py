@@ -137,6 +137,7 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     video_info.frame_interval = args.frame_interval
     return video_info
 
+db = ANetDB.get_db("1.3")
 if args.subset == 'testing':
     video_list = db.get_subset_videos(args.subset)
     # video_list = [v for v in video_list if v.instances != []]
@@ -201,7 +202,6 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
 
 
 if __name__ == '__main__':
-    db = ANetDB.get_db("1.3")
     val_videos = db.get_subset_videos(args.subset)
     dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos,
                             exclude_empty=True, body_seg=args.num_body_segments,
