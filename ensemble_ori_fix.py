@@ -299,12 +299,12 @@ if __name__ == '__main__':
         bboxes = [(x[0] / float(frm_cnt) * v.duration, 
                    x[1] / float(frm_cnt) * v.duration,
                    x[2], x[3]) for x in bboxes]
-        bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
+        bboxes = list(filter(lambda b: b[1] - b[0] >= args.minimum_len/2., bboxes))
         ori_bboxes, _ = ensemble_stage1['ori_len'][key]
         ori_bboxes = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration,
                        x[1] * v.frame_interval / float(v.frame_cnt) * v.duration,
                        x[2], x[3]) for x in ori_bboxes]
-        ori_bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, ori_bboxes))
+        ori_bboxes = list(filter(lambda b: b[1] - b[0] <= 2*args.minimum_len, ori_bboxes))
         # merge proposals
         bboxes += ori_bboxes
         # convert to fix_len or ori_len
