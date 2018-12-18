@@ -122,7 +122,8 @@ def main():
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay, nesterov=False)
 
-    # model.load_state_dict(torch.load(save_path+ '/model_best.pth.tar')['state_dict'])
+    if args.resume is not None and len(args.resume) > 0:
+        model.load_state_dict(torch.load(args.resume)['state_dict'])
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
     criterion_stage2 = Rank_Criterion(epsilon=0.01)
 
