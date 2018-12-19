@@ -316,6 +316,8 @@ if __name__ == '__main__':
             x[0] / v.frame_interval * float(v.frame_cnt) / v.duration,
             x[1] / v.frame_interval * float(v.frame_cnt) / v.duration,
             x[2], x[3]) for x in bboxes]
+    
+    del out_stage1, ensemble_stage1
 
     # # stage 2 : suppose ensemble models from seed1-seedN
     ensemble_stage2 = {}
@@ -413,6 +415,7 @@ if __name__ == '__main__':
         #         num_feat = last_ensemble_out[3]
         #         ensemble_outputs[key] = [rois, actness, roi_scores, num_feat]
 
+    del out_stage2, ensemble_stage2
     ensemble_outputs = stage2_outs
 
     # for key, value in ensemble_outputs.items():
