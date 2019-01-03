@@ -44,6 +44,8 @@ parser.add_argument('--feat_model', default='i3d_rgb', type=str,
 parser.add_argument('--use_flow', action='store_true',
                     help='whether use i3d_flow feature')
 parser.set_defaults(use_flow=True)
+parser.add_argument('--only_flow', default=False, type=int,
+                    help='whether only use i3d_flow feature') # for self-attetion encoder
 parser.add_argument('--dropout', '--do', default=0.8, type=float,
                     metavar='DO', help='dropout ratio (default: 0.8)')
 parser.add_argument('--pos_enc', default=False, type=int,
@@ -195,8 +197,9 @@ if __name__ == '__main__':
 
     dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos,
                             exclude_empty=True, body_seg=args.num_body_segments,
-                            input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow,
-                            test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
+                            input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow, 
+                            only_flow=args.only_flow, test_interval=args.frame_interval, 
+                            verbose=False, num_local=args.num_local)
 
     index_queue = ctx.Queue()
     result_queue = ctx.Queue()
