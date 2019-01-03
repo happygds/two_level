@@ -196,8 +196,8 @@ if __name__ == '__main__':
     # out_dict = process(loader, base_dict, net)
 
     dataset = BinaryDataSet(args.feat_root, args.feat_model, test_prop_file, subset_videos=val_videos,
-                            exclude_empty=True, body_seg=args.num_body_segments,
-                            input_dim=args.input_dim, test_mode=True, use_flow=args.use_flow,
+                            exclude_empty=True, body_seg=args.num_body_segments, input_dim=args.input_dim, 
+                            test_mode=True, use_flow=args.use_flow, only_flow=args.only_flow, 
                             test_interval=args.frame_interval, verbose=False, num_local=args.num_local)
 
     index_queue = ctx.Queue()
