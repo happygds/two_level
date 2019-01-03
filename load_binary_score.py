@@ -46,17 +46,17 @@ class BinaryVideoRecord:
 
         with h5py.File(rgb_h5_path, 'r') as f:
             rgb_feat = f[vid_name][rgb_feat_key][:]
-        if use_flow is True:
+        if use_flow:
             with h5py.File(flow_h5_path, 'r') as f:
                 flow_feat = f[vid_name][flow_feat_key][:]
-            if only_flow is True:
+            if only_flow:
                 rgb_feat = flow_feat
+            else:
                 min_len = min(rgb_feat.shape[0], flow_feat.shape[0])
                 # both features are 8-frame strided
                 assert abs(rgb_feat.shape[0] - flow_feat.shape[0]) <= 1, \
                     "rgb_feat_shp {} not consistent with flow_feat_shp {} for video {}".format(
                         rgb_feat.shape, flow_feat.shape, vid_name)
-            else:
                 rgb_feat = np.concatenate(
                     (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
         if rgb_feat.shape[0] % 2 != 0:
