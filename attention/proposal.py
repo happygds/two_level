@@ -39,7 +39,7 @@ def gen_prop(x):
     if epoch_id is not None and epoch_id < 0:
         bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
     else:
-        bboxes = Soft_NMS(bboxes, length=len(scores), max_num=rpn_post_nms_top)[:rpn_post_nms_top]
+        bboxes = Soft_NMS(bboxes, length=len(scores), max_num=0.1*len(bboxes))[:rpn_post_nms_top]
     if len(bboxes) == 0:
         bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
     
