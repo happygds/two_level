@@ -15,6 +15,8 @@ parser.add_argument('--feat_model', default='i3d_rgb', type=str,
                     'i3d_rgb | i3d_rgb_trained | inception_resnet_v2 | inception_resnet_v2_trained)')
 parser.add_argument('--use_flow', default=True, type=int,
                     help='whether use i3d_flow feature') # for self-attetion encoder
+parser.add_argument('--only_flow', default=False, type=int,
+                    help='whether only use i3d_flow feature') # for self-attetion encoder
 parser.add_argument('--pos_enc', default=False, type=int,
                     help='whether slice the original position indices of the input video sequence')
 parser.add_argument('--att_kernel_type', default='self_attn',
