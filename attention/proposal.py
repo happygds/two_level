@@ -113,6 +113,12 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         pool.close()
         pool.join()
 
+    # count the average number of proposals
+    avg_count = 0.
+    for _, bboxes in bboxes_dict.items():
+        avg_count += len(bboxes) / float(batch_size)
+    import pdb; pdb.set_trace()
+
     for k in range(batch_size):
         bboxes = bboxes_dict[k]
         # print(len(bboxes))
