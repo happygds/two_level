@@ -113,7 +113,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         avg_count += len(bboxes) / float(batch_size)
         ratios[key] = len(bboxes)
     ratios = ratios / avg_count
-    import pdb; pdb.set_trace()
+    rpn_post_nms_top = int(round(ratios.max() * avg_count))
 
     if test_mode:
         assert len(feature_mask) == 1
