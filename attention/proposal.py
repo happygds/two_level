@@ -57,7 +57,7 @@ def gen_prop(x):
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
-                   rpn_post_nms_top=100, feat_stride=16, epoch_id=None):
+                   rpn_post_nms_top=128, feat_stride=16, epoch_id=None):
     """
     Parameters
     ----------
@@ -76,6 +76,14 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     tol_lst = [0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0]
     bw = 3
     thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95,]
+
+
+    if test_mode:
+        assert len(feature_mask) == 1
+        actness = np.zeros((batch_size, rpn_post_nms_top))
+    rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
+    start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
+    labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
     # global bboxes_dict, rois_iou_dict
     bboxes_dict, rois_iou_dict = {}, {}
@@ -113,21 +121,14 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         avg_count += len(bboxes) / float(batch_size)
         ratios[key] = len(bboxes)
     ratios = ratios / avg_count
-    rpn_post_nms_top = int(round(ratios.max() * avg_count))
+    # rpn_post_nms_top = int(round(ratios.max() * avg_count))
     # import pdb; pdb.set_trace()
-
-    if test_mode:
-        assert len(feature_mask) == 1
-        actness = np.zeros((batch_size, rpn_post_nms_top))
-    rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
-    start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
-    labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k]
         # print(len(bboxes))
         rpn_rois[k, :, 0] = k
-        rois = [(x[0], x[1]) for x in bboxes]
+        rois = [(x[0], x[1]) for x in bboxes[:rpn_post_nms_top]]
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
         start_rois[k, :, 0], end_rois[k, :, 0] = k, k
         rois_begin, rois_end = np.asarray(rois)[:, 0], np.asarray(rois)[:, 1]
