@@ -121,7 +121,7 @@ class BinaryDataSet(data.Dataset):
                  bg_coverage_thresh=0.02, sample_duration=2048,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
-                 use_flow=True, num_local=8, ori_len=False,
+                 use_flow=True, only_flow=False, num_local=8, ori_len=False,
                  frame_path='/data1/matheguo/important/data/activitynet/activity_net_frames'):
 
         self.verbose = verbose
@@ -187,8 +187,8 @@ class BinaryDataSet(data.Dataset):
         else:
             frame_counts = None
         self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
-                                             frame_counts, use_flow=use_flow, feat_stride=feat_stride, ori_len=ori_len,
-                                             sample_duration=self.sample_duration) for x in subset_videos]
+                                             frame_counts, use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride, 
+                                             ori_len=ori_len, sample_duration=self.sample_duration) for x in subset_videos]
 
 
     def __getitem__(self, index):
