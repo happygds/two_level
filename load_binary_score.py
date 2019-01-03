@@ -36,7 +36,7 @@ class BinaryInstance:
 class BinaryVideoRecord:
     def __init__(self, video_record, frame_path, flow_h5_path, rgb_h5_path,
                  flow_feat_key, rgb_feat_key, frame_counts=None, use_flow=True, 
-                 feat_stride=8, sample_duration=100, only_flow=False):
+                 feat_stride=8, sample_duration=100, only_flow=False, ori_len=False):
         self._data = video_record
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
