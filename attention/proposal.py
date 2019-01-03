@@ -125,10 +125,10 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     # import pdb; pdb.set_trace()
 
     for k in range(batch_size):
-        bboxes = bboxes_dict[k]
+        bboxes = bboxes_dict[k][:rpn_post_nms_top]
         # print(len(bboxes))
         rpn_rois[k, :, 0] = k
-        rois = [(x[0], x[1]) for x in bboxes[:rpn_post_nms_top]]
+        rois = [(x[0], x[1]) for x in bboxes]
         rpn_rois[k, :len(bboxes), 1:] = np.asarray(rois)
         start_rois[k, :, 0], end_rois[k, :, 0] = k, k
         rois_begin, rois_end = np.asarray(rois)[:, 0], np.asarray(rois)[:, 1]
