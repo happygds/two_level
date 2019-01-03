@@ -37,7 +37,7 @@ class BinaryInstance:
 class BinaryVideoRecord:
     def __init__(self, video_record, frame_path, flow_h5_path, rgb_h5_path,
                  flow_feat_key, rgb_feat_key, frame_counts=None, use_flow=True,
-                 feat_stride=8, sample_duration=100):
+                 only_flow=False, feat_stride=8, sample_duration=100):
         self._data = video_record
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
@@ -50,13 +50,16 @@ class BinaryVideoRecord:
         if use_flow:
             with h5py.File(flow_h5_path, 'r') as f:
                 flow_feat = f[vid_name][flow_feat_key][:]
-                min_len = min(rgb_feat.shape[0], flow_feat.shape[0])
-                # both features are 8-frame strided
-                assert abs(rgb_feat.shape[0] - flow_feat.shape[0]) <= 1, \
-                    "rgb_feat_shp {} not consistent with flow_feat_shp {} for video {}".format(
-                        rgb_feat.shape, flow_feat.shape, vid_name)
-                rgb_feat = np.concatenate(
-                    (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
+                if only_flow:
+                    rgb_feat = flow_feat
+                else:
+                    min_len = min(rgb_feat.shape[0], flow_feat.shape[0])
+                    # both features are 8-frame strided
+                    assert abs(rgb_feat.shape[0] - flow_feat.shape[0]) <= 1, \
+                        "rgb_feat_shp {} not consistent with flow_feat_shp {} for video {}".format(
+                            rgb_feat.shape, flow_feat.shape, vid_name)
+                    rgb_feat = np.concatenate(
+                        (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
         if rgb_feat.shape[0] % 2 != 0:
             rgb_feat = rgb_feat[:-1]
         shp = rgb_feat.shape
@@ -122,7 +125,7 @@ class BinaryDataSet(data.Dataset):
                  bg_coverage_thresh=0.02, sample_duration=8192,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
-                 use_flow=True, num_local=8,
+                 use_flow=True, only_flow=False, num_local=8,
                  frame_path='/data1/matheguo/important/data/activitynet/activity_net_frames'):
 
         self.verbose = verbose
@@ -188,7 +191,7 @@ class BinaryDataSet(data.Dataset):
         else:
             frame_counts = None
         self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
-                                             frame_counts, use_flow=use_flow, feat_stride=feat_stride,
+                                             frame_counts, use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride,
                                              sample_duration=self.sample_duration) for x in subset_videos]
 
     def __getitem__(self, index):
