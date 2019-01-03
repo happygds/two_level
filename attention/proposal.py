@@ -36,8 +36,8 @@ def gen_prop(x):
     # to remove duplicate proposals
     bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
     # bboxes = bboxes[:rpn_post_nms_top]
-    if epoch_id is not None and epoch_id < 0:
-        bboxes = temporal_nms(bboxes, 0.9)[:rpn_post_nms_top]
+    if epoch_id is not None and epoch_id < 4:
+        bboxes = temporal_nms(bboxes, 0.9)[:0.1*len(bboxes)]
     else:
         bboxes = Soft_NMS(bboxes, length=len(scores), max_num=0.1*len(bboxes))
     if len(bboxes) == 0:
@@ -77,13 +77,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     bw = 3
     thresh=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95,]
 
-    if test_mode:
-        assert len(feature_mask) == 1
-        actness = np.zeros((batch_size, rpn_post_nms_top))
-    rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
-    start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
-    labels = np.zeros((batch_size, rpn_post_nms_top, 2))
-
     # global bboxes_dict, rois_iou_dict
     bboxes_dict, rois_iou_dict = {}, {}
     def call_back(rst):
@@ -121,6 +114,13 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         ratios[key] = len(bboxes)
     ratios = ratios / avg_count
     import pdb; pdb.set_trace()
+
+    if test_mode:
+        assert len(feature_mask) == 1
+        actness = np.zeros((batch_size, rpn_post_nms_top))
+    rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
+    start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
+    labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k]
