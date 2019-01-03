@@ -115,8 +115,11 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     # count the average number of proposals
     avg_count = 0.
-    for _, bboxes in bboxes_dict.items():
+    ratios = np.ones((batch_size,), dtype='float32')
+    for key, bboxes in bboxes_dict.items():
         avg_count += len(bboxes) / float(batch_size)
+        ratios[key] = len(bboxes)
+    ratios = ratios / avg_count
     import pdb; pdb.set_trace()
 
     for k in range(batch_size):
