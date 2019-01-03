@@ -102,7 +102,8 @@ if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
 elif args.feat_model == 'inception_resnet_v2' or args.feat_model == 'inception_resnet_v2_trained':
     args.input_dim = 1536
 if args.use_flow:
-    args.input_dim += 1024
+    if not args.only_flow:
+        args.input_dim += 1024
 print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
     args.feat_model, args.input_dim))
 # if reduce the dimension of input feature first
