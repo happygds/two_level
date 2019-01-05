@@ -160,7 +160,7 @@ def np_softmax(x, axis=1):
 
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
-                ensemble_stage, ensemble_rois):
+                ensemble_stage, ensemble_rois, num_ensemble=1):
     torch.cuda.set_device(gpu_id)
     net = BinaryClassifier(num_class, args.num_body_segments,
                            args, dropout=args.dropout, test_mode=True)
@@ -186,7 +186,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
                 this_rois = ensemble_rois[video_id]
                 rois, actness, roi_scores_before = net(feature, pos_ind, feature_mask=feature_mask,
                                                        test_mode=True, ensemble_stage=ensemble_stage,
-                                                       rois=this_rois)
+                                                       rois=this_rois, num_ensemble=num_ensemble)
                 rois, actness, roi_scores_before = rois[0].cpu().numpy(
                 ), actness[0].cpu().numpy(), roi_scores_before[0].cpu().numpy()
                 # import pdb; pdb.set_trace()
