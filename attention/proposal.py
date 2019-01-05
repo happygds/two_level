@@ -8,8 +8,9 @@ from ops.sequence_funcs import label_frame_by_threshold, build_box_by_search, te
 from ops.eval_utils import wrapper_segment_iou
 
 
-def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
-                   rpn_post_nms_top=128, feat_stride=16, ensemble_stage=None, bboxes=None):
+def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, 
+                   ss_prob=0., rpn_post_nms_top=128, feat_stride=16, 
+                   ensemble_stage=None, bboxes=None, num_ensemble=1):
     """
     Parameters
     ----------
@@ -82,7 +83,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
         # bboxes = bboxes[:rpn_post_nms_top]
         # bboxes = temporal_nms(bboxes, 0.98)[:rpn_post_nms_top]
-        bboxes = Soft_NMS(bboxes, length=len(scores), max_num=rpn_post_nms_top)[:rpn_post_nms_top]
+        bboxes = Soft_NMS(bboxes, length=len(scores), max_num=0.1/num_ensemble*len(bboxes))[:rpn_post_nms_top]
         if len(bboxes) == 0:
             bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
 

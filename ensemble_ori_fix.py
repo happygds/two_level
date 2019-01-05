@@ -160,7 +160,7 @@ def np_softmax(x, axis=1):
 
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue,
-                ensemble_stage, ensemble_rois, num_ensemble=1):
+                ensemble_stage, ensemble_rois, num_ensemble):
     torch.cuda.set_device(gpu_id)
     net = BinaryClassifier(num_class, args.num_body_segments,
                            args, dropout=args.dropout, test_mode=True)
@@ -233,7 +233,7 @@ if __name__ == '__main__':
         index_queue = ctx.Queue()
         result_queue = ctx.Queue()
         workers = [ctx.Process(target=runner_func, args=(
-            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
+            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None, None))
             for i in range(args.workers)]
 
         max_num = args.max_num if args.max_num > 0 else len(dataset)
@@ -271,7 +271,7 @@ if __name__ == '__main__':
         index_queue = ctx.Queue()
         result_queue = ctx.Queue()
         workers = [ctx.Process(target=runner_func, args=(
-            ori_dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None))
+            ori_dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "1", None, None))
             for i in range(args.workers)]
 
         max_num = args.max_num if args.max_num > 0 else len(dataset)
@@ -338,7 +338,8 @@ if __name__ == '__main__':
         index_queue = ctx.Queue()
         result_queue = ctx.Queue()
         workers = [ctx.Process(target=runner_func, args=(
-            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", stage1_outs['fix_len']))
+            dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, 
+            result_queue, "2", stage1_outs['fix_len'], 2*args.num_ensemble))
             for i in range(args.workers)]
 
         max_num = args.max_num if args.max_num > 0 else len(dataset)
@@ -374,7 +375,8 @@ if __name__ == '__main__':
         index_queue = ctx.Queue()
         result_queue = ctx.Queue()
         workers = [ctx.Process(target=runner_func, args=(
-            ori_dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, result_queue, "2", stage1_outs['ori_len']))
+            ori_dataset, base_dict, gpu_list[i % len(gpu_list)], index_queue, 
+            result_queue, "2", stage1_outs['ori_len'], 2*args.num_ensemble))
             for i in range(args.workers)]
 
         max_num = args.max_num if args.max_num > 0 else len(dataset)

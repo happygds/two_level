@@ -51,7 +51,7 @@ class BinaryClassifier(torch.nn.Module):
 
     def forward(self, feature, pos_ind, target=None, gts=None,
                 feature_mask=None, test_mode=False, ensemble_stage=None,
-                rois=None):
+                rois=None, num_ensemble=1):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
@@ -113,7 +113,7 @@ class BinaryClassifier(torch.nn.Module):
                 else:
                     start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(
                         score_output, feature_mask, test_mode=test_mode, 
-                        ensemble_stage=ensemble_stage, bboxes=rois)
+                        ensemble_stage=ensemble_stage, bboxes=rois, num_ensemble=num_ensemble)
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
