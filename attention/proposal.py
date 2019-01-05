@@ -36,10 +36,11 @@ def gen_prop(x):
     # to remove duplicate proposals
     bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
     # bboxes = bboxes[:rpn_post_nms_top]
+    num_keep = int(round(0.125*len(bboxes)))
     if epoch_id is not None and epoch_id < 3:
-        bboxes = temporal_nms(bboxes, 0.9)[:0.125*len(bboxes)]
+        bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
     else:
-        bboxes = Soft_NMS(bboxes, length=len(scores), max_num=0.125*len(bboxes))
+        bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
     if len(bboxes) == 0:
         bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
     
