@@ -17,7 +17,7 @@ from ops.utils import get_actionness_configs, ScheduledOptim
 from ops.anet_db import ANetDB
 from torch.utils import model_zoo
 from attention.utils import Rank_Criterion, CE_Criterion_multi
-from tensorboard import Logger
+# from tensorboard import Logger
 best_loss = 100
 
 
