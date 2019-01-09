@@ -2,11 +2,11 @@ import argparse
 parser = argparse.ArgumentParser(description="PyTorch code to train Structured Segment Networks (SSN)")
 parser.add_argument('dataset', type=str, choices=['activitynet1.2', 'activitynet1.3', 'thumos14'])
 
-parser.add_argument('--annotation_path', default='/data1/matheguo/important/data/activitynet/activity_net.v1-3.min_save.json',
+parser.add_argument('--annotation_path', default='../../data/activitynet/activity_net.v1-3.min_save.json',
                     type=str, help='Annotation file path')
-parser.add_argument('--feat_root', default='/data1/matheguo/important/data/activitynet',
+parser.add_argument('--feat_root', default='../../data/activitynet',
                     type=str, help='Feature directory path')
-parser.add_argument('--result_path', default='/data1/matheguo/important/result/activitynet',
+parser.add_argument('--result_path', default='../../result/activitynet',
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | cluster')
