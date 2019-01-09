@@ -17,7 +17,7 @@ from ops.utils import get_actionness_configs, ScheduledOptim
 from ops.anet_db import ANetDB
 from torch.utils import model_zoo
 from attention.utils import Rank_Criterion, CE_Criterion_multi
-from tensorboard import Logger
+# from tensorboard import Logger
 best_loss = 100
 
 
@@ -85,7 +85,8 @@ def main():
     if len(args.roi_poolsize) > 0:
         save_path = save_path + '_roi' + str(args.roi_poolsize)
     model_name = os.path.split(save_path)[1]
-    logger = Logger('./logs/{}'.format(model_name))
+    # logger = Logger('./logs/{}'.format(model_name))
+    logger = None
 
     model = BinaryClassifier(
         num_class, args.num_body_segments, args, dropout=args.dropout)
