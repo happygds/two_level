@@ -118,7 +118,7 @@ class BinaryDataSet(data.Dataset):
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True, only_flow=False, num_local=8,
-                 frame_path='/data1/matheguo/important/data/activitynet/activity_net_frames'):
+                 frame_path='../../data/activitynet/activity_net_frames'):
 
         self.verbose = verbose
         self.num_local = num_local
