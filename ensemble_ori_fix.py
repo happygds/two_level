@@ -1,6 +1,7 @@
 import argparse
 import time
 import pdb
+import os
 import torch
 import pickle
 import numpy as np
@@ -132,7 +133,7 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     # first count frame numbers
     try:
         video_name = video_info.id
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         path = os.path.join(frame_path, video_name, name_pattern)
         files = glob.glob(path)
         frame_cnt = len(files)
