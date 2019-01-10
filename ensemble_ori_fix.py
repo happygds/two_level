@@ -131,9 +131,10 @@ gpu_list = args.gpus if args.gpus is not None else range(4)
 def compute_frame_count(video_info, frame_path, name_pattern):    
     # first count frame numbers
     try:
-        # import pdb; pdb.set_trace()
         video_name = video_info.id
-        files = glob.glob(os.path.join(frame_path, video_name, name_pattern))
+        path = os.path.join(frame_path, video_name, name_pattern)
+        files = glob.glob(path)
+        import pdb; pdb.set_trace()
         frame_cnt = len(files)
     except:
         print("video {} not exist frame images".format(video_info.id))
