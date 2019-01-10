@@ -133,8 +133,8 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     try:
         video_name = video_info.id
         path = os.path.join(frame_path, video_name, name_pattern)
-        files = glob.glob(path)
         import pdb; pdb.set_trace()
+        files = glob.glob(path)
         frame_cnt = len(files)
     except:
         print("video {} not exist frame images".format(video_info.id))
