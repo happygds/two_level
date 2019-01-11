@@ -110,7 +110,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             gt_k = [x.cpu().numpy() for x in gt_k]
             gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
             sample_infos.append([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-            _, bboxes_dict[k], rois_iou_dict[k] = gen_prop(k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id)
+            _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
         # pool = mp.Pool(processes=16)
         # handle=[pool.apply_async(gen_prop, args=(x,), callback=call_back) for x in sample_infos]
         # pool.close()
