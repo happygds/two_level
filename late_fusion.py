@@ -134,6 +134,8 @@ topk = 1
 score_dict = score_list[0]
 
 for merge_weight in np.arange(0.1, 1.01, 0.1):
+    for v in video_list:
+        v.merge_weight = merge_weight
     def gen_prop(v):
         if (args.dataset == 'activitynet') or (args.dataset == 'thumos14'):
             vid = v.id
@@ -147,9 +149,9 @@ for merge_weight in np.arange(0.1, 1.01, 0.1):
             max_ious, argmax_ious = this_ious.max(axis=1), this_ious.argmax(axis=1)
             sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
                 this_actness[argmax_ious], this_roi_scores[argmax_ious]
-            actness = (actness * roi_scores + merge_weight * sel_actness * sel_roi_scores) / (1. + merge_weight) * (actness > 0.)
+            actness = (actness * roi_scores + v.merge_weight * sel_actness * sel_roi_scores) / (1. + v.merge_weight) * (actness > 0.)
             # roi_scores = (roi_scores + merge_weight * sel_roi_scores) / (1. + merge_weight) * (actness > 0.)
-            rois = (rois + merge_weight * sel_rois) / (1. + merge_weight) * (actness > 0.).reshape((-1, 1))
+            rois = (rois + v.merge_weight * sel_rois) / (1. + v.merge_weight) * (actness > 0.).reshape((-1, 1))
         # actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
 
         bboxes = [(roi[0] / float(frm_cnt) * v.duration, roi[1] / float(frm_cnt) * v.duration,
