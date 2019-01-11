@@ -117,13 +117,13 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         pool.close()
         pool.join()
 
-    if test_mode:
-        assert batch_size == 1
-        rpn_post_nms_top = len(bboxes_dict[0])
-        actness = np.zeros((batch_size, rpn_post_nms_top))
-        rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
-        start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
-        labels = np.zeros((batch_size, rpn_post_nms_top, 2))
+    # if test_mode:
+    #     assert batch_size == 1
+    #     rpn_post_nms_top = len(bboxes_dict[0])
+    #     actness = np.zeros((batch_size, rpn_post_nms_top))
+    #     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
+    #     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
+    #     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k][:rpn_post_nms_top]
