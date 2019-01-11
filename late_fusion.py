@@ -159,6 +159,7 @@ def gen_prop(v):
               for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
+    bboxes = list(filter(lambda b: b[4] > 0.*roi_scores.max(), bboxes))
 
     # ori_rois, ori_actness, ori_roi_scores, ori_frm_cnt = score_list[1][vid]
     # ori_bboxes = [(roi[0] * v.frame_interval / float(v.frame_cnt) * v.duration,
