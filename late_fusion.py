@@ -34,8 +34,6 @@ parser.add_argument("--score_weights", type=float,
 parser.add_argument("--write_proposals", type=str, default=None, help='')
 parser.add_argument("--minimum_len", type=float, default=0,
                     help='minimum length of a proposal, in second')
-parser.add_argument("--wg", type=float, default=0.5,
-                    help='minimum length of a proposal, in second')
 parser.add_argument("--reg_score_files", type=str, nargs='+', default=None)
 parser.add_argument("--frame_path", type=str,
                     default='/mnt/SSD/ActivityNet/anet_v1.2_extracted_340/')
