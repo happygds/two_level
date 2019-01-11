@@ -101,9 +101,9 @@ def iou(target_segments, test_segments):
         tt2 = np.minimum(target_segments[i, 1], test_segments[:, 1])
 
         # Non-negative overlap score
-        intersection = (tt2 - tt1 + 1.0).clip(0)
-        union = ((test_segments[:, 1] - test_segments[:, 0] + 1) +
-                 (target_segments[i, 1] - target_segments[i, 0] + 1) -
+        intersection = (tt2 - tt1).clip(0)
+        union = ((test_segments[:, 1] - test_segments[:, 0]) +
+                 (target_segments[i, 1] - target_segments[i, 0]) -
                  intersection)
         # Compute overlap as the ratio of the intersection
         # over union of two segments at the frame level.
