@@ -128,14 +128,13 @@ N = len(score_list)
 
 # bottom-up generate proposals
 print('generating proposals')
+score_dict = score_list[0]
 
 for merge_weight in np.arange(0.1, 1.01, 0.1):
     for v in video_list:
         v.merge_weight = merge_weight
     pr_dict = {}
     pr_score_dict = {}
-    topk = 1
-    score_dict = score_list[0]
     def gen_prop(v):
         if (args.dataset == 'activitynet') or (args.dataset == 'thumos14'):
             vid = v.id
