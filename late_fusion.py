@@ -135,7 +135,7 @@ pr_score_dict = {}
 topk = 1
 score_dict = score_list[0]
 
-for merge_weight in range(0.1, 1.01, 0.1):
+for merge_weight in np.arange(0.1, 1.01, 0.1):
     def gen_prop(v):
         if (args.dataset == 'activitynet') or (args.dataset == 'thumos14'):
             vid = v.id
