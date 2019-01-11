@@ -149,9 +149,9 @@ def gen_prop(v):
         max_ious, argmax_ious = this_ious.max(axis=1), this_ious.argmax(axis=1)
         sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
             this_actness[argmax_ious], this_roi_scores[argmax_ious]
-        actness = (actness + args.wg * sel_actness) / (1. + args.wg)
-        roi_scores = (roi_scores + args.wg * sel_roi_scores) / (1. + args.wg)
-        rois = (rois + args.wg * sel_rois) / (1. + args.wg)
+        actness = (actness + args.wg * sel_actness) / (1. + args.wg) * (actness > 0.)
+        roi_scores = (roi_scores + args.wg * sel_roi_scores) / (1. + args.wg) * (actness > 0.)
+        rois = (rois + args.wg * sel_rois) / (1. + args.wg) * (actness > 0.)
     # actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
 
     bboxes = [(roi[0] / float(frm_cnt) * v.duration, roi[1] / float(frm_cnt) * v.duration,
