@@ -144,12 +144,13 @@ def gen_prop(v):
     for i in range(1, N):
         this_rois, this_actness, this_roi_scores, _ = score_list[i][vid]
         this_ious = iou(rois, this_rois)
-        argmax_ious = this_ious.argmax(axis=1)
+        max_ious, argmax_ious = this_ious.max(axis=1), this_ious.argmax(axis=1)
         sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
             this_actness[argmax_ious], this_roi_scores[argmax_ious]
-        actness *= sel_actness
-        roi_scores *= sel_roi_scores
-    actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
+        actness = (actness + max_ious * sel_actness) / (1. + max_ious)
+        roi_scores = (roi_scores + max_ious * sel_roi_scores) / (1. + max_ious)
+        rois = (rois + max_ious * sel_rois)
+    # actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
 
     bboxes = [(roi[0] / float(frm_cnt) * v.duration, roi[1] / float(frm_cnt) * v.duration,
                1, roi_score*act_score, roi_score)
