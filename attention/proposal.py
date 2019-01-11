@@ -117,15 +117,13 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         pool.close()
         pool.join()
 
-    # count the average number of proposals
-    avg_count = 0.
-    ratios = np.ones((batch_size,), dtype='float32')
-    for key, bboxes in bboxes_dict.items():
-        avg_count += len(bboxes) / float(batch_size)
-        ratios[key] = len(bboxes)
-    ratios = ratios / avg_count
-    # rpn_post_nms_top = int(round(ratios.max() * avg_count))
-    # import pdb; pdb.set_trace()
+    if test_mode:
+        assert batch_size == 1
+        rpn_post_nms_top = len(bboxes_dict[0])
+        actness = np.zeros((batch_size, rpn_post_nms_top))
+        rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
+        start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
+        labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k][:rpn_post_nms_top]
