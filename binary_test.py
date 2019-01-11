@@ -144,8 +144,8 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             rois, actness, roi_scores = rois[0].cpu().numpy(
             ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
-            # import pdb; pdb.set_trace()
             outputs = [rois, actness, roi_scores, num_feat]
+            print((actness > 0.).sum())
 
         result_queue.put(
             (dataset.video_list[index].id.split('/')[-1], outputs))
