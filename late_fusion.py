@@ -149,7 +149,8 @@ def gen_prop(v):
             this_actness[argmax_ious], this_roi_scores[argmax_ious]
         actness = (actness + max_ious * sel_actness) / (1. + max_ious)
         roi_scores = (roi_scores + max_ious * sel_roi_scores) / (1. + max_ious)
-        rois = (rois + max_ious * sel_rois)
+        rois = (rois + max_ious * sel_rois) / (1. + max_ious)
+        print(type(rois))
     # actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
 
     bboxes = [(roi[0] / float(frm_cnt) * v.duration, roi[1] / float(frm_cnt) * v.duration,
