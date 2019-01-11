@@ -34,6 +34,8 @@ parser.add_argument("--score_weights", type=float,
 parser.add_argument("--write_proposals", type=str, default=None, help='')
 parser.add_argument("--minimum_len", type=float, default=0,
                     help='minimum length of a proposal, in second')
+parser.add_argument("--wg", type=float, default=0.5,
+                    help='minimum length of a proposal, in second')
 parser.add_argument("--reg_score_files", type=str, nargs='+', default=None)
 parser.add_argument("--frame_path", type=str,
                     default='/mnt/SSD/ActivityNet/anet_v1.2_extracted_340/')
@@ -141,16 +143,15 @@ def gen_prop(v):
         vid = v.path.split('/')[-1].split('.')[0]
     rois, actness, roi_scores, frm_cnt = score_list[0][vid]
     # merge other pkl files
-    weight = 0.5
     for i in range(1, N):
         this_rois, this_actness, this_roi_scores, _ = score_list[i][vid]
         this_ious = iou(rois, this_rois)
         max_ious, argmax_ious = this_ious.max(axis=1), this_ious.argmax(axis=1)
         sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
             this_actness[argmax_ious], this_roi_scores[argmax_ious]
-        actness = (actness + weight * sel_actness) / (1. + weight)
-        roi_scores = (roi_scores + weight * sel_roi_scores) / (1. + weight)
-        rois = (rois + weight * sel_rois) / (1. + weight)
+        actness = (actness + args.wg * sel_actness) / (1. + args.wg)
+        roi_scores = (roi_scores + args.wg * sel_roi_scores) / (1. + args.wg)
+        rois = (rois + args.wg * sel_rois) / (1. + args.wg)
     # actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
 
     bboxes = [(roi[0] / float(frm_cnt) * v.duration, roi[1] / float(frm_cnt) * v.duration,
