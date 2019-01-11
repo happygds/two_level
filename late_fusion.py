@@ -264,5 +264,5 @@ for merge_weight in np.arange(0.1, 1.01, 0.1):
     #     print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*5]))
     # print('AR@1 is {:.6f}, AR@10 is {:.6f}, AR@20 is {:.6f}'.format(
     #     ar_at_prop[0], ar_at_prop[9], ar_at_prop[19]))
-    print('merge_weight {}, AR@50 is {:.6f}, AR@100 is {:.6f}, AUC is {:.6f}'.format(
+    print('merge_weight {:.2f}, AR@50 is {:.6f}, AR@100 is {:.6f}, AUC is {:.6f}'.format(
         merge_weight, ar_at_prop[49], ar_at_prop[99], auc))
