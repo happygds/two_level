@@ -37,7 +37,7 @@ def gen_prop(x):
     bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
     # bboxes = bboxes[:rpn_post_nms_top]
     num_keep = int(round(0.125*len(bboxes)))
-    num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
+    # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
     if epoch_id is not None and epoch_id < 0:
         bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
     else:
@@ -59,7 +59,7 @@ def gen_prop(x):
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
-                   rpn_post_nms_top=128, feat_stride=16, epoch_id=None):
+                   rpn_post_nms_top=160, feat_stride=16, epoch_id=None):
     """
     Parameters
     ----------
