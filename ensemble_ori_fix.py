@@ -260,6 +260,7 @@ if __name__ == '__main__':
         else:
             for key, value in out_stage1.items():
                 ensemble_stage1['fix_len'][key][0] += value[0]
+        del workers, out_stage1, index_queue, result_queue
 
     # load ori-len model weights
     for model_id in range(1, args.num_ensemble+1, 1):
@@ -298,6 +299,7 @@ if __name__ == '__main__':
         else:
             for key, value in out_stage1.items():
                 ensemble_stage1['ori_len'][key][0] += value[0]
+        del workers, index_queue, result_queue
 
     stage1_outs = {}
     stage1_outs['fix_len'], stage1_outs['ori_len'] = {}, {}
@@ -366,6 +368,7 @@ if __name__ == '__main__':
         else:
             for key, value in out_stage2.items():
                 ensemble_stage2['fix_len'][key][2] += value[2]
+        del workers, out_stage2, index_queue, result_queue
 
     for model_id in range(1, args.num_ensemble+1, 1):
         this_path = (args.ori_weights + '.')[:-1]
@@ -403,6 +406,7 @@ if __name__ == '__main__':
         else:
             for key, value in out_stage2.items():
                 ensemble_stage2['ori_len'][key][2] += value[2]
+        del workers, index_queue, result_queue
 
     stage2_outs = {}
     for key in out_stage2.keys():
