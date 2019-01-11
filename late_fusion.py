@@ -128,13 +128,13 @@ N = len(score_list)
 
 # bottom-up generate proposals
 print('generating proposals')
-score_dict = score_list[0]
 
 for merge_weight in np.arange(0.1, 1.01, 0.1):
     for v in video_list:
         v.merge_weight = merge_weight
     pr_dict = {}
     pr_score_dict = {}
+    score_dict = score_list[0]
     def gen_prop(v):
         if (args.dataset == 'activitynet') or (args.dataset == 'thumos14'):
             vid = v.id
@@ -201,7 +201,7 @@ for merge_weight in np.arange(0.1, 1.01, 0.1):
     gt_spans_full = [[(x.num_label, x.time_span) for x in v.instances]
                     for v in video_list if v.id in pr_dict]
     gt_spans = [[item[1] for item in x] for x in gt_spans_full]
-    score_list = [score_dict[v.id] for v in video_list if v.id in pr_dict]
+    new_score_list = [score_dict[v.id] for v in video_list if v.id in pr_dict]
     duration_list = [v.duration for v in video_list if v.id in pr_dict]
     proposal_score_list = [pr_score_dict[v.id]
                         for v in video_list if v.id in pr_dict]
@@ -228,7 +228,7 @@ for merge_weight in np.arange(0.1, 1.01, 0.1):
             x, y) for x, y in zip(gt_spans_full, proposal_list)]
         # allow_empty = args.dataset == 'activitynet' and args.subset == 'testing'
         dumped_list = [dump_window_list(v, prs, frame_path, name_pattern, score=score, allow_empty=True) for v, prs, score in
-                    zip(filter(lambda x: x.id in pr_dict, video_list), named_proposal_list, score_list)]
+                    zip(filter(lambda x: x.id in pr_dict, video_list), named_proposal_list, new_score_list)]
 
         with open(args.write_proposals, 'w') as of:
             for i, e in enumerate(dumped_list):
