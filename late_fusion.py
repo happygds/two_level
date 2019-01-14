@@ -129,8 +129,10 @@ N = len(score_list)
 # bottom-up generate proposals
 print('generating proposals')
 
-weights_list1 = list(np.arange(0.1, 0.4, 0.05))
-weights_list2 = list(np.arange(0.1, 0.4, 0.05))
+# weights_list1 = list(np.arange(0.1, 0.4, 0.05))
+# weights_list2 = list(np.arange(0.1, 0.4, 0.05))
+weights_list1 = 0.2
+weights_list2 = 0.2
 for merge_weight1 in weights_list1:
     for merge_weight2 in weights_list2:
         pr_dict = {}
