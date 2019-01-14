@@ -193,7 +193,7 @@ for merge_weight1 in weights_list1:
             # ori_bboxes = list(filter(lambda b: b[1] - b[0] <= args.minimum_len, ori_bboxes))
             # bboxes = bboxes + ori_bboxes
 
-            bboxes = temporal_nms(bboxes, 0.98)
+            # bboxes = temporal_nms(bboxes, 0.98)
             # bboxes = Soft_NMS(bboxes, length=v.duration)
 
             if len(bboxes) == 0:
