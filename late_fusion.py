@@ -129,8 +129,8 @@ N = len(score_list)
 # bottom-up generate proposals
 print('generating proposals')
 
-# weights_list = list(np.arange(0.1, 1.01, 0.1)) + list(np.arange(1., 5.01, 1.))
-weights_list = [0.5]
+weights_list = list(np.arange(0.1, 1.01, 0.1)) + list(np.arange(1., 5.01, 1.))
+# weights_list = [0.5]
 for merge_weight in weights_list:
     for v in video_list:
         v.merge_weight = merge_weight
@@ -161,9 +161,9 @@ for merge_weight in weights_list:
             max_ious, argmax_ious = this_ious.max(axis=1), this_ious.argmax(axis=1)
             sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
                 this_actness[argmax_ious], this_roi_scores[argmax_ious]
-            actness = (actness + 0.5 * sel_actness) / (1. + 0.5) * (actness > 0.)
+            actness = (actness + v.merge_weight * sel_actness) / (1. + v.merge_weight) * (actness > 0.)
             roi_scores = (roi_scores + v.merge_weight * sel_roi_scores) / (1. + v.merge_weight) * (actness > 0.)
-            rois = (rois + 0.5 * sel_rois) / (1. + 0.5) * (actness > 0.).reshape((-1, 1))
+            rois = (rois + v.merge_weight * sel_rois) / (1. + v.merge_weight) * (actness > 0.).reshape((-1, 1))
 
             i = 2
             this_rois, this_actness, this_roi_scores, _ = score_list[i][vid]
@@ -171,9 +171,9 @@ for merge_weight in weights_list:
             max_ious, argmax_ious = this_ious.max(axis=1), this_ious.argmax(axis=1)
             sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
                 this_actness[argmax_ious], this_roi_scores[argmax_ious]
-            actness = (actness + v.merge_weight * sel_actness) / (1. + v.merge_weight) * (actness > 0.)
-            roi_scores = (roi_scores + v.merge_weight * sel_roi_scores) / (1. + v.merge_weight) * (actness > 0.)
-            rois = (rois + v.merge_weight * sel_rois) / (1. + v.merge_weight) * (actness > 0.).reshape((-1, 1))
+            actness = (actness + 0.5*v.merge_weight * sel_actness) / (1. + 0.5*v.merge_weight) * (actness > 0.)
+            roi_scores = (roi_scores + 0.5*v.merge_weight * sel_roi_scores) / (1. + 0.5*v.merge_weight) * (actness > 0.)
+            rois = (rois + 0.5*v.merge_weight * sel_rois) / (1. + 0.5*v.merge_weight) * (actness > 0.).reshape((-1, 1))
 
 
         bboxes = [(roi[0] / float(frm_cnt) * v.duration, roi[1] / float(frm_cnt) * v.duration,
