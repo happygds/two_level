@@ -155,7 +155,7 @@ for merge_weight in weights_list:
         # actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
 
         bboxes = [(roi[0] / float(frm_cnt) * v.duration, roi[1] / float(frm_cnt) * v.duration,
-                1, act_score * roi_scores, roi_score)
+                1, act_score * roi_score, roi_score)
                 for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
         # filter out too short proposals
         bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
