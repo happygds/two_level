@@ -129,8 +129,8 @@ N = len(score_list)
 # bottom-up generate proposals
 print('generating proposals')
 
-# weights_list = list(np.arange(0.1, 1.01, 0.1)) + list(np.arange(1., 5.01, 1.))
-weights_list = [0.5]
+weights_list = list(np.arange(0.1, 1.01, 0.1)) + list(np.arange(1., 5.01, 1.))
+# weights_list = [0.5]
 for merge_weight in weights_list:
     for v in video_list:
         v.merge_weight = merge_weight
@@ -144,7 +144,8 @@ for merge_weight in weights_list:
             vid = v.path.split('/')[-1].split('.')[0]
         rois, actness, roi_scores, frm_cnt = score_list[0][vid]
         # merge other pkl files
-        for i in range(1, N):
+        if N == 2:
+            i = 1
             this_rois, this_actness, this_roi_scores, _ = score_list[i][vid]
             this_ious = iou(rois, this_rois)
             max_ious, argmax_ious = this_ious.max(axis=1), this_ious.argmax(axis=1)
@@ -153,7 +154,27 @@ for merge_weight in weights_list:
             actness = (actness + v.merge_weight * sel_actness) / (1. + v.merge_weight) * (actness > 0.)
             roi_scores = (roi_scores + merge_weight * sel_roi_scores) / (1. + merge_weight) * (actness > 0.)
             rois = (rois + v.merge_weight * sel_rois) / (1. + v.merge_weight) * (actness > 0.).reshape((-1, 1))
-        # actness, roi_scores = actness ** (1./N), roi_scores ** (1./N)
+        elif N == 3:
+            i = 1
+            this_rois, this_actness, this_roi_scores, _ = score_list[i][vid]
+            this_ious = iou(rois, this_rois)
+            max_ious, argmax_ious = this_ious.max(axis=1), this_ious.argmax(axis=1)
+            sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
+                this_actness[argmax_ious], this_roi_scores[argmax_ious]
+            actness = (actness + 0.5 * sel_actness) / (1. + 0.5) * (actness > 0.)
+            roi_scores = (roi_scores + merge_weight * sel_roi_scores) / (1. + merge_weight) * (actness > 0.)
+            rois = (rois + 0.5 * sel_rois) / (1. + 0.5) * (actness > 0.).reshape((-1, 1))
+
+            i = 2
+            this_rois, this_actness, this_roi_scores, _ = score_list[i][vid]
+            this_ious = iou(rois, this_rois)
+            max_ious, argmax_ious = this_ious.max(axis=1), this_ious.argmax(axis=1)
+            sel_rois, sel_actness, sel_roi_scores = this_rois[argmax_ious],\
+                this_actness[argmax_ious], this_roi_scores[argmax_ious]
+            actness = (actness + v.merge_weight * sel_actness) / (1. + v.merge_weight) * (actness > 0.)
+            roi_scores = (roi_scores + merge_weight * sel_roi_scores) / (1. + merge_weight) * (actness > 0.)
+            rois = (rois + v.merge_weight * sel_rois) / (1. + v.merge_weight) * (actness > 0.).reshape((-1, 1))
+
 
         bboxes = [(roi[0] / float(frm_cnt) * v.duration, roi[1] / float(frm_cnt) * v.duration,
                 1, act_score * roi_score, roi_score)
