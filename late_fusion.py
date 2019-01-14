@@ -230,8 +230,8 @@ for merge_weight1 in weights_list1:
         # print('{} groundtruth boxes from'.format(sum(map(len, gt_spans))))
         # # import pdb ; pdb.set_trace()
 
-        print('average # of proposals: {}'.format(
-            np.mean(list(map(len, proposal_list)))))
+        # print('average # of proposals: {}'.format(
+        #     np.mean(list(map(len, proposal_list)))))
         IOU_thresh = np.arange(0.5, 1.0, 0.05)
         p_list = []
         for th in IOU_thresh:
