@@ -130,7 +130,7 @@ N = len(score_list)
 print('generating proposals')
 
 weights_list = list(np.arange(0.1, 1.01, 0.1)) + list(np.arange(1., 10., 1.))
-for merge_weight in :
+for merge_weight in weights_list:
     for v in video_list:
         v.merge_weight = merge_weight
     pr_dict = {}
