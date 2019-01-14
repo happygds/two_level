@@ -280,17 +280,44 @@ for merge_weight1 in weights_list1:
         elif args.subset == 'validation':
             prediction.to_csv('val.csv')
 
-        # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
-        ground_truth, cls_to_idx = grd_activity(
-            'data/activity_net.v1-3.min_save.json', subset='validation')
-        del cls_to_idx['background']
-        auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=100,
-                                                            tiou_thresholds=np.linspace(0.5, 0.95, 10))
-        nr_proposals_lst = np.around(nr_proposals_lst)
+        if args.subset == 'testing':
+            submit_pred = {}
+            submit_pred['version'] = "VERSION 1.3"
+            external_data = {}
+            external_data['used'] = True
+            external_data['details'] = "two-stream I3D feature pretrained on kinectics"
+            submit_pred['external_data'] = external_data
 
-        # for j, nr_proposals in enumerate(nr_proposals_lst[::5]):
-        #     print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*5]))
-        # print('AR@1 is {:.6f}, AR@10 is {:.6f}, AR@20 is {:.6f}'.format(
-        #     ar_at_prop[0], ar_at_prop[9], ar_at_prop[19]))
-        print('merge_weight1 {:.2f}, merge_weigth2 {:.2f} AR@50 is {:.6f}, AR@100 is {:.6f}, AUC is {:.6f}'.format(
-            merge_weight1, merge_weight2, ar_at_prop[49], ar_at_prop[99], auc))
+            results = {}
+            vid_names = list(set(video_lst))
+            for _, vid_name in enumerate(vid_names):
+                this_idx = prediction['video-id'] == vid_name
+                this_preds = prediction[this_idx][['score', 't-start', 't-end']].values
+                this_lst = []
+                for _, pred in enumerate(this_preds):
+                    this_pred = {}
+                    score, t_start, t_end = pred
+                    this_pred['score'] = score
+                    this_pred['segment'] = list([t_start, t_end])
+                    this_lst.append(this_pred)
+                results[vid_name] = this_lst
+            submit_pred['results'] = results
+
+            import json
+            with open('{}.json'.format('submit_test'), 'w') as outfile:
+                json.dump(submit_pred, outfile, indent=4, separators=(',', ': '))
+        else:
+            # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
+            ground_truth, cls_to_idx = grd_activity(
+                'data/activity_net.v1-3.min_save.json', subset='validation')
+            del cls_to_idx['background']
+            auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=100,
+                                                                tiou_thresholds=np.linspace(0.5, 0.95, 10))
+            nr_proposals_lst = np.around(nr_proposals_lst)
+
+            # for j, nr_proposals in enumerate(nr_proposals_lst[::5]):
+            #     print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*5]))
+            # print('AR@1 is {:.6f}, AR@10 is {:.6f}, AR@20 is {:.6f}'.format(
+            #     ar_at_prop[0], ar_at_prop[9], ar_at_prop[19]))
+            print('merge_weight1 {:.2f}, merge_weigth2 {:.2f} AR@50 is {:.6f}, AR@100 is {:.6f}, AUC is {:.6f}'.format(
+                merge_weight1, merge_weight2, ar_at_prop[49], ar_at_prop[99], auc))
