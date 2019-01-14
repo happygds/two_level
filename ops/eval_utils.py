@@ -259,8 +259,8 @@ def grd_activity(annotation_path, subset='validation'):
 
     video_lst, t_start_lst, t_end_lst, label_lst = [], [], [], []
     for i in range(len(video_names)):
-        if i % 1000 == 0:
-            print('dataset loading [{}/{}]'.format(i, len(video_names)))
+        # if i % 1000 == 0:
+        #     print('dataset loading [{}/{}]'.format(i, len(video_names)))
 
         sample_annots = annotations[i]
         for k, annotation in enumerate(sample_annots):
