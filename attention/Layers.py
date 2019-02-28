@@ -108,6 +108,7 @@ class ROI_Relation(nn.Module):
 
         # self.rank_fc = nn.Linear(d_model, d_model)
         # self.rois_emb = nn.Linear(d_model, d_model)
+        
         # for non-local operation
         # self.slf_attn = MultiHeadAttention(
         #     n_head, d_model, d_k, d_v, dropout=dropout, 
