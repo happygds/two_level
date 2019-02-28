@@ -87,7 +87,7 @@ class ROI_Relation(nn.Module):
     ''' Compose with two layers '''
 
     def __init__(self, d_model, roipool_size, d_inner_hid, n_head, 
-                 d_k, d_v, dropout=0.1, kernel_type='self_attn'):
+                 d_k, d_v, dropout=0.1, kernel_type='roi_remov'):
         super(ROI_Relation, self).__init__()
         if len(roipool_size) == 1:
             start_pool_size = 1
@@ -135,12 +135,12 @@ class ROI_Relation(nn.Module):
         # rois_emb = torch.cat([rois_cent, rois_dura], dim=2)
         # rois_emb = 20. * torch.log((rois_emb / (len_feat * 0.5)).clamp(1e-3))
         # import pdb; pdb.set_trace()
-        enc_output = roi_feats + F.selu(self.rois_emb(roi_embedding(rois[:, :, 1:], roi_feat_size[2])))
-        # enc_output = roi_feats
+        # enc_output = roi_feats + F.selu(self.rois_emb(roi_embedding(rois[:, :, 1:], roi_feat_size[2])))
+        enc_output = roi_feats
 
         enc_output, _ = self.slf_attn(
             enc_output, enc_output, enc_output,
-            attn_mask=rois_attn_mask, attn_pos_emb=None)
+            attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
         enc_output = self.pos_ffn(enc_output)
         
         return enc_output
