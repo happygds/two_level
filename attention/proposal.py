@@ -12,7 +12,7 @@ def gen_prop(x):
     k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id = x
     # the k-th sample
     bboxes = []
-    min_thre = 0.05
+    min_thre = 0.1
     scores = scores_k[:num_feat]
     
     # # use change point
