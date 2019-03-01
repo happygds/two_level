@@ -12,7 +12,6 @@ def load_proposal_file(filename):
     info_list = [[x.strip() for x in list(g)] for k, g in groups if not k]
     
     def parse_group(info):
-        import pdb; pdb.set_trace()
         offset = 0
         vid = info[offset]
         offset += 1
@@ -22,6 +21,7 @@ def load_proposal_file(filename):
         offset = 4
 
         gt_boxes = [x.split() for x in info[offset:offset+n_gt]]
+        import pdb; pdb.set_trace()
         offset += n_gt
         if n_gt == 0:
             offset += 1
