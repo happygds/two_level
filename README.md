@@ -130,8 +130,6 @@ To do this, run
 
 ```bash
 python gen_proposal_list.py DATASET FRAMES_PATH
-python gen_proposal_list.py thumos14 /data1/matheguo/important/data/thumos14/frames
-python gen_proposal_list.py thumos14 /data1/matheguo/important/data/thumos14/frames
 ```
 
 
