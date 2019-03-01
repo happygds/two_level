@@ -33,7 +33,7 @@ def gen_prop(x):
     bboxes.extend(props)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
     # to remove duplicate proposals
-    bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
+    # bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
     # bboxes = bboxes[:rpn_post_nms_top]
     # num_keep = int(round(0.125*len(bboxes)))
     # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
