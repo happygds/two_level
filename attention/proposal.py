@@ -34,8 +34,8 @@ def gen_prop(x):
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
     bboxes.extend(props)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
-    # to remove duplicate proposals
-    bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
+    # # to remove duplicate proposals
+    # bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
     # bboxes = bboxes[:rpn_post_nms_top]
     # num_keep = int(round(0.125*len(bboxes)))
     # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
