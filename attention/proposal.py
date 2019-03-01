@@ -12,8 +12,7 @@ def gen_prop(x):
     k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id = x
     # the k-th sample
     bboxes = []
-    # num_feat = int(new_feature_mask[k].sum())
-    # scores_k = new_score_output[k][:num_feat]
+    min_thre = 0.05
     scores = scores_k[:num_feat]
     
     # # use change point
@@ -24,8 +23,8 @@ def gen_prop(x):
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
         ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
         starts, ends = list(set(starts)), list(set(ends))
-        props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.05]
-        if scores.mean() > 0.05:
+        props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
+        if scores.mean() > min_thre:
             props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
         # import pdb; pdb.set_trace()
     else:
