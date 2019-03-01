@@ -72,23 +72,14 @@ if __name__ == "__main__":
             dst_directory_path = os.path.join(dst_dir_path, name)
 
             video_file_path = os.path.join(dir_path, file_name)
-            width, height = resolution_dict[vid_name]
-
-            # resize the shorter edge to 128 pixels
-            if width >= height:
-                new_width = min(round(float(width) / float(height) * 128.), 171.)
-                new_height = 128.
-            else:
-                new_width = 128.
-                new_height = min(round(float(height) / float(width) * 128.), 171.)
 
             if os.path.exists(dst_directory_path):
                 subprocess.call('rm -r {}'.format(dst_directory_path), shell=True)
                 print('remove {}'.format(dst_directory_path))
             os.mkdir(dst_directory_path)
 
-            cmd = 'ffmpeg -i {} -vf scale={}:{} {}/frame%06d.jpg'.format(
-                video_file_path, new_width, new_height, dst_directory_path)
+            cmd = 'ffmpeg -i {} -vf {}/frame%06d.jpg'.format(
+                video_file_path, 128, 128, dst_directory_path)
             print(cmd)
             subprocess.call(cmd, shell=True)
             print('\n')
