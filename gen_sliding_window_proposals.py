@@ -57,6 +57,8 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     video_info.frame_cnt = frame_cnt
     return video_info
 
+videos = [v for v in videos if v.instances != []]
+print("video list size: {}".format(len(videos)))
 videos = [compute_frame_count(v, args.frame_path, 'frame*.jpg') for v in videos]
 
 # generate proposals and name them
