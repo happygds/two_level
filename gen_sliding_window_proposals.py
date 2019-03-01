@@ -52,7 +52,6 @@ def compute_frame_count(video_info, frame_path, name_pattern):
         print("video {} not exist frame images".format(video_info.id))
         frame_cnt = int(round(video_info.duration * 24))
     video_info.frame_cnt = frame_cnt
-    video_info.frame_interval = args.frame_interval
     return video_info
 
 videos = [compute_frame_count(v, args.frame_path, 'frame*.jpg') for v in videos]
