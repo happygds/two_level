@@ -12,6 +12,7 @@ def load_proposal_file(filename):
     info_list = [[x.strip() for x in list(g)] for k, g in groups if not k]
     
     def parse_group(info):
+        import pdb; pdb.set_trace()
         offset = 0
         vid = info[offset]
         offset += 1
