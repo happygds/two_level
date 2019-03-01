@@ -24,8 +24,8 @@ def gen_prop(x):
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
         ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
         starts, ends = list(set(starts)), list(set(ends))
-        props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.]
-        if scores.mean() > 0.:
+        props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > 0.05]
+        if scores.mean() > 0.05:
             props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
         # import pdb; pdb.set_trace()
     else:
@@ -39,10 +39,10 @@ def gen_prop(x):
     # num_keep = int(round(0.125*len(bboxes)))
     # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
     num_keep = rpn_post_nms_top
-    if epoch_id is not None and epoch_id < 10:
-        bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
-    else:
-        bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
+    # if epoch_id is not None and epoch_id < 10:
+    bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
+    # else:
+    #     bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
     if len(bboxes) == 0:
         bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
     
