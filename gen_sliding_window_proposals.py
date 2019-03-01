@@ -60,7 +60,7 @@ print("average per video recall: {:.2f}, average per instance recall: {:.2f}".fo
     np.mean([x[3] for x in recall_list]), np.mean([x[4] for x in recall_list])))
 
 dumped_list = [dump_window_list(v, prs, args.frame_path, name_pattern) for v, prs in zip(videos, named_proposal_list) if v.id not in avoid_list]
-import pdb; pdb.set_trace()
+
 with open(args.output_file, 'w') as of:
     for i, e in enumerate(dumped_list):
         of.write('# {}\n'.format(i + 1))
