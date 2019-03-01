@@ -34,11 +34,8 @@ def gen_prop(x):
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
     bboxes.extend(props)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
-    # # to remove duplicate proposals
+    # to remove duplicate proposals
     # bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
-    # bboxes = bboxes[:rpn_post_nms_top]
-    # num_keep = int(round(0.125*len(bboxes)))
-    # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
     num_keep = rpn_post_nms_top
     # if epoch_id is not None and epoch_id < 10:
     bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
@@ -95,9 +92,9 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     def call_back(rst):
         bboxes_dict[rst[0]] = rst[1]
         rois_iou_dict[rst[0]] = rst[2]
-        # import sys
-        # # print(rst[0], len(rst[1]))
-        # sys.stdout.flush()
+        import sys
+        # print(rst[0], len(rst[1]))
+        sys.stdout.flush()
 
     if test_mode:
         assert batch_size == 1
@@ -105,13 +102,12 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         scores_k = score_output[0][:num_feat]
         _, bboxes_dict[0], rois_iou_dict[0] = gen_prop([0, num_feat, scores_k, None, rpn_post_nms_top, epoch_id])
     else:
-        gts = gts.cpu().numpy()
         sample_infos = []
         for k in range(batch_size):
             num_feat = int(feature_mask[k].sum())
             scores_k = score_output[k][:num_feat]
             gt_k = gts[k]
-            # gt_k = [x.cpu().numpy() for x in gt_k]
+            gt_k = [x.cpu().numpy() for x in gt_k]
             gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
             sample_infos.append([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
             # _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
