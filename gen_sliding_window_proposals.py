@@ -42,6 +42,20 @@ avoid_list = [x.strip() for x in open(args.avoid)] if args.avoid else []
 
 
 videos = db.get_subset_videos(args.subset)
+def compute_frame_count(video_info, frame_path, name_pattern):    
+    # first count frame numbers
+    try:
+        video_name = video_info.id
+        files = glob.glob(os.path.join(frame_path, video_name, name_pattern))
+        frame_cnt = len(files)
+    except:
+        print("video {} not exist frame images".format(video_info.id))
+        frame_cnt = int(round(video_info.duration * 24))
+    video_info.frame_cnt = frame_cnt
+    video_info.frame_interval = args.frame_interval
+    return video_info
+
+videos = [compute_frame_count(v, args.frame_path, 'frame*.jpg') for v in videos]
 
 # generate proposals and name them
 gt_spans = [[(x.num_label, x.time_span) for x in v.instances] for v in videos]
