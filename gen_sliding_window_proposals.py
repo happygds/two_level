@@ -43,7 +43,6 @@ avoid_list = [x.strip() for x in open(args.avoid)] if args.avoid else []
 
 
 videos = db.get_subset_videos(args.subset)
-import pdb; pdb.set_trace()
 def compute_frame_count(video_info, frame_path, name_pattern):    
     # first count frame numbers
     try:
