@@ -78,7 +78,7 @@ if __name__ == "__main__":
                 print('remove {}'.format(dst_directory_path))
             os.mkdir(dst_directory_path)
 
-            cmd = 'ffmpeg -i {} -vf {}/frame%06d.jpg'.format(
+            cmd = 'ffmpeg -i {} -vf scale={}:{} {}/frame%06d.jpg'.format(
                 video_file_path, 128, 128, dst_directory_path)
             print(cmd)
             subprocess.call(cmd, shell=True)
