@@ -45,9 +45,10 @@ avoid_list = [x.strip() for x in open(args.avoid)] if args.avoid else []
 videos = db.get_subset_videos(args.subset)
 def compute_frame_count(video_info, frame_path, name_pattern):    
     # first count frame numbers
+    video_name = video_info.id
+    frame_path = os.path.join(frame_path, video_name, name_pattern)
     try:
-        video_name = video_info.id
-        files = glob.glob(os.path.join(frame_path, video_name, name_pattern))
+        files = glob.glob(frame_path)
         frame_cnt = len(files)
     except:
         print("video {} not exist frame images".format(video_info.id))
