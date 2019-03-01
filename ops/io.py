@@ -95,7 +95,6 @@ def parse_directory(path, key_func=lambda x: x[-11:],
     return frame_dict
 
 def dump_window_list(video_info, named_proposals, frame_path, name_pattern, allow_empty=False, score=None):
-    import pdb; pdb.set_trace()
     # first count frame numbers
     try:
         video_name = video_info.id
