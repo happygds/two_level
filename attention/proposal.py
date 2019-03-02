@@ -154,8 +154,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     # rois_dura_avg = 0.5 * (rois_dura[:, np.newaxis, :] + rois_dura[:, :, np.newaxis])
     # rois_relative_pos[:, :, :, 0] = (rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis]) / rois_dura_avg.clip(1e-14)
     # rois_relative_pos[:, :, :, 1] = (rois_end[:, np.newaxis, :] - rois_end[:, :, np.newaxis]) / rois_dura_avg.clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = 20. * np.log((np.abs(rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
-    rois_relative_pos[:, :, :, 2] = 20. * np.log((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
+    rois_relative_pos[:, :, :, 0] = 20. * np.log((np.abs(rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
+    rois_relative_pos[:, :, :, 1] = 20. * np.log((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
     rois_relative_pos = rois_relative_pos * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
     import pdb; pdb.set_trace()
 
