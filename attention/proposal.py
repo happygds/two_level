@@ -14,7 +14,7 @@ def gen_prop(x):
     bboxes = []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
-    min_thre = 0.3
+    min_thre = 0.1
     scores = scores_k[:num_feat]
     
     # # use change point
