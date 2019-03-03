@@ -148,17 +148,17 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             actness[k, :len(bboxes)] = rois_iou_dict[k][:rpn_post_nms_top]
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois[:, :, 1:]).mean(axis=2) > 0.).astype('float32')
-    rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
+    rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 4)).astype('float32')
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois[:, :, 1:].mean(axis=2), rpn_rois[:, :, 2] - rpn_rois[:, :, 1]
     rois_start, rois_end = rpn_rois[:, :, 1], rpn_rois[:, :, 2]
     # xx1, yy1 = np.maximum(rois_start[:, np.newaxis, :], rois_start[:, :, np.newaxis]), np.minimum(rois_end[:, np.newaxis, :], rois_end[:, :, np.newaxis])
     # rois_iou = (yy1 - xx1).clip(0.)
     # rois_dura_avg = 0.5 * (rois_dura[:, np.newaxis, :] + rois_dura[:, :, np.newaxis])
-    rois_relative_pos[:, :, :, 0] = 2. * (rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = 2. * (rois_end[:, np.newaxis, :] - rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    # rois_relative_pos[:, :, :, 2] = 1. * (rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis]) / rois_dura[:, :, np.newaxis].clip(1e-14)
-    # rois_relative_pos[:, :, :, 3] = 1. * (rois_end[:, np.newaxis, :] - rois_end[:, :, np.newaxis]) / rois_dura[:, :, np.newaxis].clip(1e-14)
+    rois_relative_pos[:, :, :, 0] = 5. * (rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
+    rois_relative_pos[:, :, :, 1] = 5. * (rois_end[:, np.newaxis, :] - rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
+    rois_relative_pos[:, :, :, 2] = 5. * (rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis]) / rois_dura[:, :, np.newaxis].clip(1e-14)
+    rois_relative_pos[:, :, :, 3] = 5. * (rois_end[:, np.newaxis, :] - rois_end[:, :, np.newaxis]) / rois_dura[:, :, np.newaxis].clip(1e-14)
     rois_relative_pos = rois_relative_pos * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
     # import pdb; pdb.set_trace()
 
