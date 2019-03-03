@@ -107,15 +107,15 @@ def position_encoding_init(n_position, d_pos_vec):
     return torch.from_numpy(position_enc).type(torch.FloatTensor)
 
 def pos_embedding(position_mat, feat_dim, wave_length=1000.):
-    feat_range = torch.arange(0, feat_dim / 4)
-    dim_mat = torch.pow(wave_length, (4. / feat_dim) * feat_range)
+    feat_range = torch.arange(0, feat_dim / 8)
+    dim_mat = torch.pow(wave_length, (8. / feat_dim) * feat_range)
     dim_mat = dim_mat.view(1, 1, 1, 1, -1).cuda()
     pos_size = position_mat.size()
     position_mat = position_mat.unsqueeze(4)
     div_mat = torch.div(position_mat, dim_mat)
     sin_mat = torch.sin(div_mat)
     cos_mat = torch.cos(div_mat)
-    embedding = torch.cat([sin_mat, cos_mat], dim=4)
+    embedding = torch.cat([sin_mat, cos_mat], dim=8)
     return embedding.view(pos_size[:3] + (feat_dim,)).float()
 
 def roi_embedding(position_mat, feat_dim, wave_length=1000.):
