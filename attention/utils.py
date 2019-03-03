@@ -115,7 +115,7 @@ def pos_embedding(position_mat, feat_dim, wave_length=1000.):
     div_mat = torch.div(position_mat, dim_mat)
     sin_mat = torch.sin(div_mat)
     cos_mat = torch.cos(div_mat)
-    embedding = torch.cat([sin_mat, cos_mat], dim=8)
+    embedding = torch.cat([sin_mat, cos_mat], dim=4)
     return embedding.view(pos_size[:3] + (feat_dim,)).float()
 
 def roi_embedding(position_mat, feat_dim, wave_length=1000.):
