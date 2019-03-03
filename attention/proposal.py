@@ -23,7 +23,6 @@ def gen_prop(x):
         diff_pstarts, diff_pends = pstarts[1:,] - pstarts[:-1,], pends[1:,] - pends[:-1,]
         # gd_scores = gaussian_filter(diff_scores, bw)
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
-        import pdb; pdb.set_trace()
         ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y])) for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
@@ -111,10 +110,10 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             gt_k = gts[k]
             gt_k = [x.cpu().numpy() for x in gt_k]
             gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
-            # if epoch_id is not None:
-            #     sample_infos.append([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-            # else:
-            _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
+            if epoch_id is not None:
+                sample_infos.append([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
+            else:
+                _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
         if epoch_id is not None:
             pool = mp.Pool(processes=16)
             handle=[pool.apply_async(gen_prop, args=(x,), callback=call_back) for x in sample_infos]
