@@ -14,7 +14,7 @@ def gen_prop(x):
     bboxes = []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
-    min_thre = 0.1
+    min_thre = 0.3
     scores = scores_k[:num_feat]
     
     # # use change point
@@ -155,8 +155,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     # xx1, yy1 = np.maximum(rois_start[:, np.newaxis, :], rois_start[:, :, np.newaxis]), np.minimum(rois_end[:, np.newaxis, :], rois_end[:, :, np.newaxis])
     # rois_iou = (yy1 - xx1).clip(0.)
     # rois_dura_avg = 0.5 * (rois_dura[:, np.newaxis, :] + rois_dura[:, :, np.newaxis])
-    rois_relative_pos[:, :, :, 0] = 2. * (rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = 2. * (rois_end[:, np.newaxis, :] - rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
+    rois_relative_pos[:, :, :, 0] = 20. * (rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
+    rois_relative_pos[:, :, :, 1] = 20. * (rois_end[:, np.newaxis, :] - rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     # rois_relative_pos[:, :, :, 2] = 1. * (rois_start[:, np.newaxis, :] - rois_start[:, :, np.newaxis]) / rois_dura[:, :, np.newaxis].clip(1e-14)
     # rois_relative_pos[:, :, :, 3] = 1. * (rois_end[:, np.newaxis, :] - rois_end[:, :, np.newaxis]) / rois_dura[:, :, np.newaxis].clip(1e-14)
     rois_relative_pos = rois_relative_pos * rpn_rois_mask[:, :, np.newaxis, np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
