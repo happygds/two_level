@@ -173,9 +173,9 @@ class BinaryDataSet(data.Dataset):
                                              use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride,
                                              sample_duration=self.sample_duration) for x in subset_videos if x.id in vid_names]
 
+        count = 0
         if self.test_mode is not True:
             self.video_key_list = {}
-            count = 0
             if val_mode:
                 self.val_tick_list = {}
             for i, x in enumerate(self.video_list):
@@ -187,6 +187,7 @@ class BinaryDataSet(data.Dataset):
                     if val_mode:
                         self.val_tick_list[count] = frame_tick
                     count += 1
+        self.count = max(count, len(self.video_list))
 
     def __getitem__(self, index):
         real_index = index % len(self.video_list)
@@ -314,4 +315,4 @@ class BinaryDataSet(data.Dataset):
         # return out_feat, out_mask, num_feat, pos_ind, video_id
 
     def __len__(self):
-        return len(self.video_list) * self.epoch_multiplier
+        return self.count * self.epoch_multiplier
