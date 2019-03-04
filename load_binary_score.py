@@ -141,12 +141,12 @@ class BinaryDataSet(data.Dataset):
 
         # set the directory for the optical-flow features
         if feat_model == 'feature_anet_200':
-            rgb_csv_path = os.path.join(feat_root, 'rgb/csv')
+            rgb_csv_path = os.path.join(feat_root, 'feature_anet_200/rgb/csv')
             flow_csv_path = os.path.join(feat_root, 'flow/csv')
             print("using anet_200 feature from {} and {}".format(
                 rgb_csv_path, flow_csv_path))
         elif feat_model == 'c3d_feature':
-            rgb_csv_path = os.path.join(feat_root, 'feature_csv')
+            rgb_csv_path = os.path.join(feat_root, 'feature_c3d_csv')
             flow_csv_path = None
             print("using c3d feature from {}".format(rgb_csv_path))
         else:
