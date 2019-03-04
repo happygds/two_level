@@ -140,12 +140,12 @@ class BinaryDataSet(data.Dataset):
         self.bg_per_video = int(prop_per_video * (bg_ratio / denum))
 
         # set the directory for the optical-flow features
-        if args.feat_model == 'feature_anet_200':
+        if self.feat_model == 'feature_anet_200':
             rgb_csv_path = os.path.join(feat_root, 'rgb/csv')
             flow_csv_path = os.path.join(feat_root, 'flow/csv')
             print("using anet_200 feature from {} and {}".format(
                 rgb_csv_path, flow_csv_path))
-        elif args.feat_model == 'c3d_feature':
+        elif self.feat_model == 'c3d_feature':
             rgb_csv_path = os.path.join(feat_root, 'feature_csv')
             flow_csv_path = None
             print("using c3d feature from {}".format(rgb_csv_path))
