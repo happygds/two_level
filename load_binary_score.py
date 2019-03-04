@@ -191,7 +191,6 @@ class BinaryDataSet(data.Dataset):
 
     def __getitem__(self, index):
         real_index = index % self.count
-        print(index)
         if self.test_mode:
             return self.get_test_data(self.video_list[real_index])
         elif self.val_mode:
@@ -199,6 +198,7 @@ class BinaryDataSet(data.Dataset):
             tick_index = self.val_tick_list[real_index]
             return self.get_training_data(video_index, frame_tick=tick_index)
         else:
+            assert self.video_key_list is not None
             video_index = self.video_key_list[real_index]
             return self.get_training_data(video_index)
 
