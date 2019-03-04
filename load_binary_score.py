@@ -167,7 +167,7 @@ class BinaryDataSet(data.Dataset):
         feat_num = feat.shape[0]
         if feat_num > self.sample_duration:
             begin_index = random.randrange(
-                0, feat_num - self.sample_duration + 1, 16)
+                0, feat_num - self.sample_duration + 1, 32)
         else:
             begin_index = 0
         out = np.zeros((self.sample_duration, feat.shape[1]), dtype='float32')
