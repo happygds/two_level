@@ -133,6 +133,7 @@ else:
 print('generating proposals')
 pr_dict = {}
 pr_score_dict = {}
+pr_fps_dict = {}
 topk = 1
 # import pdb
 # pdb.set_trace()
@@ -154,14 +155,16 @@ def gen_prop(v):
         bboxes = [(0, float(v.frame_cnt) / v.frame_interval, 1, 1)]
 
     # pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in bboxes]
-    pr_box = [(x[0] * v.frame_interval, x[1] * v.frame_interval) for x in bboxes]
+    pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1] * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
+    pr_fps = float(v.frame_cnt) / v.duration
 
-    return v.id, pr_box, [x[3] for x in bboxes]
+    return v.id, pr_box, [x[3] for x in bboxes], pr_fps
 
 
 def call_back(rst):
     pr_dict[rst[0]] = rst[1]
     pr_score_dict[rst[0]] = rst[2]
+    pr_fps_dict[rst[0]] = rst[3]
     import sys
     # print(rst[0], len(pr_dict), len(rst[1]))
     sys.stdout.flush()
@@ -211,17 +214,27 @@ if args.write_proposals:
 
 import pandas as pd
 video_lst, t_start_lst, t_end_lst, score_lst = [], [], [], []
+f_init_lst, f_end_lst = [], []
 for k, v in pr_dict.items():
     video_lst.extend([k] * len(v))
     t_start_lst.extend([x[0] for x in v])
     t_end_lst.extend([x[1] for x in v])
     score_lst.extend(pr_score_dict[k])
+
+    fps = pr_fps_dict[k]
+    f_init_lst.extend([x[0] * fps for x in v])
+    f_end_lst.extend([x[1] * fps - 1 for x in v])
+
 prediction = pd.DataFrame({'video-id': video_lst,
                             't-start': t_start_lst,
                             't-end': t_end_lst,
                             'score': score_lst})
 dir_path = os.path.split(args.score_files[0])[0]
-prediction.to_csv('test.csv')
+thumos_results = pd.DataFrame({'video-name': video_lst,
+                            'f-init': f_init_lst,
+                            'f-end': f_end_lst,
+                            'score': score_lst})
+thumos_results.to_csv('two_level.csv')
 
 # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
 ground_truth, cls_to_idx = grd_thumos('data/thumos_annots.json', subset='validation')
@@ -232,5 +245,3 @@ nr_proposals_lst = np.around(nr_proposals_lst)
 
 for j, nr_proposals in enumerate(nr_proposals_lst[::100]):
     print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*100]))
-print('AR@1 is {:.6f}, AR@10 is {:.6f}, AR@20 is {:.6f}'.format(ar_at_prop[0], ar_at_prop[9], ar_at_prop[19]))
-print('AR@50 is {:.6f}, AR@100 is {:.6f}, AUC is {:.6f}'.format(ar_at_prop[49], ar_at_prop[99], auc))
