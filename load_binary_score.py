@@ -182,6 +182,7 @@ class BinaryDataSet(data.Dataset):
                 frame_cnt = frame_counts[x.id]
                 frame_ticks = np.arange(
                     0, frame_cnt / feat_stride - self.sample_duration, tick_stride).astype('int32')
+                import pdb; pdb.set_trace()
                 for _, frame_tick in enumerate(frame_ticks):
                     self.video_key_list[count] = i
                     if val_mode:
