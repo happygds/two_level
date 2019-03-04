@@ -148,7 +148,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             actness[k, :len(bboxes)] = rois_iou_dict[k][:rpn_post_nms_top]
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois[:, :, 1:]).mean(axis=2) > 0.).astype('float32')
-    rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
+    rois_relative_pos = np.zeros((batch_size, rpn_post_nms_top, rpn_post_nms_top, 3)).astype('float32')
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois[:, :, 1:].mean(axis=2), rpn_rois[:, :, 2] - rpn_rois[:, :, 1]
     rois_start, rois_end = rpn_rois[:, :, 1], rpn_rois[:, :, 2]
