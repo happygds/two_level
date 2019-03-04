@@ -198,6 +198,7 @@ class BinaryDataSet(data.Dataset):
             return self.get_training_data(video_index, frame_tick=tick_index)
         else:
             video_index = self.video_key_list[real_index]
+            print(video_index)
             return self.get_training_data(video_index)
 
     def _sample_feat(self, feat, label, starts, ends, frame_tick=None):
