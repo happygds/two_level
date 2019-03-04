@@ -41,8 +41,8 @@ class BinaryVideoRecord:
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
         # frame_cnt = len(files)
-        frame_cnt = frame_counts[self.id]
         import pdb; pdb.set_trace()
+        frame_cnt = frame_counts[self.id]
         self.frame_cnt = frame_cnt
         vid_name = self.id
 
