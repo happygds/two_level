@@ -171,7 +171,7 @@ class BinaryDataSet(data.Dataset):
 
         self.video_list = [BinaryVideoRecord(x, frame_path, rgb_csv_path, flow_csv_path, frame_counts,
                                              use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride,
-                                             sample_duration=self.sample_duration) if x.id in video_names for x in subset_videos]
+                                             sample_duration=self.sample_duration) for x in subset_videos if x.id in video_names]
 
         if self.test_mode is not True:
             self.video_key_list = {}
