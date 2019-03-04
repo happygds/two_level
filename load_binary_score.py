@@ -190,7 +190,7 @@ class BinaryDataSet(data.Dataset):
         self.count = max(count, len(self.video_list))
 
     def __getitem__(self, index):
-        real_index = index % len(self.video_list)
+        real_index = index
         if self.test_mode:
             return self.get_test_data(self.video_list[real_index])
         elif self.val_mode:
