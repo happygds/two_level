@@ -39,9 +39,9 @@ class BinaryVideoRecord:
                  use_flow=True, feat_stride=5, sample_duration=100, only_flow=False):
         self._data = video_record
         self.id = self._data.id
-        # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
-        # frame_cnt = len(files)
-        frame_cnt = frame_counts[self.id]
+        files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
+        frame_cnt = len(files)
+        # frame_cnt = frame_counts[self.id]
         self.frame_cnt = frame_cnt
         vid_name = self.id
 
@@ -179,17 +179,15 @@ class BinaryDataSet(data.Dataset):
             if val_mode:
                 self.val_tick_list = {}
             for i, x in enumerate(self.video_list):
-                frame_cnt = frame_counts[x.id]
+                frame_cnt = x.frame_cnt
                 frame_ticks = np.arange(
                     0, frame_cnt / feat_stride - self.sample_duration, tick_stride).astype('int32')
-                import pdb; pdb.set_trace()
                 for _, frame_tick in enumerate(frame_ticks):
                     self.video_key_list[count] = i
                     if val_mode:
                         self.val_tick_list[count] = frame_tick
                     count += 1
         self.count = max(count, len(self.video_list))
-        import pdb; pdb.set_trace()
 
     def __getitem__(self, index):
         real_index = index % self.count
