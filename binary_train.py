@@ -44,15 +44,14 @@ def main():
     db = ANetDB.get_db("1.3")
 
     # set the directory for the rgb features
-    if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
-        args.input_dim = 1024
-    elif args.feat_model == 'inception_resnet_v2' or args.feat_model == 'inception_resnet_v2_trained':
-        args.input_dim = 1536
+    if args.feat_model == 'feature_anet_200':
+        args.input_dim = 200
+    elif args.feat_model == 'c3d_feature':
+        args.input_dim = 487
+        assert args.use_flow is not True
     if args.use_flow:
         if not args.only_flow:
-            args.input_dim += 1024
-        else:
-            args.input_dim = 1024
+            args.input_dim *= 2
     print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
         args.feat_model, args.input_dim))
     # if reduce the dimension of input feature first

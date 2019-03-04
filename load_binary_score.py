@@ -118,8 +118,7 @@ class BinaryDataSet(data.Dataset):
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True, only_flow=False, num_local=8,
-                 frame_path='../../data/activitynet/activity_net_frames'):
-
+                 frame_path='/data1/matheguo/important/data/thumos14/frames'):
         self.verbose = verbose
         self.num_local = num_local
 
@@ -149,30 +148,15 @@ class BinaryDataSet(data.Dataset):
         self.bg_per_video = int(prop_per_video * (bg_ratio / denum))
 
         # set the directory for the optical-flow features
-        if feat_model.endswith('_trained'):
-            feat_flow_rpath = os.path.join(feat_root, 'i3d_flow_trained')
-        else:
-            feat_flow_rpath = os.path.join(feat_root, 'i3d_flow')
-        print("using flow feature from {}".format(feat_flow_rpath))
-
-        # obatin the h5 feature directory
-        flow_h5_path = os.path.join(feat_flow_rpath, 'i3d_flow_feature.hdf5')
-        flow_feat_key = 'i3d_flow_feature'
-        feat_rgb_path = os.path.join(feat_root, feat_model)
-        if feat_model == 'i3d_rgb' or feat_model == 'i3d_rgb_trained':
-            rgb_h5_path = os.path.join(feat_rgb_path, 'i3d_rgb_feature.hdf5')
-            rgb_feat_key = 'i3d_rgb_feature'
-        elif feat_model == 'inception_resnet_v2':
-            rgb_h5_path = os.path.join(
-                feat_rgb_path, 'new_inception_resnet.hdf5')
-            rgb_feat_key = 'inception_resnet_v2'
-        elif feat_model == 'inception_resnet_v2_trained':
-            rgb_h5_path = os.path.join(
-                feat_rgb_path, 'inception_resnet_v2_trained.hdf5')
-            rgb_feat_key = 'inception_resnet_v2'
+        if args.feat_model == 'feature_anet_200':
+            rgb_csv_path = os.path.join(feat_root, 'rgb')
+            flow_csv_path = os.path.join(feat_root, 'flow')
+            print("using anet_200 feature from {} and {}".format(rgb_csv_path, flow_csv_path))
+        elif args.feat_model == 'c3d_feature':
+            feat_csv_path = os.path.join(feat_root, 'feature_csv')
+            print("using c3d feature from {}".format(feat_csv_path))
         else:
             raise NotImplementedError('this feature has been extracted !')
-        print("using rgb feature from {}".format(rgb_h5_path))
 
         if prop_file:
             prop_info = load_proposal_file(prop_file)
