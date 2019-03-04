@@ -143,19 +143,18 @@ def gen_prop(v):
         vid = v.id
     else:
         vid = v.path.split('/')[-1].split('.')[0]
-    rois, actness, roi_scores, frm_cnt = score_dict[vid]
-    bboxes = [(roi[0], roi[1], 1, roi_score*act_score, roi_score) for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
+    rois, roi_scores = score_dict[vid]
+    bboxes = [(roi[0], roi[1], 1, roi_score) for (roi, roi_score) in zip(rois, roi_scores)]
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
-    bboxes = list(filter(lambda b: b[4] > 0.*roi_scores.max(), bboxes))
-    # bboxes = temporal_nms(bboxes, 0.9)
+    bboxes = temporal_nms(bboxes, 1e-14)
     # bboxes = Soft_NMS(bboxes, length=frm_cnt)
 
     if len(bboxes) == 0:
         bboxes = [(0, float(v.frame_cnt) / v.frame_interval, 1, 1)]
 
-    pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in bboxes]
-    # pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1] * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
+    # pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in bboxes]
+    pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1] * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
 
     return v.id, pr_box, [x[3] for x in bboxes]
 
@@ -225,7 +224,7 @@ dir_path = os.path.split(args.score_files[0])[0]
 prediction.to_csv('val.csv')
 
 # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
-ground_truth, cls_to_idx = grd_activity('data/activity_net.v1-3.min_save.json', subset='validation')
+ground_truth, cls_to_idx = grd_thumos('data/activity_net.v1-3.min_save.json', subset='validation')
 del cls_to_idx['background']
 auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=100,
                                                      tiou_thresholds=np.linspace(0.5, 0.95, 10))
