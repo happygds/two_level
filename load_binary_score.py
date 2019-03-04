@@ -155,21 +155,23 @@ class BinaryDataSet(data.Dataset):
         if prop_file:
             prop_info = load_proposal_file(prop_file)
             frame_counts = {}
+            vid_names = []
             for i, vid_info in enumerate(prop_info):
                 vid_name = os.path.split(vid_info[0])[1]
+                vid_names.append(vid_name)
                 frame_counts[vid_name] = int(vid_info[1])
         else:
             frame_counts = None
+            raise NotImplementedError('no propfile !')
 
         if val_mode is True:
             tick_stride = self.sample_duration // 2
         else:
             tick_stride = self.sample_duration // 4
 
-        import pdb; pdb.set_trace()
         self.video_list = [BinaryVideoRecord(x, frame_path, rgb_csv_path, flow_csv_path, frame_counts,
                                              use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride,
-                                             sample_duration=self.sample_duration) for x in subset_videos]
+                                             sample_duration=self.sample_duration) if x.id in video_names for x in subset_videos]
 
         if self.test_mode is not True:
             self.video_key_list = {}
