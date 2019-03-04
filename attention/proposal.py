@@ -14,7 +14,7 @@ def gen_prop(x):
     bboxes = []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
-    min_thre = 0.1
+    min_thre = 0.3
     scores = scores_k[:num_feat]
     
     # # use change point
@@ -59,7 +59,7 @@ def gen_prop(x):
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0., 
-                   rpn_post_nms_top=100, feat_stride=16, epoch_id=None):
+                   rpn_post_nms_top=64, feat_stride=16, epoch_id=None):
     """
     Parameters
     ----------
@@ -110,15 +110,15 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             gt_k = gts[k]
             gt_k = [x.cpu().numpy() for x in gt_k]
             gt_k = list(filter(lambda b: b[1] + b[0] > 0, gt_k))
-            if epoch_id is not None:
-                sample_infos.append([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-            else:
-                _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-        if epoch_id is not None:
-            pool = mp.Pool(processes=16)
-            handle=[pool.apply_async(gen_prop, args=(x,), callback=call_back) for x in sample_infos]
-            pool.close()
-            pool.join()
+            # if epoch_id is not None:
+            #     sample_infos.append([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
+            # else:
+            _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
+        # if epoch_id is not None:
+        #     pool = mp.Pool(processes=16)
+        #     handle=[pool.apply_async(gen_prop, args=(x,), callback=call_back) for x in sample_infos]
+        #     pool.close()
+        #     pool.join()
 
     # if test_mode:
     #     assert batch_size == 1
