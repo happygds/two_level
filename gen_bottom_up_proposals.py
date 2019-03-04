@@ -16,7 +16,7 @@ from ops.thumos_db import THUMOSDB
 from ops.detection_metrics import get_temporal_proposal_recall, name_proposal
 from ops.sequence_funcs import temporal_nms
 from ops.io import dump_window_list
-from ops.eval_utils import area_under_curve, grd_activity
+from ops.eval_utils import area_under_curve, grd_thumos
 
 parser = argparse.ArgumentParser()
 parser.add_argument('score_files', type=str, nargs='+')
@@ -224,7 +224,7 @@ dir_path = os.path.split(args.score_files[0])[0]
 prediction.to_csv('val.csv')
 
 # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
-ground_truth, cls_to_idx = grd_thumos('data/activity_net.v1-3.min_save.json', subset='validation')
+ground_truth, cls_to_idx = grd_thumos('/data1/matheguo/important/data/thumos14/thumos_annots.json', subset='validation')
 del cls_to_idx['background']
 auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=100,
                                                      tiou_thresholds=np.linspace(0.5, 0.95, 10))
