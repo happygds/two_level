@@ -1,7 +1,7 @@
 import torch.utils.data as data
 
 import os, glob
-import h5py
+import pandas as pd
 import math
 import random
 from numpy.random import randint
@@ -34,21 +34,20 @@ class BinaryInstance:
 
 
 class BinaryVideoRecord:
-    def __init__(self, video_record, frame_path, flow_h5_path, rgb_h5_path,
-                 flow_feat_key, rgb_feat_key, frame_counts=None, use_flow=True, 
-                 feat_stride=8, sample_duration=100, only_flow=False):
+    def __init__(self, video_record, frame_path, rgb_csv_path, flow_csv_path, frame_counts=None, 
+                 use_flow=True, feat_stride=6, sample_duration=100, only_flow=False):
         self._data = video_record
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
         # frame_cnt = len(files)
         # frame_cnt = frame_counts[self.id]
-        vid_name = 'v_{}'.format(self.id)
+        vid_name = self.id
 
-        with h5py.File(rgb_h5_path, 'r') as f:
-            rgb_feat = f[vid_name][rgb_feat_key][:]
+        with pd.read_csv(rgb_csv_path) as f:
+            rgb_feat = f.values
         if use_flow:
-            with h5py.File(flow_h5_path, 'r') as f:
-                flow_feat = f[vid_name][flow_feat_key][:]
+            with pd.read_csv(flow_csv_path) as f:
+                flow_feat = f.values
             if only_flow:
                 rgb_feat = flow_feat
             else:
@@ -59,24 +58,9 @@ class BinaryVideoRecord:
                         rgb_feat.shape, flow_feat.shape, vid_name)
                 rgb_feat = np.concatenate(
                     (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
-        if rgb_feat.shape[0] % 2 != 0:
-            rgb_feat = rgb_feat[:-1]
         shp = rgb_feat.shape
-        rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
-        shp = rgb_feat.shape
-
-        # # use linear interpolation to resize the feature into a fixed length
-        ori_grids = np.arange(0, shp[0])
-        if shp[0] > 1:
-            f = interpolate.interp1d(ori_grids, rgb_feat, axis=0)
-            x_new=[i*float(shp[0]-1)/(sample_duration-1) for i in range(sample_duration)]
-            output = f(x_new)
-        else:
-            output = np.ones((sample_duration, 1)) * rgb_feat
-        rgb_feat = output.astype('float32')
-        assert rgb_feat.shape[0] == sample_duration
         
-        self.feat = rgb_feat 
+        self.feat = rgb_feat.astype('float32') 
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
         self.starts = np.zeros((rgb_feat.shape[0],), dtype='float32')
         self.ends = np.zeros((rgb_feat.shape[0],), dtype='float32')
@@ -149,12 +133,13 @@ class BinaryDataSet(data.Dataset):
 
         # set the directory for the optical-flow features
         if args.feat_model == 'feature_anet_200':
-            rgb_csv_path = os.path.join(feat_root, 'rgb')
-            flow_csv_path = os.path.join(feat_root, 'flow')
+            rgb_csv_path = os.path.join(feat_root, 'rgb/csv')
+            flow_csv_path = os.path.join(feat_root, 'flow/csv')
             print("using anet_200 feature from {} and {}".format(rgb_csv_path, flow_csv_path))
         elif args.feat_model == 'c3d_feature':
-            feat_csv_path = os.path.join(feat_root, 'feature_csv')
-            print("using c3d feature from {}".format(feat_csv_path))
+            rgb_csv_path = os.path.join(feat_root, 'feature_csv')
+            flow_csv_path = None
+            print("using c3d feature from {}".format(rgb_csv_path))
         else:
             raise NotImplementedError('this feature has been extracted !')
 
@@ -166,8 +151,8 @@ class BinaryDataSet(data.Dataset):
                 frame_counts[vid_name] = int(vid_info[1])
         else:
             frame_counts = None
-        self.video_list = [BinaryVideoRecord(x, frame_path, flow_h5_path, rgb_h5_path, flow_feat_key, rgb_feat_key,
-                                             frame_counts, use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride, 
+        self.video_list = [BinaryVideoRecord(x, frame_path, rgb_csv_path, flow_csv_path, frame_counts, 
+                                             use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride, 
                                              sample_duration=self.sample_duration) for x in subset_videos]
 
 

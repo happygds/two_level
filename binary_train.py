@@ -15,6 +15,7 @@ from binary_model import BinaryClassifier
 from transforms import *
 from ops.utils import get_actionness_configs, ScheduledOptim
 from ops.anet_db import ANetDB
+from ops.thumos_db import THUMOSDB
 from torch.utils import model_zoo
 from attention.utils import Rank_Criterion, CE_Criterion_multi
 # from tensorboard import Logger
@@ -41,7 +42,8 @@ def main():
     args.dropout = 0.8
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
-    db = ANetDB.get_db("1.3")
+    # db = ANetDB.get_db("1.3")
+    db = THUMOSDB.get_db()
 
     # set the directory for the rgb features
     if args.feat_model == 'feature_anet_200':
@@ -98,8 +100,8 @@ def main():
         dataset_configs['train_list'])
     val_prop_file = 'data/{}_proposal_list.txt'.format(
         dataset_configs['test_list'])
-    train_videos = db.get_subset_videos('training')
-    val_videos = db.get_subset_videos('validation')
+    train_videos = db.get_subset_videos('validation')
+    val_videos = db.get_subset_videos('testing')
     train_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, train_prop_file, train_videos,
                       exclude_empty=True, body_seg=args.num_body_segments,
