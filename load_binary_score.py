@@ -35,7 +35,7 @@ class BinaryInstance:
 
 class BinaryVideoRecord:
     def __init__(self, video_record, frame_path, rgb_csv_path, flow_csv_path, frame_counts=None, 
-                 use_flow=True, feat_stride=6, sample_duration=100, only_flow=False):
+                 use_flow=True, feat_stride=5, sample_duration=100, only_flow=False):
         self._data = video_record
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
@@ -95,10 +95,10 @@ class BinaryDataSet(data.Dataset):
 
     def __init__(self, feat_root, feat_model, prop_file=None,
                  subset_videos=None, body_seg=5, video_centric=True,
-                 test_mode=False, feat_stride=16, input_dim=1024,
+                 test_mode=False, feat_stride=5, input_dim=400,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
-                 bg_coverage_thresh=0.02, sample_duration=2048,
+                 bg_coverage_thresh=0.02, sample_duration=640,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True, only_flow=False, num_local=8,
@@ -194,23 +194,6 @@ class BinaryDataSet(data.Dataset):
         label = video.label
         starts, ends = video.starts, video.ends
         num_feat = feat.shape[0]
-
-        # sample_duration = num_feat
-        # for i, gt in enumerate(video.gts):
-        #     begin_ind, end_ind = gt / float(num_feat)
-        #     nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
-        #     label[nbegin_ind:nend_ind+1] = 1.
-        #     dura_i = sample_duration * (end_ind - begin_ind) / 10.
-        #     try:
-        #         if nbegin_ind < nend_ind:
-        #             start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
-        #                         int(min(math.ceil(sample_duration * begin_ind + dura_i), len(label)-1))
-        #             end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
-        #                         int(min(math.ceil(sample_duration * end_ind + dura_i), len(label)-1))
-        #             starts[start_nbegin:start_nend+1], ends[end_nbegin:end_nend+1] = 1., 1.
-        #     except IndexError:
-        #         print(len(self.ends), nbegin_ind, nend_ind)
-        #         import pdb; pdb.set_trace()
 
         out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len = self._sample_feat(feat, label, starts, ends)
         out_mask = np.zeros_like(out_label).astype('float32')
