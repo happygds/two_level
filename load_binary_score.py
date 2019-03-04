@@ -41,7 +41,6 @@ class BinaryVideoRecord:
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
         # frame_cnt = len(files)
-        import pdb; pdb.set_trace()
         frame_cnt = frame_counts[self.id]
         self.frame_cnt = frame_cnt
         vid_name = self.id
@@ -167,6 +166,7 @@ class BinaryDataSet(data.Dataset):
         else:
             tick_stride = self.sample_duration // 4
 
+        import pdb; pdb.set_trace()
         self.video_list = [BinaryVideoRecord(x, frame_path, rgb_csv_path, flow_csv_path, frame_counts,
                                              use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride,
                                              sample_duration=self.sample_duration) for x in subset_videos]
