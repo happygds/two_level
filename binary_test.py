@@ -22,7 +22,7 @@ parser.add_argument('subset', type=str, choices=[
 parser.add_argument('weights', type=str)
 parser.add_argument('save_scores', type=str)
 parser.add_argument('--save_raw_scores', type=str, default=None)
-parser.add_argument('--frame_interval', type=int, default=16)
+parser.add_argument('--frame_interval', type=int, default=5)
 parser.add_argument('--test_batchsize', type=int, default=32)
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--max_num', type=int, default=-1)
@@ -38,9 +38,9 @@ parser.add_argument('--result_path', default='../../result/activitynet/self_att'
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | TAG')
-parser.add_argument('--feat_model', default='i3d_rgb', type=str,
+parser.add_argument('--feat_model', default='feature_anet_200', type=str,
                     help='the model for extracting pretrained features ('
-                    'i3d_rgb | i3d_rgb_trained | inception_resnet_v2 | inception_resnet_v2_trained)')
+                    'feature_anet_200 | c3d_feature)')
 parser.add_argument('--use_flow', default=True, type=int,
                     help='whether use i3d_flow feature')
 parser.add_argument('--only_flow', default=False, type=int,
@@ -96,15 +96,14 @@ elif args.dataset == 'activitynet1.3':
         test_prop_file = None
 
 # set the directory for the rgb features
-if args.feat_model == 'i3d_rgb' or args.feat_model == 'i3d_rgb_trained':
-    args.input_dim = 1024
-elif args.feat_model == 'inception_resnet_v2' or args.feat_model == 'inception_resnet_v2_trained':
-    args.input_dim = 1536
+if args.feat_model == 'feature_anet_200':
+    args.input_dim = 200
+elif args.feat_model == 'c3d_feature':
+    args.input_dim = 487
+    assert args.use_flow is not True
 if args.use_flow:
     if not args.only_flow:
-        args.input_dim += 1024
-    else:
-        args.input_dim = 1024
+        args.input_dim *= 2
 print(("=> the input features are extracted from '{}' and the dim is '{}'").format(
     args.feat_model, args.input_dim))
 # if reduce the dimension of input feature first
@@ -134,17 +133,27 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     net.cuda()
     while True:
         index = index_queue.get()
-        feature, feature_mask, num_feat, pos_ind, video_id = dataset[index]
-        feature = feature.cuda()
-        feature_mask = feature_mask.cuda()
-        pos_ind = pos_ind.cuda()
-        video_id = video_id
-        with torch.no_grad():
-            rois, actness, roi_scores = net(
-                feature, pos_ind, feature_mask=feature_mask, test_mode=True)
-            rois, actness, roi_scores = rois[0].cpu().numpy(
-            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
-            outputs = [rois, actness, roi_scores, num_feat]
+        feats_gen, video_id = dataset[index]
+
+        rois, roi_scores = [], [], []
+        for feat_gen in feats_gen:
+            feature, feature_mask, seg_ind, pos_ind = feat_gen
+            feature = feature.cuda()
+            feature_mask = feature_mask.cuda()
+            pos_ind = pos_ind.cuda()
+            video_id = video_id
+            with torch.no_grad():
+                this_rois, this_actness, this_roi_scores = net(
+                    feature, pos_ind, feature_mask=feature_mask, test_mode=True)
+                this_rois, this_actness, this_roi_scores = this_rois.cpu().numpy(
+                ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()[:, :, 1]
+                this_rois += seg_ind.cpu().numpy().reshape((-1, 1, 1))
+                this_roi_scores *= this_actness
+                
+                this_rois, this_roi_scores = list(this_rois.reshape((-1, 2))), list(this_roi_scores.reshape((-1)))
+                rois.extend(this_rois)
+                roi_scores.extend(this_roi_scores)
+        outputs = [rois, roi_scores]
 
         result_queue.put(
             (dataset.video_list[index].id.split('/')[-1], outputs))
@@ -184,7 +193,8 @@ if __name__ == '__main__':
         checkpoint['epoch'], checkpoint['best_loss']))
     base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
         checkpoint['state_dict'].items())}
-    db = ANetDB.get_db("1.3")
+    # db = ANetDB.get_db("1.3")
+    db = THUMOSDB.get_db()
     val_videos = db.get_subset_videos(args.subset)
 
     # loader = torch.utils.data.DataLoader(

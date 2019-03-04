@@ -113,7 +113,6 @@ class BinaryDataSet(data.Dataset):
         self.epoch_multiplier = epoch_multiplier
         self.input_dim = input_dim
         self.feat_stride = feat_stride
-        assert feat_stride % 8 == 0
         self.sample_duration = sample_duration // feat_stride
 
         self.test_mode = test_mode
@@ -224,33 +223,46 @@ class BinaryDataSet(data.Dataset):
         frame_ticks = np.arange(feat.shape[0] - self.sample_duration, self.sample_duration // 2).astype('int32')
         num_sampled_frames = len(frame_ticks)
 
-        pos_ind = np.ones((gen_batchsize, 1)) * np.arange(self.sample_duration).reshape((1, -1))
-        pos_ind = torch.from_numpy(pos_ind).long()
-
-        def frame_gen(batchsize):
+        def feat_gen(batchsize):
             feats= []
+            seg_inds = []
             cnt = 0
             for idx, seg_ind in enumerate(frame_ticks):
                 p = int(seg_ind)
-                feats.extend(feat[p:min(frame_cnt, p+self.sample_duration)])
+                feats.append(feat[p:min(frame_cnt, p+self.sample_duration)])
                 cnt += 1
+                seg_inds.append(seg_ind)
 
                 if cnt % batchsize == 0:
-                    feats = np.stack(feats, axis=0)
-                    yield feats
-                    feats = []
+                    pos_ind = np.ones((len(feats), 1)) * np.arange(self.sample_duration).reshape((1, -1))
+                    pos_ind = torch.from_numpy(pos_ind).long()
+
+                    out_feat, out_inds = np.stack(feats, axis=0), np.stack(seg_inds, axis=0).reshape((-1,))
+                    out_mask = (np.abs(feats).mean(axis=2) > 0.).astype('float32')
+                    out_feat = torch.from_numpy(out_feat)
+                    out_mask = torch.from_numpy(out_mask)
+                    out_inds = torch.from_numpy(out_inds)
+                    yield out_feat, out_mask, out_inds, pos_ind
+                    feats, seg_inds = [], []
             
             if len(feats) > 0:
-                yield feats
+                pos_ind = np.ones((len(feats), 1)) * np.arange(self.sample_duration).reshape((1, -1))
+                pos_ind = torch.from_numpy(pos_ind).long()
 
-        return frame_gen(gen_batchsize), len(frame_ticks)
+                out_feat = np.stack(feats, axis=0)
+                out_mask = (np.abs(feats).mean(axis=2) > 0.).astype('float32')
+                out_feat = torch.from_numpy(out_feat)
+                out_mask = torch.from_numpy(out_mask)
+                yield out_feat, out_mask, seg_inds, pos_ind
 
-        num_feat = feat.shape[0]
-        feats_mask = (np.abs(feats).mean(axis=2) > 0.).astype('float32')
-        out_feat = torch.from_numpy(feats)
-        out_mask = torch.from_numpy(feats_mask)
+        return feat_gen(gen_batchsize), video_id
 
-        return out_feat, out_mask, num_feat, pos_ind, video_id
+        # num_feat = feat.shape[0]
+        # feats_mask = (np.abs(feats).mean(axis=2) > 0.).astype('float32')
+        # out_feat = torch.from_numpy(feats)
+        # out_mask = torch.from_numpy(feats_mask)
+
+        # return out_feat, out_mask, num_feat, pos_ind, video_id
 
     def __len__(self):
         return len(self.video_list) * self.epoch_multiplier
