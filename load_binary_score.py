@@ -198,7 +198,7 @@ class BinaryDataSet(data.Dataset):
             tick_index = self.val_tick_list[real_index]
             return self.get_training_data(video_index, frame_tick=tick_index)
         else:
-            assert real_index in self.video_key_list.keys()
+            assert real_index in self.video_key_list.keys(), "{} not in video_key_list".format(real_index)
             video_index = self.video_key_list[real_index]
             return self.get_training_data(video_index)
 
