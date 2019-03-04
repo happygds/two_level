@@ -191,6 +191,7 @@ class BinaryDataSet(data.Dataset):
 
     def __getitem__(self, index):
         real_index = index % self.count
+        print(index)
         if self.test_mode:
             return self.get_test_data(self.video_list[real_index])
         elif self.val_mode:
@@ -199,7 +200,6 @@ class BinaryDataSet(data.Dataset):
             return self.get_training_data(video_index, frame_tick=tick_index)
         else:
             video_index = self.video_key_list[real_index]
-            print(video_index)
             return self.get_training_data(video_index)
 
     def _sample_feat(self, feat, label, starts, ends, frame_tick=None):
