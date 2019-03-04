@@ -51,6 +51,8 @@ def main():
     elif args.feat_model == 'c3d_feature':
         args.input_dim = 487
         assert args.use_flow is not True
+    else:
+        raise NotImplementedError('feature {} doesnot exist'.format(args.feat_model))
     if args.use_flow:
         if not args.only_flow:
             args.input_dim *= 2
