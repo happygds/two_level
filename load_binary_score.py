@@ -188,6 +188,7 @@ class BinaryDataSet(data.Dataset):
                         self.val_tick_list[count] = frame_tick
                     count += 1
         self.count = max(count, len(self.video_list))
+        import pdb; pdb.set_trace()
 
     def __getitem__(self, index):
         real_index = index % self.count
