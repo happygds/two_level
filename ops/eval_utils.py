@@ -276,3 +276,45 @@ def grd_activity(annotation_path, subset='validation'):
                                  't-end': t_end_lst})
 
     return ground_truth, class_to_idx
+
+def get_thumos_names_and_annotations(data, subset):
+    video_names = []
+    annotations = []
+    class_to_idx = data['cls2idx']
+
+    for key, value in data['database'].items():
+        this_subset = value['subset']
+        if subset != 'all':
+            if this_subset == subset:
+                video_names.append(key)
+                annotations.append(value['annotations'])
+        else:
+            video_names.append(key)
+            annotations.append(value['annotations'])
+
+    return video_names, annotations, class_to_idx
+
+def grd_thumos(root_path, annotation_path, subset='testing'):
+    data = load_annotation_data(annotation_path)
+    video_names, annotations, class_to_idx = get_thumos_names_and_annotations(data, subset)
+
+    video_lst, t_start_lst, t_end_lst, label_lst = [], [], [], []
+    for i in range(len(video_names)):
+        if i % 1000 == 0:
+            print('dataset loading [{}/{}]'.format(i, len(video_names)))
+
+        sample_annots = annotations[i]
+        for k, annotation in enumerate(sample_annots):
+            begin_t = annotation['segment'][0]
+            end_t = annotation['segment'][1]
+            t_start_lst.append(begin_t)
+            t_end_lst.append(end_t)
+            label_lst.append(annotation['label'])
+            video_lst.append(video_names[i])
+
+    ground_truth = pd.DataFrame({'video-id': video_lst,
+                                 't-start': t_start_lst,
+                                 't-end': t_end_lst,
+                                 'label': label_lst})
+
+    return ground_truth, class_to_idx
