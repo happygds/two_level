@@ -1,6 +1,7 @@
 import torch.utils.data as data
 
-import os, glob
+import os
+import glob
 import pandas as pd
 import math
 import random
@@ -34,7 +35,7 @@ class BinaryInstance:
 
 
 class BinaryVideoRecord:
-    def __init__(self, video_record, frame_path, rgb_csv_path, flow_csv_path, frame_counts=None, 
+    def __init__(self, video_record, frame_path, rgb_csv_path, flow_csv_path, frame_counts=None,
                  use_flow=True, feat_stride=5, sample_duration=100, only_flow=False):
         self._data = video_record
         self.id = self._data.id
@@ -60,17 +61,19 @@ class BinaryVideoRecord:
                 rgb_feat = np.concatenate(
                     (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
         shp = rgb_feat.shape
-        
-        self.feat = rgb_feat.astype('float32') 
+
+        self.feat = rgb_feat.astype('float32')
         self.label = np.zeros((rgb_feat.shape[0],), dtype='float32')
         self.starts = np.zeros((rgb_feat.shape[0],), dtype='float32')
         self.ends = np.zeros((rgb_feat.shape[0],), dtype='float32')
         gts = []
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
-            gts.append([frame_cnt * begin_ind / feat_stride, frame_cnt * end_ind / feat_stride])
+            gts.append([frame_cnt * begin_ind / feat_stride,
+                        frame_cnt * end_ind / feat_stride])
             # gts.append([sample_duration * begin_ind, sample_duration * end_ind])
-            nbegin_ind, nend_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
+            nbegin_ind, nend_ind = int(round(
+                frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
             # nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[nbegin_ind:nend_ind+1] = 1.
             dura_i = frame_cnt * (end_ind - begin_ind) / feat_stride / 10.
@@ -78,17 +81,21 @@ class BinaryVideoRecord:
             try:
                 if nbegin_ind < nend_ind:
                     start_nbegin, start_nend = int(max(math.floor(frame_cnt * begin_ind / feat_stride - dura_i), 0)), \
-                                int(min(math.ceil(frame_cnt * begin_ind / feat_stride + dura_i), len(self.label)-1))
+                        int(min(math.ceil(frame_cnt * begin_ind /
+                                          feat_stride + dura_i), len(self.label)-1))
                     end_nbegin, end_nend = int(max(math.floor(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
-                                int(min(math.ceil(frame_cnt * end_ind / feat_stride + dura_i), len(self.label)-1))
+                        int(min(math.ceil(frame_cnt * end_ind /
+                                          feat_stride + dura_i), len(self.label)-1))
                     # start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
                     #             int(min(math.ceil(sample_duration * begin_ind + dura_i), len(self.label)-1))
                     # end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
                     #             int(min(math.ceil(sample_duration * end_ind + dura_i), len(self.label)-1))
-                    self.starts[start_nbegin:start_nend+1], self.ends[end_nbegin:end_nend+1] = 1., 1.
+                    self.starts[start_nbegin:start_nend +
+                                1], self.ends[end_nbegin:end_nend+1] = 1., 1.
             except IndexError:
                 print(len(self.ends), nbegin_ind, nend_ind)
-                import pdb; pdb.set_trace()
+                import pdb
+                pdb.set_trace()
         self.gts = np.asarray(gts)
 
 
@@ -101,7 +108,7 @@ class BinaryDataSet(data.Dataset):
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
                  bg_coverage_thresh=0.02, sample_duration=128*5,
                  gt_as_fg=True, test_interval=6, verbose=True,
-                 exclude_empty=True, epoch_multiplier=1,
+                 exclude_empty=True, epoch_multiplier=1, val_mode=False,
                  use_flow=True, only_flow=False, num_local=8,
                  frame_path='/data1/matheguo/important/data/thumos14/frames'):
         self.verbose = verbose
@@ -116,6 +123,7 @@ class BinaryDataSet(data.Dataset):
         self.sample_duration = sample_duration // feat_stride
 
         self.test_mode = test_mode
+        self.val_mode = val_mode
         self.test_interval = test_interval
 
         self.fg_iou_thresh = fg_iou_thresh
@@ -135,7 +143,8 @@ class BinaryDataSet(data.Dataset):
         if args.feat_model == 'feature_anet_200':
             rgb_csv_path = os.path.join(feat_root, 'rgb/csv')
             flow_csv_path = os.path.join(feat_root, 'flow/csv')
-            print("using anet_200 feature from {} and {}".format(rgb_csv_path, flow_csv_path))
+            print("using anet_200 feature from {} and {}".format(
+                rgb_csv_path, flow_csv_path))
         elif args.feat_model == 'c3d_feature':
             rgb_csv_path = os.path.join(feat_root, 'feature_csv')
             flow_csv_path = None
@@ -151,25 +160,54 @@ class BinaryDataSet(data.Dataset):
                 frame_counts[vid_name] = int(vid_info[1])
         else:
             frame_counts = None
-        self.video_list = [BinaryVideoRecord(x, frame_path, rgb_csv_path, flow_csv_path, frame_counts, 
-                                             use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride, 
+
+        if val_mode is True:
+            tick_stride = self.sample_duration // 2
+        else:
+            tick_stride = self.sample_duration // 4
+
+        self.video_list = [BinaryVideoRecord(x, frame_path, rgb_csv_path, flow_csv_path, frame_counts,
+                                             use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride,
                                              sample_duration=self.sample_duration) for x in subset_videos]
 
+        if self.test_mode is not True:
+            self.video_key_list = {}
+            count = 0
+            if val_mode:
+                self.val_tick_list = {}
+            for i, x in enumerate(self.video_list):
+                frame_cnt = frame_counts[x.id]
+                frame_ticks = np.arange(
+                    0, frame_cnt / feat_stride - self.sample_duration, tick_stride).astype('int32')
+                for frame_tick in frame_ticks:
+                    self.video_key_list[count] = i
+                    if val_mode:
+                        self.val_tick_list[count] = frame_tick
+                    count += 1
 
     def __getitem__(self, index):
         real_index = index % len(self.video_list)
         if self.test_mode:
             return self.get_test_data(self.video_list[real_index])
+        elif self.val_mode:
+            video_index = self.video_key_list[real_index]
+            tick_index = self.val_tick_list[real_index]
+            return self.get_training_data(video_index, frame_tick=tick_index)
         else:
-            return self.get_training_data(real_index)
+            video_index = self.video_key_list[real_index]
+            return self.get_training_data(video_index)
 
-    def _sample_feat(self, feat, label, starts, ends):
+    def _sample_feat(self, feat, label, starts, ends, frame_tick=None):
         feat_num = feat.shape[0]
-        if feat_num > self.sample_duration:
-            begin_index = random.randrange(
-                0, feat_num - self.sample_duration + 1, 32)
+        if frame_tick is None:
+            if feat_num > self.sample_duration:
+                begin_index = random.randrange(
+                    0, feat_num - self.sample_duration + 1, 32)
+            else:
+                begin_index = 0
         else:
-            begin_index = 0
+            begin_index = frame_tick
+
         out = np.zeros((self.sample_duration, feat.shape[1]), dtype='float32')
         out_label = np.zeros((self.sample_duration,), dtype='float32')
         out_starts = np.zeros((self.sample_duration,), dtype='float32')
@@ -189,14 +227,15 @@ class BinaryDataSet(data.Dataset):
 
         return out, out_label, out_starts, out_ends, begin_index, end_ind, min_len
 
-    def get_training_data(self, index):
+    def get_training_data(self, index, frame_tick=None):
         video = self.video_list[index]
         feat = video.feat
         label = video.label
         starts, ends = video.starts, video.ends
         num_feat = feat.shape[0]
 
-        out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len = self._sample_feat(feat, label, starts, ends)
+        out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len \
+            = self._sample_feat(feat, label, starts, ends, frame_tick=frame_tick)
         out_mask = np.zeros_like(out_label).astype('float32')
         out_mask[:min_len] = 1.
 
@@ -208,7 +247,8 @@ class BinaryDataSet(data.Dataset):
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
         out_label = torch.from_numpy(out_label)
-        out_starts, out_ends = torch.from_numpy(out_starts), torch.from_numpy(out_ends)
+        out_starts, out_ends = torch.from_numpy(
+            out_starts), torch.from_numpy(out_ends)
         out_mask = torch.from_numpy(out_mask)
 
         # print(out_feats.size(), out_prop_type.size())
@@ -220,11 +260,12 @@ class BinaryDataSet(data.Dataset):
         feat = video.feat
         frame_cnt = video.frame_cnt
 
-        frame_ticks = np.arange(feat.shape[0] - self.sample_duration, self.sample_duration // 2).astype('int32')
+        frame_ticks = np.arange(
+            0, feat.shape[0] - self.sample_duration, self.sample_duration // 2).astype('int32')
         num_sampled_frames = len(frame_ticks)
 
         def feat_gen(batchsize):
-            feats= []
+            feats = []
             seg_inds = []
             cnt = 0
             for idx, seg_ind in enumerate(frame_ticks):
@@ -234,19 +275,23 @@ class BinaryDataSet(data.Dataset):
                 seg_inds.append(seg_ind)
 
                 if cnt % batchsize == 0:
-                    pos_ind = np.ones((len(feats), 1)) * np.arange(self.sample_duration).reshape((1, -1))
+                    pos_ind = np.ones(
+                        (len(feats), 1)) * np.arange(self.sample_duration).reshape((1, -1))
                     pos_ind = torch.from_numpy(pos_ind).long()
 
-                    out_feat, out_inds = np.stack(feats, axis=0), np.stack(seg_inds, axis=0).reshape((-1,))
-                    out_mask = (np.abs(feats).mean(axis=2) > 0.).astype('float32')
+                    out_feat, out_inds = np.stack(feats, axis=0), np.stack(
+                        seg_inds, axis=0).reshape((-1,))
+                    out_mask = (np.abs(feats).mean(axis=2)
+                                > 0.).astype('float32')
                     out_feat = torch.from_numpy(out_feat)
                     out_mask = torch.from_numpy(out_mask)
                     out_inds = torch.from_numpy(out_inds)
                     yield out_feat, out_mask, out_inds, pos_ind
                     feats, seg_inds = [], []
-            
+
             if len(feats) > 0:
-                pos_ind = np.ones((len(feats), 1)) * np.arange(self.sample_duration).reshape((1, -1))
+                pos_ind = np.ones((len(feats), 1)) * \
+                    np.arange(self.sample_duration).reshape((1, -1))
                 pos_ind = torch.from_numpy(pos_ind).long()
 
                 out_feat = np.stack(feats, axis=0)
