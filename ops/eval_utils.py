@@ -305,12 +305,13 @@ def grd_thumos(root_path, annotation_path, subset='testing'):
 
         sample_annots = annotations[i]
         for k, annotation in enumerate(sample_annots):
-            begin_t = annotation['segment'][0]
-            end_t = annotation['segment'][1]
-            t_start_lst.append(begin_t)
-            t_end_lst.append(end_t)
-            label_lst.append(annotation['label'])
-            video_lst.append(video_names[i])
+            if annotation['label'] >= 0:
+                begin_t = annotation['segment'][0]
+                end_t = annotation['segment'][1]
+                t_start_lst.append(begin_t)
+                t_end_lst.append(end_t)
+                label_lst.append(annotation['label'])
+                video_lst.append(video_names[i])
 
     ground_truth = pd.DataFrame({'video-id': video_lst,
                                  't-start': t_start_lst,
