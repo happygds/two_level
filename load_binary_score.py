@@ -245,8 +245,8 @@ class BinaryDataSet(data.Dataset):
         out_mask[:min_len] = 1.
 
         # convert label using haar wavelet decomposition
-        gts = np.zeros((64, 2), dtype='float32')
-        video_gts = np.zeros((64, 2), dtype='float32')
+        gts = np.zeros((128, 2), dtype='float32')
+        video_gts = np.zeros((128, 2), dtype='float32')
         assert len(video.gts) <= gts.shape[0]
         gts[:len(video.gts)] = (video.gts - begin_ind).clip(0., min_len)
         video_gts[:len(video.gts)] = video.gts
