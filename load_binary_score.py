@@ -40,7 +40,7 @@ class BinaryVideoRecord:
         self.id = self._data.id
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
         # frame_cnt = len(files)
-        # frame_cnt = frame_counts[self.id]
+        frame_cnt = frame_counts[self.id]
         vid_name = self.id
 
         with pd.read_csv(rgb_csv_path) as f:
@@ -67,23 +67,23 @@ class BinaryVideoRecord:
         gts = []
         for i, gt in enumerate(self._data.instance):
             begin_ind, end_ind = gt.covering_ratio
-            # gts.append([frame_cnt * begin_ind / feat_stride, frame_cnt * end_ind / feat_stride])
-            gts.append([sample_duration * begin_ind, sample_duration * end_ind])
-            # nbegin_ind, nend_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
-            nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
+            gts.append([frame_cnt * begin_ind / feat_stride, frame_cnt * end_ind / feat_stride])
+            # gts.append([sample_duration * begin_ind, sample_duration * end_ind])
+            nbegin_ind, nend_ind = int(round(frame_cnt * begin_ind / feat_stride)), int(round(frame_cnt * end_ind / feat_stride))
+            # nbegin_ind, nend_ind = int(round(sample_duration * begin_ind)), int(round(sample_duration * end_ind))
             self.label[nbegin_ind:nend_ind+1] = 1.
-            # dura_i = frame_cnt * (end_ind - begin_ind) / feat_stride / 10.
-            dura_i = sample_duration * (end_ind - begin_ind) / 10.
+            dura_i = frame_cnt * (end_ind - begin_ind) / feat_stride / 10.
+            # dura_i = sample_duration * (end_ind - begin_ind) / 10.
             try:
                 if nbegin_ind < nend_ind:
-                    # start_nbegin, start_nend = int(max(math.floor(frame_cnt * begin_ind / feat_stride - dura_i), 0)), \
-                    #             int(min(math.ceil(frame_cnt * begin_ind / feat_stride + dura_i), len(self.label)-1))
-                    # end_nbegin, end_nend = int(max(math.floor(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
-                    #             int(min(math.ceil(frame_cnt * end_ind / feat_stride + dura_i), len(self.label)-1))
-                    start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
-                                int(min(math.ceil(sample_duration * begin_ind + dura_i), len(self.label)-1))
-                    end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
-                                int(min(math.ceil(sample_duration * end_ind + dura_i), len(self.label)-1))
+                    start_nbegin, start_nend = int(max(math.floor(frame_cnt * begin_ind / feat_stride - dura_i), 0)), \
+                                int(min(math.ceil(frame_cnt * begin_ind / feat_stride + dura_i), len(self.label)-1))
+                    end_nbegin, end_nend = int(max(math.floor(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
+                                int(min(math.ceil(frame_cnt * end_ind / feat_stride + dura_i), len(self.label)-1))
+                    # start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
+                    #             int(min(math.ceil(sample_duration * begin_ind + dura_i), len(self.label)-1))
+                    # end_nbegin, end_nend = int(max(math.floor(sample_duration * end_ind - dura_i), 0)), \
+                    #             int(min(math.ceil(sample_duration * end_ind + dura_i), len(self.label)-1))
                     self.starts[start_nbegin:start_nend+1], self.ends[end_nbegin:end_nend+1] = 1., 1.
             except IndexError:
                 print(len(self.ends), nbegin_ind, nend_ind)
