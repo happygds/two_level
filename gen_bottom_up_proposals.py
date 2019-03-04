@@ -64,6 +64,7 @@ def compute_frame_count(video_info, frame_path, name_pattern):
         frame_cnt = len(files)
     except:
         print("video {} not exist frame images".format(video_info.id))
+        import pdb; pdb.set_trace()
         frame_cnt = int(round(video_info.duration * 30))
     video_info.frame_cnt = frame_cnt
     video_info.frame_interval = args.frame_interval
