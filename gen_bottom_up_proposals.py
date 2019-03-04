@@ -12,7 +12,7 @@ import pickle
 import multiprocessing as mp
 from ops.sequence_funcs import *
 from ops.anet_db import ANetDB
-from ops.thumos_db import THUMOSDB 
+from ops.thumos_db import THUMOSDB
 from ops.detection_metrics import get_temporal_proposal_recall, name_proposal
 from ops.sequence_funcs import temporal_nms
 from ops.io import dump_window_list
@@ -21,17 +21,23 @@ from ops.eval_utils import area_under_curve, grd_thumos
 parser = argparse.ArgumentParser()
 parser.add_argument('score_files', type=str, nargs='+')
 parser.add_argument("--anet_version", type=str, default='1.3', help='')
-parser.add_argument("--dataset", type=str, default='activitynet', choices=['activitynet', 'thumos14'])
+parser.add_argument("--dataset", type=str, default='activitynet',
+                    choices=['activitynet', 'thumos14'])
 parser.add_argument("--cls_scores", type=str, default=None,
                     help='classification scores, if set to None, will use groundtruth labels')
-parser.add_argument("--subset", type=str, default='validation', choices=['training', 'validation', 'testing'])
-parser.add_argument("--iou_thresh", type=float, nargs='+', default=[0.5, 0.75, 0.95])
-parser.add_argument("--score_weights", type=float, nargs='+', default=None, help='')
+parser.add_argument("--subset", type=str, default='validation',
+                    choices=['training', 'validation', 'testing'])
+parser.add_argument("--iou_thresh", type=float,
+                    nargs='+', default=[0.5, 0.75, 0.95])
+parser.add_argument("--score_weights", type=float,
+                    nargs='+', default=None, help='')
 parser.add_argument("--write_proposals", type=str, default=None, help='')
-parser.add_argument("--minimum_len", type=float, default=0, help='minimum length of a proposal, in second')
+parser.add_argument("--minimum_len", type=float, default=0,
+                    help='minimum length of a proposal, in second')
 parser.add_argument("--reg_score_files", type=str, nargs='+', default=None)
-parser.add_argument("--frame_path", type=str, default='/mnt/SSD/ActivityNet/anet_v1.2_extracted_340/')
-parser.add_argument('--frame_interval', type=int, default=16)
+parser.add_argument("--frame_path", type=str,
+                    default='/mnt/SSD/ActivityNet/anet_v1.2_extracted_340/')
+parser.add_argument('--frame_interval', type=int, default=5)
 
 args = parser.parse_args()
 
@@ -49,7 +55,8 @@ elif args.dataset == 'thumos14':
 else:
     raise ValueError("unknown dataset {}".format(args.dataset))
 
-def compute_frame_count(video_info, frame_path, name_pattern):    
+
+def compute_frame_count(video_info, frame_path, name_pattern):
     # first count frame numbers
     try:
         video_name = video_info.id
@@ -61,12 +68,13 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     video_info.frame_cnt = frame_cnt
     video_info.frame_interval = args.frame_interval
     return video_info
-    
+
 
 video_list = db.get_subset_videos(args.subset)
 video_list = [v for v in video_list if v.instances != []]
 print("video list size: {}".format(len(video_list)))
-video_list = [compute_frame_count(v, args.frame_path, 'frame*.jpg') for v in video_list]
+video_list = [compute_frame_count(
+    v, args.frame_path, 'frame*.jpg') for v in video_list]
 # video_list = pickle.load(open('./video_list', 'rb'))
 
 # load scores
@@ -145,7 +153,8 @@ def gen_prop(v):
     else:
         vid = v.path.split('/')[-1].split('.')[0]
     rois, roi_scores = score_dict[vid]
-    bboxes = [(roi[0], roi[1], 1, roi_score) for (roi, roi_score) in zip(rois, roi_scores)]
+    bboxes = [(roi[0], roi[1], 1, roi_score)
+              for (roi, roi_score) in zip(rois, roi_scores)]
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
     bboxes = temporal_nms(bboxes, 1e-14)
@@ -155,7 +164,8 @@ def gen_prop(v):
         bboxes = [(0, float(v.frame_cnt) / v.frame_interval, 1, 1)]
 
     # pr_box = [(x[0] / float(frm_cnt) * v.duration, x[1] / float(frm_cnt) * v.duration) for x in bboxes]
-    pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1] * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
+    pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1]
+               * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
     pr_fps = float(v.frame_cnt) / v.duration
 
     return v.id, pr_box, [x[3] for x in bboxes], pr_fps
@@ -169,28 +179,34 @@ def call_back(rst):
     # print(rst[0], len(pr_dict), len(rst[1]))
     sys.stdout.flush()
 
+
 pool = mp.Pool(processes=32)
 lst = []
-handle = [pool.apply_async(gen_prop, args=(x, ), callback=call_back) for x in video_list]
+handle = [pool.apply_async(gen_prop, args=(
+    x, ), callback=call_back) for x in video_list]
 pool.close()
 pool.join()
 
 # evaluate proposal info
 proposal_list = [pr_dict[v.id] for v in video_list if v.id in pr_dict]
-gt_spans_full = [[(x.num_label, x.time_span) for x in v.instances] for v in video_list if v.id in pr_dict]
+gt_spans_full = [[(x.num_label, x.time_span) for x in v.instances]
+                 for v in video_list if v.id in pr_dict]
 gt_spans = [[item[1] for item in x] for x in gt_spans_full]
 score_list = [score_dict[v.id] for v in video_list if v.id in pr_dict]
 duration_list = [v.duration for v in video_list if v.id in pr_dict]
-proposal_score_list = [pr_score_dict[v.id] for v in video_list if v.id in pr_dict]
+proposal_score_list = [pr_score_dict[v.id]
+                       for v in video_list if v.id in pr_dict]
 print('{} groundtruth boxes from'.format(sum(map(len, gt_spans))))
 # import pdb ; pdb.set_trace()
 
-print('average # of proposals: {}'.format(np.mean(list(map(len, proposal_list)))))
+print('average # of proposals: {}'.format(
+    np.mean(list(map(len, proposal_list)))))
 IOU_thresh = np.arange(0.5, 1.0, 0.05)
 p_list = []
 for th in IOU_thresh:
     pv, pi = get_temporal_proposal_recall(proposal_list, gt_spans, th)
-    print('IOU threshold {}. per video recall: {:02f}, per instance recall: {:02f}'.format(th, pv * 100, pi * 100))
+    print('IOU threshold {}. per video recall: {:02f}, per instance recall: {:02f}'.format(
+        th, pv * 100, pi * 100))
     p_list.append((pv, pi))
 print('Average Recall: {:.04f} {:.04f}'.format(*(np.mean(p_list, axis=0)*100)))
 
@@ -199,7 +215,8 @@ if args.write_proposals:
     name_pattern = 'frame*.jpg'
     frame_path = args.frame_path
 
-    named_proposal_list = [name_proposal(x, y) for x, y in zip(gt_spans_full, proposal_list)]
+    named_proposal_list = [name_proposal(
+        x, y) for x, y in zip(gt_spans_full, proposal_list)]
     # allow_empty = args.dataset == 'activitynet' and args.subset == 'testing'
     dumped_list = [dump_window_list(v, prs, frame_path, name_pattern, score=score, allow_empty=True) for v, prs, score in
                    zip(filter(lambda x: x.id in pr_dict, video_list), named_proposal_list, score_list)]
@@ -209,7 +226,8 @@ if args.write_proposals:
             of.write('# {}\n'.format(i + 1))
             of.write(e)
 
-    print('list {} written. got {} videos'.format(args.write_proposals, len(dumped_list)))
+    print('list {} written. got {} videos'.format(
+        args.write_proposals, len(dumped_list)))
 
 
 import pandas as pd
@@ -226,18 +244,19 @@ for k, v in pr_dict.items():
     f_end_lst.extend([x[1] * fps - 1 for x in v])
 
 prediction = pd.DataFrame({'video-id': video_lst,
-                            't-start': t_start_lst,
-                            't-end': t_end_lst,
-                            'score': score_lst})
+                           't-start': t_start_lst,
+                           't-end': t_end_lst,
+                           'score': score_lst})
 dir_path = os.path.split(args.score_files[0])[0]
 thumos_results = pd.DataFrame({'video-name': video_lst,
-                            'f-init': f_init_lst,
-                            'f-end': f_end_lst,
-                            'score': score_lst})
+                               'f-init': f_init_lst,
+                               'f-end': f_end_lst,
+                               'score': score_lst})
 thumos_results.to_csv('two_level.csv')
 
 # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
-ground_truth, cls_to_idx = grd_thumos('data/thumos_annots.json', subset='validation')
+ground_truth, cls_to_idx = grd_thumos(
+    'data/thumos_annots.json', subset='validation')
 del cls_to_idx['Ambiguous']
 auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=1000,
                                                      tiou_thresholds=np.linspace(0.5, 0.95, 10))
