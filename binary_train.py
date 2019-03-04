@@ -281,7 +281,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
 
             # compute output
             score_output, enc_slf_attn, roi_scores, labels, rois_mask = model(
-                feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=epoch)
+                feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=None)
             score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
                 score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
             roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
