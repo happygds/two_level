@@ -41,6 +41,7 @@ class BinaryVideoRecord:
         # files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
         # frame_cnt = len(files)
         frame_cnt = frame_counts[self.id]
+        self.frame_cnt = frame_cnt
         vid_name = self.id
 
         with pd.read_csv(rgb_csv_path) as f:
@@ -98,7 +99,7 @@ class BinaryDataSet(data.Dataset):
                  test_mode=False, feat_stride=5, input_dim=400,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
-                 bg_coverage_thresh=0.02, sample_duration=640,
+                 bg_coverage_thresh=0.02, sample_duration=128*5,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True, only_flow=False, num_local=8,
@@ -214,17 +215,35 @@ class BinaryDataSet(data.Dataset):
         # print(out_feats.size(), out_prop_type.size())
         return out_feat, out_mask, out_label, out_starts, out_ends, pos_ind, gts
 
-    def get_test_data(self, video):
+    def get_test_data(self, video, gen_batchsize=4):
         props = []
         video_id = video.id
         feat = video.feat
+        frame_cnt = video.frame_cnt
 
-        frame_ticks = np.arange(feat.shape[0]).astype('int32').reshape((1, -1))
-        # num_sampled_frames = len(frame_ticks)
-        pos_ind = torch.from_numpy(frame_ticks).long()
+        frame_ticks = np.arange(feat.shape[0] - self.sample_duration, self.sample_duration // 2).astype('int32')
+        num_sampled_frames = len(frame_ticks)
 
-        # gts = np.zeros((32, 2), dtype='float32')
-        # gts[:len(video.gts)] = video.gts
+        pos_ind = np.ones((gen_batchsize, 1)) * np.arange(self.sample_duration).reshape((1, -1))
+        pos_ind = torch.from_numpy(pos_ind).long()
+
+        def frame_gen(batchsize):
+            feats= []
+            cnt = 0
+            for idx, seg_ind in enumerate(frame_ticks):
+                p = int(seg_ind)
+                for x in range(self.sample_duration):
+                    feats.extend(self._load_image(video_id, min(frame_cnt, p+x)))
+                cnt += 1
+
+                if cnt % batchsize == 0:
+                    frames = self.transform(frames)
+                    yield frames
+                    frames = []
+            
+            if len(frames):
+                frames = self.transform(frames)
+                yield frames
 
         num_feat = feat.shape[0]
         # if num_feat < 16:
