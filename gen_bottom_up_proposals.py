@@ -224,7 +224,7 @@ dir_path = os.path.split(args.score_files[0])[0]
 prediction.to_csv('val.csv')
 
 # prediction.to_csv(os.path.join(opt.result_path, '{}.csv'.format('val')))
-ground_truth, cls_to_idx = grd_thumos('/data1/matheguo/important/data/thumos14/thumos_annots.json', subset='validation')
+ground_truth, cls_to_idx = grd_thumos('data/thumos_annots.json', subset='validation')
 del cls_to_idx['background']
 auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=100,
                                                      tiou_thresholds=np.linspace(0.5, 0.95, 10))
