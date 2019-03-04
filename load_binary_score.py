@@ -207,7 +207,7 @@ class BinaryDataSet(data.Dataset):
         if frame_tick is None:
             if feat_num > self.sample_duration:
                 begin_index = random.randrange(
-                    0, feat_num - self.sample_duration + 1, 32)
+                    0, feat_num - self.sample_duration + 1, 16)
             else:
                 begin_index = 0
         else:
