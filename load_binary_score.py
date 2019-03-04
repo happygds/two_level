@@ -250,7 +250,7 @@ class BinaryDataSet(data.Dataset):
         assert len(video.gts) <= gts.shape[0]
         gts[:len(video.gts)] = (video.gts - begin_ind).clip(0., min_len)
         video_gts[:len(video.gts)] = video.gts
-        tmp = ((gts[:, 1] - gts[:, 0])/ (video_gts[:, 1] - video_gts[:, 0]).clip(1e-3) > 0.5).reshape((-1, 1))
+        tmp = ((gts[:, 1] - gts[:, 0]) / (video_gts[:, 1] - video_gts[:, 0]).clip(1e-3) > 0.5).reshape((-1, 1))
         gts = gts * tmp
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
