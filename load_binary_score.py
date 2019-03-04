@@ -232,25 +232,23 @@ class BinaryDataSet(data.Dataset):
             cnt = 0
             for idx, seg_ind in enumerate(frame_ticks):
                 p = int(seg_ind)
-                for x in range(self.sample_duration):
-                    feats.extend(self._load_image(video_id, min(frame_cnt, p+x)))
+                feats.extend(feat[p:min(frame_cnt, p+self.sample_duration)])
                 cnt += 1
 
                 if cnt % batchsize == 0:
-                    frames = self.transform(frames)
-                    yield frames
-                    frames = []
+                    feats = np.stack(feats, axis=0)
+                    yield feats
+                    feats = []
             
-            if len(frames):
-                frames = self.transform(frames)
-                yield frames
+            if len(feats) > 0:
+                yield feats
+
+        return frame_gen(gen_batchsize), len(frame_ticks)
 
         num_feat = feat.shape[0]
-        # if num_feat < 16:
-        #     feat = np.concatenate([feat, np.zeros((16-num_feat, feat.shape[1]), dtype='float32')], axis=0)
-        feat_mask = (np.abs(feat).mean(axis=1) > 0.).astype('float32')
-        out_feat = torch.from_numpy(np.expand_dims(feat, axis=0))
-        out_mask = torch.from_numpy(np.expand_dims(feat_mask, axis=0))
+        feats_mask = (np.abs(feats).mean(axis=2) > 0.).astype('float32')
+        out_feat = torch.from_numpy(feats)
+        out_mask = torch.from_numpy(feats_mask)
 
         return out_feat, out_mask, num_feat, pos_ind, video_id
 
