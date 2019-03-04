@@ -248,6 +248,8 @@ class BinaryDataSet(data.Dataset):
         gts = np.zeros((64, 2), dtype='float32')
         assert len(video.gts) <= gts.shape[0]
         gts[:len(video.gts)] = (video.gts - begin_ind).clip(0., min_len)
+        tmp = ((gts[:, 1] - gts[:, 0])/ (video.gts[:, 1] - video.gts[:, 0]).clip(1e-3) > 0.5).reshape((-1, 1))
+        gts = gts * tmp
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
