@@ -11,6 +11,7 @@ from torch import multiprocessing
 from torch.utils import model_zoo
 from torch.autograd import Variable
 from ops.anet_db import ANetDB
+from ops.thumos_db import THUMOSDB
 from ops.utils import get_actionness_configs, get_reference_model_url
 
 global args
@@ -30,11 +31,11 @@ parser.add_argument('--num_body_segments', type=int, default=5)
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 
-parser.add_argument('--annotation_path', default='../../data/activitynet/activity_net.v1-3.min_save.json',
+parser.add_argument('--annotation_path', default='data/thumos_annots.json',
                     type=str, help='Annotation file path')
-parser.add_argument('--feat_root', default='../../data/activitynet',
+parser.add_argument('--feat_root', default='../../data/thumos14',
                     type=str, help='Feature directory path')
-parser.add_argument('--result_path', default='../../result/activitynet/self_att',
+parser.add_argument('--result_path', default='../../result/thumos14',
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | TAG')
