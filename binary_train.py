@@ -101,7 +101,7 @@ def main():
     val_prop_file = 'data/{}_proposal_list.txt'.format(
         dataset_configs['test_list'])
     train_videos = db.get_subset_videos('validation')
-    val_videos = db.get_subset_videos('testing')
+    val_videos = db.get_subset_videos('test')
     train_loader = torch.utils.data.DataLoader(
         BinaryDataSet(args.feat_root, args.feat_model, train_prop_file, train_videos,
                       exclude_empty=True, body_seg=args.num_body_segments,

@@ -68,6 +68,9 @@ parser.add_argument('--groupwise_heads', type=int, default=0)
 parser.add_argument('--roi_poolsize', type=str, default="1_3")
 
 args = parser.parse_args()
+# rename subset test
+if args.subset == 'testing':
+    args.subset = 'test'
 
 dataset_configs = get_actionness_configs(args.dataset)
 num_class = dataset_configs['num_class']
