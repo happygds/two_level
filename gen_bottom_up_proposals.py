@@ -70,7 +70,6 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     video_info.frame_interval = args.frame_interval
     return video_info
 
-db = THUMOSDB.get_db()
 video_list = db.get_subset_videos(args.subset)
 video_list = [v for v in video_list if v.instances != []]
 print("video list size: {}".format(len(video_list)))
@@ -154,6 +153,7 @@ def gen_prop(v):
     else:
         vid = v.path.split('/')[-1].split('.')[0]
     rois, roi_scores = score_dict[vid]
+    print(len(rois))
     bboxes = [(roi[0], roi[1], 1, roi_score)
               for (roi, roi_score) in zip(rois, roi_scores)]
     # filter out too short proposals
