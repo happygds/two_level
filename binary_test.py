@@ -157,7 +157,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
                 else:
                     rois = np.concatenate((rois, this_rois), axis=0)
                     roi_scores = np.concatenate((roi_scores, this_roi_scores), axis=0)
-        print("the number of rois is {}".format(len(rois)))
+        # print("the number of rois is {}".format(len(rois)))
         outputs = [list(rois), list(roi_scores)]
 
         result_queue.put(

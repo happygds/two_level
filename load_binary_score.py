@@ -309,7 +309,8 @@ class BinaryDataSet(data.Dataset):
                     np.arange(self.sample_duration).reshape((1, -1))
                 pos_ind = torch.from_numpy(pos_ind).long()
 
-                out_feat = np.stack(feats, axis=0)
+                out_feat, out_inds = np.stack(feats, axis=0), np.stack(
+                    seg_inds, axis=0).reshape((-1,))
                 out_mask = (np.abs(feats).mean(axis=2) > 0.).astype('float32')
                 out_feat = torch.from_numpy(out_feat)
                 out_mask = torch.from_numpy(out_mask)
