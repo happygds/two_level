@@ -80,7 +80,7 @@ def temporal_nms_fallback(bboxes, thresh, score_ind=3):
     t2 = np.array([x[1] for x in bboxes])
     scores = np.array([x[score_ind] for x in bboxes])
 
-    durations = t2 - t1 + 1.
+    durations = t2 - t1
     order = scores.argsort()[::-1]
 
     keep = []
