@@ -9,6 +9,7 @@ from numpy.random import randint
 from ops.io import load_proposal_file
 from transforms import *
 from ops.utils import temporal_iou
+from opts.eval_utils import intersection
 from scipy import interpolate
 
 
@@ -246,24 +247,17 @@ class BinaryDataSet(data.Dataset):
         out_mask[:min_len] = 1.
 
         # if one ground-truth is clipped
-        if out_label[0] == 1. and out_starts == 0.:
-            for gt in video.gts:
-                # find the corresponding ground-truth
-                if begin_ind > gt[0] and begin_ind < gt[1]:
-                    break
-            # iou < 0.5
-            if begin_ind > gt.mean():
-                out_label[:(gt[1]-begin_ind)] = 0.
-        elif out_label[-1] == 1. and out_ends == 0.:
-            for gt in video.gts:
-                # find the corresponding ground-truth
-                if end_ind > gt[0] and end_ind < gt[1]:
-                    break
-            # iou < 0.5
-            if end_ind < gt.mean():
-                out_label[(gt[0] - end_ind):] = 0.
-
-
+        if (out_label[0] == 1. and out_starts == 0.) or (out_label[-1] == 1. and out_ends == 0.):
+            out_label = np.zeros_like(out_label)
+            target_segments = video.gts
+            test_segments = np.asarray([begin_ind, end_ind]).reshape((-1, 2))
+            intersect, ratio_target = intersection(target_segments, test_segments, return_ratio_target=True)
+            for i, ratio in enumerate(ratio_target[:, 0]):
+                if ratio >= 0.5:
+                    this_gt = target_segments[i]
+                    this_begin = max(0, int(round(this_gt[0] - begin_ind)))
+                    this_end = min(out_label.shape[0], int(round(this_gt[1] - begin_ind)))
+                    out_label[this_begin:this_end + 1] = 1.
 
         # convert label using haar wavelet decomposition
         gts = np.zeros((256, 2), dtype='float32')
