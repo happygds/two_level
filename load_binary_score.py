@@ -230,10 +230,6 @@ class BinaryDataSet(data.Dataset):
         out_ends[:min_len] = ends[begin_index:(begin_index+min_len)]
         assert len(out) == self.sample_duration
         end_ind = begin_index + self.sample_duration
-        # if out_label[0] == 1.:
-        #     out_starts[0] = 1.
-        # elif out_label[-1] == 1.:
-        #     out_ends[-1] = 1.
 
         return out, out_label, out_starts, out_ends, begin_index, end_ind, min_len
 
@@ -248,6 +244,26 @@ class BinaryDataSet(data.Dataset):
             = self._sample_feat(feat, label, starts, ends, frame_tick=frame_tick)
         out_mask = np.zeros_like(out_label).astype('float32')
         out_mask[:min_len] = 1.
+
+        # if one ground-truth is clipped
+        if out_label[0] == 1. and out_starts == 0.:
+            for gt in video.gts:
+                # find the corresponding ground-truth
+                if begin_ind > gt[0] and begin_ind < gt[1]:
+                    break
+            # iou < 0.5
+            if begin_ind > gt.mean():
+                out_label[:(gt[1]-begin_ind)] = 0.
+        elif out_label[-1] == 1. and out_ends == 0.:
+            for gt in video.gts:
+                # find the corresponding ground-truth
+                if end_ind > gt[0] and end_ind < gt[1]:
+                    break
+            # iou < 0.5
+            if end_ind < gt.mean():
+                out_label[(gt[0] - end_ind):] = 0.
+
+
 
         # convert label using haar wavelet decomposition
         gts = np.zeros((256, 2), dtype='float32')
