@@ -260,9 +260,8 @@ ground_truth, cls_to_idx = grd_thumos(
     'data/thumos_annots.json', subset='testing')
 del cls_to_idx['Ambiguous']
 auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=1000,
-                                                     tiou_thresholds=np.linspace(0.5, 0.95, 10))
+                                                     tiou_thresholds=np.linspace(0.5, 1.0, 11))
 nr_proposals_lst = np.around(nr_proposals_lst)
 
-import pdb; pdb.set_trace()
-for j, nr_proposals in enumerate(nr_proposals_lst[::100]):
-    print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*100]))
+for j, nr_proposals in enumerate(nr_proposals_lst[::10]):
+    print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*10]))
