@@ -119,7 +119,6 @@ score_dict = {}
 #         out_score += add_score * (1.0 if args.score_weights is None else args.score_weights[i])
 #     score_dict[key] = out_score
 score_dict = score_list[0]
-import pdb; pdb.set_trace()
 print('done')
 
 # merge regression scores
