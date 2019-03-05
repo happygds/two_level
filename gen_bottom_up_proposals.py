@@ -263,5 +263,5 @@ auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, m
                                                      tiou_thresholds=np.linspace(0.5, 1.0, 11))
 nr_proposals_lst = np.around(nr_proposals_lst)
 
-for j, nr_proposals in enumerate(nr_proposals_lst[10::10]):
+for j, nr_proposals in enumerate(nr_proposals_lst[9::10]):
     print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*10]))
