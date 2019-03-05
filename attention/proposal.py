@@ -42,6 +42,7 @@ def gen_prop(x):
     num_keep = rpn_post_nms_top
     # if epoch_id is not None and epoch_id < 10:
     bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
+    import pdb; pdb.set_trace()
     if len(bboxes) == 0:
         bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
     
