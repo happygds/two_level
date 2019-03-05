@@ -263,7 +263,7 @@ class BinaryDataSet(data.Dataset):
         # print(out_feats.size(), out_prop_type.size())
         return out_feat, out_mask, out_label, out_starts, out_ends, pos_ind, gts
 
-    def get_test_data(self, video, gen_batchsize=4):
+    def get_test_data(self, video, gen_batchsize=1):
         props = []
         video_id = video.id
         feat = video.feat
