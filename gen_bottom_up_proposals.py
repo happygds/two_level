@@ -157,7 +157,7 @@ def gen_prop(v):
               for (roi, roi_score) in zip(rois, roi_scores)]
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
-    bboxes = temporal_nms(bboxes, 1. - 1e-14)
+    bboxes = temporal_nms(bboxes, 1. - 1e-36)
     # bboxes = Soft_NMS(bboxes, length=frm_cnt)
 
     if len(bboxes) == 0:
@@ -263,6 +263,5 @@ auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, m
                                                      tiou_thresholds=np.linspace(0.5, 1.0, 11))
 nr_proposals_lst = np.around(nr_proposals_lst)
 
-for j, nr_proposals in enumerate(nr_proposals_lst[::10]):
+for j, nr_proposals in enumerate(nr_proposals_lst[10::10]):
     print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*10]))
-import pdb; pdb.set_trace()
