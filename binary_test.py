@@ -151,10 +151,13 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
                 this_rois += seg_ind.cpu().numpy().reshape((-1, 1, 1))
                 this_roi_scores *= this_actness
                 
-                this_rois, this_roi_scores = list(this_rois.reshape((-1, 2))), list(this_roi_scores.reshape((-1)))
-                rois.extend(this_rois)
-                roi_scores.extend(this_roi_scores)
-        outputs = [rois, roi_scores]
+                this_rois, this_roi_scores = this_rois.reshape((-1, 2)), this_roi_scores.reshape((-1))
+                if len(rois) == 0:
+                    rois, roi_scores = this_rois, this_roi_scores
+                else:
+                    rois = np.concatenate((rois, this_rois), axis=0)
+                    roi_scores = np.concatenate((roi_scores, this_roi_scores), axis=0)
+        outputs = [list(rois), list(roi_scores)]
 
         result_queue.put(
             (dataset.video_list[index].id.split('/')[-1], outputs))
