@@ -12,14 +12,14 @@ class BinaryClassifier(torch.nn.Module):
 
         super(BinaryClassifier, self).__init__()
 
-        self.reduce = args.reduce_dim > 0
-        if self.reduce:
-            self.reduce_layer = nn.Sequential(
-                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU())
         if args.dropout > 0:
             self.dropout = args.dropout
         else:
             self.dropout = 0.
+        self.reduce = args.reduce_dim > 0
+        if self.reduce:
+            self.reduce_layer = nn.Sequential(
+                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU(), nn.Dropout(self.dropout))
         self.n_layers = args.n_layers
 
         if args.num_local > 0:
