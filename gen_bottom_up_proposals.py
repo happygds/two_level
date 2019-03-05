@@ -154,7 +154,6 @@ def gen_prop(v):
     else:
         vid = v.path.split('/')[-1].split('.')[0]
     rois, roi_scores = score_dict[vid]
-    print(len(rois))
     bboxes = [(roi[0], roi[1], 1, roi_score)
               for (roi, roi_score) in zip(rois, roi_scores)]
     # filter out too short proposals
@@ -169,6 +168,7 @@ def gen_prop(v):
     pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1]
                * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
     pr_fps = float(v.frame_cnt) / v.duration
+    print(len(rois), pr_fps)
 
     return v.id, pr_box, [x[3] for x in bboxes], pr_fps
 
