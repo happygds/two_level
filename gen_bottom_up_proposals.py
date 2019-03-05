@@ -70,7 +70,7 @@ def compute_frame_count(video_info, frame_path, name_pattern):
     video_info.frame_interval = args.frame_interval
     return video_info
 
-import pdb; pdb.set_trace()
+db = THUMOSDB.get_db()
 video_list = db.get_subset_videos(args.subset)
 video_list = [v for v in video_list if v.instances != []]
 print("video list size: {}".format(len(video_list)))
