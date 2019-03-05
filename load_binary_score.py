@@ -272,6 +272,7 @@ class BinaryDataSet(data.Dataset):
         frame_ticks = np.arange(
             0, feat.shape[0] - self.sample_duration, self.sample_duration // 2).astype('int32')
         num_sampled_frames = len(frame_ticks)
+        print("the number of samples is {}".format(num_sampled_frames))
 
         def feat_gen(batchsize):
             feats = []
