@@ -142,7 +142,8 @@ class BinaryDataSet(data.Dataset):
         # set the directory for the optical-flow features
         if feat_model == 'feature_anet_200':
             rgb_csv_path = os.path.join(feat_root, 'feature_anet_200/rgb/csv')
-            flow_csv_path = os.path.join(feat_root, 'feature_anet_200/flow/csv')
+            flow_csv_path = os.path.join(
+                feat_root, 'feature_anet_200/flow/csv')
             print("using anet_200 feature from {} and {}".format(
                 rgb_csv_path, flow_csv_path))
         elif feat_model == 'c3d_feature':
@@ -171,7 +172,8 @@ class BinaryDataSet(data.Dataset):
 
         self.video_list = [BinaryVideoRecord(x, frame_path, rgb_csv_path, flow_csv_path, frame_counts,
                                              use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride,
-                                             sample_duration=self.sample_duration) for x in subset_videos if x.id in vid_names]
+                                             sample_duration=self.sample_duration, frame_tick=frame_tick
+                                             ) for x in subset_videos if x.id in vid_names]
 
         count = 0
         if self.test_mode is not True:
@@ -200,7 +202,8 @@ class BinaryDataSet(data.Dataset):
             tick_index = self.val_tick_list[real_index]
             return self.get_training_data(video_index, frame_tick=tick_index)
         else:
-            assert real_index in self.video_key_list.keys(), "{} not in video_key_list".format(real_index)
+            assert real_index in self.video_key_list.keys(
+            ), "{} not in video_key_list".format(real_index)
             video_index = self.video_key_list[real_index]
             return self.get_training_data(video_index)
 
@@ -249,11 +252,13 @@ class BinaryDataSet(data.Dataset):
         # convert label using haar wavelet decomposition
         gts = np.zeros((256, 2), dtype='float32')
         video_gts = np.zeros((256, 2), dtype='float32')
-        assert len(video.gts) <= gts.shape[0], '{} < {}'.format(len(video_gts), gts.shape)
-        gts[:len(video.gts)] = (video.gts - begin_ind).clip(0., min_len)
+        assert len(video.gts) <= gts.shape[0], '{} < {}'.format(
+            len(video_gts), gts.shape)
+        gts[:len(video.gts)] = (video.gts - begin_ind)
         video_gts[:len(video.gts)] = video.gts
-        tmp = ((gts[:, 1] - gts[:, 0]) / (video_gts[:, 1] - video_gts[:, 0]).clip(1e-3) > 0.5).reshape((-1, 1))
-        gts = gts * tmp
+        # tmp = ((gts[:, 1] - gts[:, 0]) / (video_gts[:, 1] -
+        #                                   video_gts[:, 0]).clip(1e-3) > 0.5).reshape((-1, 1))
+        # gts = gts * tmp
 
         pos_ind = torch.from_numpy(np.arange(begin_ind, end_ind)).long()
         out_feat = torch.from_numpy(out_feat)
