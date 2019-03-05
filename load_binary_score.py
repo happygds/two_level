@@ -296,7 +296,7 @@ class BinaryDataSet(data.Dataset):
                     out_feat = torch.from_numpy(out_feat)
                     out_mask = torch.from_numpy(out_mask)
                     out_inds = torch.from_numpy(out_inds)
-                    yield out_feat, out_mask, out_inds, pos_ind
+                    yield [out_feat, out_mask, out_inds, pos_ind]
                     feats, seg_inds = [], []
 
             if len(feats) > 0:
@@ -308,7 +308,7 @@ class BinaryDataSet(data.Dataset):
                 out_mask = (np.abs(feats).mean(axis=2) > 0.).astype('float32')
                 out_feat = torch.from_numpy(out_feat)
                 out_mask = torch.from_numpy(out_mask)
-                yield out_feat, out_mask, seg_inds, pos_ind
+                yield [out_feat, out_mask, seg_inds, pos_ind]
 
         return feat_gen(gen_batchsize), video_id
 
