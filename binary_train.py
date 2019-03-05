@@ -38,7 +38,6 @@ def main():
     dataset_configs = get_actionness_configs(args.dataset)
     sampling_configs = dataset_configs['sampling']
     num_class = dataset_configs['num_class']
-    args.dropout = 0.8
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
     db = ANetDB.get_db("1.3")
