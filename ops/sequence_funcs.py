@@ -63,6 +63,7 @@ def temporal_nms(bboxes, thresh, score_ind=3):
     :return:
     """
     if not nms:
+        print("using temporal_nms_fallback")
         return temporal_nms_fallback(bboxes, thresh, score_ind=score_ind)
     else:
         keep = nms(np.array([[x[0], x[1], x[3]] for x in bboxes]), thresh, device_id=0)
