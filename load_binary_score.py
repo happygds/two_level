@@ -247,7 +247,7 @@ class BinaryDataSet(data.Dataset):
         out_mask[:min_len] = 1.
 
         # if one ground-truth is clipped
-        if (out_label[0] == 1. and out_starts == 0.) or (out_label[-1] == 1. and out_ends == 0.):
+        if (out_label[0] == 1. and out_starts[0] == 0.) or (out_label[-1] == 1. and out_ends[-1] == 0.):
             out_label = np.zeros_like(out_label)
             target_segments = video.gts
             test_segments = np.asarray([begin_ind, end_ind]).reshape((-1, 2))
