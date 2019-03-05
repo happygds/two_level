@@ -9,7 +9,7 @@ from numpy.random import randint
 from ops.io import load_proposal_file
 from transforms import *
 from ops.utils import temporal_iou
-from opts.eval_utils import intersection
+from ops.eval_utils import intersection
 from scipy import interpolate
 
 
