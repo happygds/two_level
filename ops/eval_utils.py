@@ -294,7 +294,7 @@ def get_thumos_names_and_annotations(data, subset):
 
     return video_names, annotations, class_to_idx
 
-def grd_thumos(root_path, annotation_path, subset='testing'):
+def grd_thumos(annotation_path, subset='testing'):
     data = load_annotation_data(annotation_path)
     video_names, annotations, class_to_idx = get_thumos_names_and_annotations(data, subset)
 
