@@ -230,10 +230,10 @@ class BinaryDataSet(data.Dataset):
         out_ends[:min_len] = ends[begin_index:(begin_index+min_len)]
         assert len(out) == self.sample_duration
         end_ind = begin_index + self.sample_duration
-        if out_label[0] == 1.:
-            out_starts[0] = 1.
-        elif out_label[-1] == 1.:
-            out_ends[-1] = 1.
+        # if out_label[0] == 1.:
+        #     out_starts[0] = 1.
+        # elif out_label[-1] == 1.:
+        #     out_ends[-1] = 1.
 
         return out, out_label, out_starts, out_ends, begin_index, end_ind, min_len
 
@@ -277,7 +277,7 @@ class BinaryDataSet(data.Dataset):
         frame_cnt = video.frame_cnt
 
         frame_ticks = np.arange(
-            0, feat.shape[0] - self.sample_duration, self.sample_duration // 4).astype('int32')
+            0, feat.shape[0] - self.sample_duration, self.sample_duration // 2).astype('int32')
         if len(frame_ticks) == 0:
             frame_ticks = [0]
         num_sampled_frames = len(frame_ticks)
