@@ -63,7 +63,6 @@ def temporal_nms(bboxes, thresh, score_ind=3):
     :return:
     """
     if not nms:
-        print("using temporal_nms_fallback")
         return temporal_nms_fallback(bboxes, thresh, score_ind=score_ind)
     else:
         keep = nms(np.array([[x[0], x[1], x[3]] for x in bboxes]), thresh, device_id=0)
@@ -81,7 +80,7 @@ def temporal_nms_fallback(bboxes, thresh, score_ind=3):
     t2 = np.array([x[1] for x in bboxes])
     scores = np.array([x[score_ind] for x in bboxes])
 
-    durations = t2 - t1 + 1
+    durations = t2 - t1
     order = scores.argsort()[::-1]
 
     keep = []
@@ -90,7 +89,7 @@ def temporal_nms_fallback(bboxes, thresh, score_ind=3):
         keep.append(i)
         tt1 = np.maximum(t1[i], t1[order[1:]])
         tt2 = np.minimum(t2[i], t2[order[1:]])
-        intersection = tt2 - tt1 + 1
+        intersection = tt2 - tt1
         IoU = intersection / (durations[i] + durations[order[1:]] - intersection).astype(float)
 
         inds = np.where(IoU <= thresh)[0]
