@@ -8,7 +8,7 @@ from attention.proposal import proposal_layer
 from attention.utils import *
 
 class BinaryClassifier(torch.nn.Module):
-    def __init__(self, num_class, course_segment, args, dropout=0.1, test_mode=False):
+    def __init__(self, num_class, course_segment, args, dropout=0.5, test_mode=False):
 
         super(BinaryClassifier, self).__init__()
 
@@ -38,14 +38,14 @@ class BinaryClassifier(torch.nn.Module):
         self.d_model = args.d_model
         self.dropout = dropout
         self.test_mode = test_mode
-        self.scores = nn.Linear(args.d_model, 3)
+        self.scores = nn.Sequential(nn.Dropout(0.5), nn.Linear(args.d_model, 3))
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
         self.trn_kernel = args.groupwise_heads
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
-                                          args.n_head, args.d_k, args.d_v, dropout=0.1)
-        self.roi_cls = nn.Linear(args.d_model, 2)
+                                          args.n_head, args.d_k, args.d_v, dropout=0.5)
+        self.roi_cls = nn.Sequential(nn.Dropout(0.5), nn.Linear(args.d_model, 2))
 
     def forward(self, feature, pos_ind, target=None, gts=None, 
                 feature_mask=None, test_mode=False, epoch_id=None):
