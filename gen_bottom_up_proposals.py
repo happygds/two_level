@@ -21,7 +21,7 @@ from ops.eval_utils import area_under_curve, grd_thumos
 parser = argparse.ArgumentParser()
 parser.add_argument('score_files', type=str, nargs='+')
 parser.add_argument("--anet_version", type=str, default='1.3', help='')
-parser.add_argument("--dataset", type=str, default='activitynet',
+parser.add_argument("--dataset", type=str, default='thumos14',
                     choices=['activitynet', 'thumos14'])
 parser.add_argument("--cls_scores", type=str, default=None,
                     help='classification scores, if set to None, will use groundtruth labels')
