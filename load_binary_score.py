@@ -169,7 +169,7 @@ class BinaryDataSet(data.Dataset):
         if val_mode is True:
             tick_stride = self.sample_duration // 2
         else:
-            tick_stride = self.sample_duration // 4
+            tick_stride = self.sample_duration // 2
 
         self.video_list = [BinaryVideoRecord(x, frame_path, rgb_csv_path, flow_csv_path, frame_counts,
                                              use_flow=use_flow, only_flow=only_flow, feat_stride=feat_stride,
