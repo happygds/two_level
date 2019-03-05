@@ -167,7 +167,7 @@ def gen_prop(v):
     pr_box = [(x[0] * v.frame_interval / float(v.frame_cnt) * v.duration, x[1]
                * v.frame_interval / float(v.frame_cnt) * v.duration) for x in bboxes]
     pr_fps = float(v.frame_cnt) / v.duration
-    print(len(rois), pr_fps)
+    # print(len(rois), pr_fps)
 
     return v.id, pr_box, [x[3] for x in bboxes], pr_fps
 
@@ -263,5 +263,6 @@ auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, m
                                                      tiou_thresholds=np.linspace(0.5, 0.95, 10))
 nr_proposals_lst = np.around(nr_proposals_lst)
 
+import pdb; pdb.set_trace()
 for j, nr_proposals in enumerate(nr_proposals_lst[::100]):
     print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*100]))
