@@ -132,7 +132,7 @@ class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
     def __init__(self, n_head, d_model, d_k, d_v, d_out=None, 
-                 dropout=0.1, kernel_type='self_attn', groupwise_heads=0):
+                 dropout=0.5, kernel_type='self_attn', groupwise_heads=0):
         super(MultiHeadAttention, self).__init__()
         self.groupwise_heads = groupwise_heads
         self.d_out = d_out
