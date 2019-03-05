@@ -68,9 +68,6 @@ parser.add_argument('--groupwise_heads', type=int, default=0)
 parser.add_argument('--roi_poolsize', type=str, default="1_3")
 
 args = parser.parse_args()
-# rename subset test
-if args.subset == 'testing':
-    args.subset = 'test'
 
 dataset_configs = get_actionness_configs(args.dataset)
 num_class = dataset_configs['num_class']
@@ -193,6 +190,9 @@ if __name__ == '__main__':
 
     checkpoint = torch.load(args.weights)
 
+    # rename subset test
+    if args.subset == 'testing':
+        args.subset = 'test'
     print("model epoch {} loss: {}".format(
         checkpoint['epoch'], checkpoint['best_loss']))
     base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(
