@@ -276,7 +276,7 @@ class BinaryDataSet(data.Dataset):
         if len(frame_ticks) == 0:
             frame_ticks = [0]
         num_sampled_frames = len(frame_ticks)
-        print("the number of samples is {}".format(num_sampled_frames))
+        # print("the number of samples is {}".format(num_sampled_frames))
 
         def feat_gen(batchsize):
             feats = []
@@ -300,6 +300,7 @@ class BinaryDataSet(data.Dataset):
                     out_feat = torch.from_numpy(out_feat)
                     out_mask = torch.from_numpy(out_mask)
                     out_inds = torch.from_numpy(out_inds)
+                    print("the count now is {}".format(cnt))
                     yield out_feat, out_mask, out_inds, pos_ind
                     feats, seg_inds = [], []
 
