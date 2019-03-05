@@ -25,27 +25,26 @@ class BinaryClassifier(torch.nn.Module):
         if args.num_local > 0:
             self.layer_stack = nn.ModuleList([
                 Local_EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                                   args.d_v, dropout=0.5, kernel_type=args.att_kernel_type, 
+                                   args.d_v, dropout=self.dropout, kernel_type=args.att_kernel_type, 
                                    local_type=args.local_type)
                 for _ in range(args.n_layers)])
         else:
             self.layer_stack = nn.ModuleList([
                 EncoderLayer(args.d_model, args.d_inner_hid, args.n_head, args.d_k,
-                            args.d_v, dropout=0.5, kernel_type=args.att_kernel_type, 
+                            args.d_v, dropout=self.dropout, kernel_type=args.att_kernel_type, 
                             groupwise_heads=args.groupwise_heads)
                 for _ in range(args.n_layers)])
 
         self.d_model = args.d_model
-        self.dropout = dropout
         self.test_mode = test_mode
-        self.scores = nn.Sequential(nn.Dropout(0.5), nn.Linear(args.d_model, 3))
+        self.scores = nn.Sequential(nn.Dropout(self.dropout), nn.Linear(args.d_model, 3))
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
         self.trn_kernel = args.groupwise_heads
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=0.5)
-        self.roi_cls = nn.Sequential(nn.Dropout(0.5), nn.Linear(args.d_model, 2))
+        self.roi_cls = nn.Sequential(nn.Dropout(self.dropout), nn.Linear(args.d_model, 2))
 
     def forward(self, feature, pos_ind, target=None, gts=None, 
                 feature_mask=None, test_mode=False, epoch_id=None):

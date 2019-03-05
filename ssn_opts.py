@@ -41,8 +41,8 @@ parser.add_argument('--roi_poolsize', type=str, default="1_3")
 parser.add_argument('--num_aug_segments', type=int, default=2)
 parser.add_argument('--num_body_segments', type=int, default=5)
 
-parser.add_argument('--dropout', '--do', default=0.1, type=float,
-                    metavar='DO', help='dropout ratio (default: 0.8)')
+parser.add_argument('--dropout', '--do', default=0.5, type=float,
+                    metavar='DO', help='dropout ratio (default: 0.5)')
 
 # ========================= Learning Configs ==========================
 parser.add_argument('--epochs', default=15, type=int, metavar='N',
