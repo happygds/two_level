@@ -136,7 +136,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
         index = index_queue.get()
         feats_gen, video_id = dataset[index]
 
-        rois, roi_scores = [], [], []
+        rois, roi_scores = [], []
         for feat_gen in feats_gen:
             feature, feature_mask, seg_ind, pos_ind = feat_gen
             feature = feature.cuda()
