@@ -319,3 +319,66 @@ def grd_thumos(annotation_path, subset='testing'):
                                  'label': label_lst})
 
     return ground_truth, class_to_idx
+
+
+def intersection(target_segments, test_segments, return_ratio_target=False, return_iou=False):
+    """Compute intersection btw segments
+
+    Parameters
+    ----------
+    target_segments : ndarray
+        2-dim array in format [m x 2:=[init, end]]
+    test_segments : ndarray
+        2-dim array in format [n x 2:=[init, end]]
+    return_ratio_target : bool, optional
+        extra ndarray output with ratio btw size of intersection over size of
+        target-segments
+
+    Outputs
+    -------
+    intersect : ndarray
+        3-dim array in format [m, n, 2:=[init, end]]
+    ratio_target : ndarray
+        2-dim array [m x n] with ratio btw size of intersect over size of
+        target segment
+
+    Note: It assumes that target-segments are more scarce that test-segments
+
+    """
+    if target_segments.ndim != 2 or test_segments.ndim != 2:
+        raise ValueError('Dimension of arguments is incorrect')
+    m, n = target_segments.shape[0], test_segments.shape[0]
+    if return_ratio_target:
+        ratio_target = np.zeros((m, n))
+
+    nonzero_target = np.nonzero(target_segments[:, 1] - target_segments[:, 0])[0]
+
+    intersect = np.zeros((m, n, 2))
+    iou = np.zeros((m, n))
+    for _, i in enumerate(nonzero_target):
+        tt1 = np.maximum(target_segments[i, 0], test_segments[:, 0])
+        tt2 = np.minimum(target_segments[i, 1], test_segments[:, 1])
+
+        intersect[i, :, 0], intersect[i, :, 1] = tt1, tt2
+        if return_ratio_target:
+            target_size = target_segments[i, 1] - target_segments[i, 0]
+            isegs_size = (tt2 - tt1).clip(0)
+            ratio_target[i, :] = isegs_size / target_size
+
+        if return_iou:
+            isegs_size = (tt2 - tt1).clip(0)
+            union = ((test_segments[:, 1] - test_segments[:, 0]) +
+                     (target_segments[i, 1] - target_segments[i, 0]) -
+                     isegs_size)
+            # Compute overlap as the ratio of the intersection
+            # over union of two segments at the frame level.
+            iou[i, :] = isegs_size / union
+
+    if return_ratio_target and return_iou:
+        return intersect, ratio_target, iou
+    elif not return_ratio_target and return_iou:
+        return intersect, iou
+    elif return_ratio_target and not return_iou:
+        return intersect, ratio_target
+    else:
+        return intersect
