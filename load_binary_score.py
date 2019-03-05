@@ -182,6 +182,8 @@ class BinaryDataSet(data.Dataset):
                 frame_cnt = x.frame_cnt
                 frame_ticks = np.arange(
                     0, frame_cnt / feat_stride - self.sample_duration, tick_stride).astype('int32')
+                if len(frame_ticks) == 0:
+                    frame_ticks = [0]
                 for _, frame_tick in enumerate(frame_ticks):
                     self.video_key_list[count] = i
                     if val_mode:
@@ -271,6 +273,8 @@ class BinaryDataSet(data.Dataset):
 
         frame_ticks = np.arange(
             0, feat.shape[0] - self.sample_duration, self.sample_duration // 2).astype('int32')
+        if len(frame_ticks) == 0:
+            frame_ticks = [0]
         num_sampled_frames = len(frame_ticks)
         print("the number of samples is {}".format(num_sampled_frames))
 
@@ -296,7 +300,7 @@ class BinaryDataSet(data.Dataset):
                     out_feat = torch.from_numpy(out_feat)
                     out_mask = torch.from_numpy(out_mask)
                     out_inds = torch.from_numpy(out_inds)
-                    yield [out_feat, out_mask, out_inds, pos_ind]
+                    yield out_feat, out_mask, out_inds, pos_ind
                     feats, seg_inds = [], []
 
             if len(feats) > 0:
@@ -308,7 +312,7 @@ class BinaryDataSet(data.Dataset):
                 out_mask = (np.abs(feats).mean(axis=2) > 0.).astype('float32')
                 out_feat = torch.from_numpy(out_feat)
                 out_mask = torch.from_numpy(out_mask)
-                yield [out_feat, out_mask, seg_inds, pos_ind]
+                yield out_feat, out_mask, seg_inds, pos_ind
 
         return feat_gen(gen_batchsize), video_id
 
