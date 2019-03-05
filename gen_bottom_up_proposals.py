@@ -265,3 +265,4 @@ nr_proposals_lst = np.around(nr_proposals_lst)
 
 for j, nr_proposals in enumerate(nr_proposals_lst[::10]):
     print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*10]))
+import pdb; pdb.set_trace()
