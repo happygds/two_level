@@ -19,7 +19,7 @@ class BinaryClassifier(torch.nn.Module):
         self.reduce = args.reduce_dim > 0
         if self.reduce:
             self.reduce_layer = nn.Sequential(
-                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU())
+                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU(), nn.Dropout(self.dropout))
         self.n_layers = args.n_layers
 
         if args.num_local > 0:
@@ -43,7 +43,7 @@ class BinaryClassifier(torch.nn.Module):
         self.trn_kernel = args.groupwise_heads
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
-                                          args.n_head, args.d_k, args.d_v, dropout=0.5)
+                                          args.n_head, args.d_k, args.d_v, dropout=self.dropout)
         self.roi_cls = nn.Sequential(nn.Dropout(self.dropout), nn.Linear(args.d_model, 2))
 
     def forward(self, feature, pos_ind, target=None, gts=None, 
