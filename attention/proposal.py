@@ -24,9 +24,9 @@ def gen_prop(x):
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
         # gd_scores = gaussian_filter(diff_scores, bw)
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[
-                      0] + 1) + list(np.nonzero(pstarts > 0.9 * pstarts.max())[0])
+                      0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
         ends = list(np.nonzero((diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[
-                    0] + 1) + list(np.nonzero(pends > 0.9 * pends.max())[0])
+                    0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
