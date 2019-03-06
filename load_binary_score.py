@@ -99,7 +99,7 @@ class BinaryVideoRecord:
                     start_nbegin = int(max(math.floor(sample_duration * begin_ind - dura_i), 0))
                     start_nend = int(round(2*sample_duration * begin_ind - start_nbegin))
                     end_nend = int(min(math.ceil(sample_duration * end_ind + dura_i), len(self.label)-1))
-                    end_nstart = int(round(2*sample_duration * end_ind - end_nend))
+                    end_nbegin= int(round(2*sample_duration * end_ind - end_nend))
                     self.starts[start_nbegin:start_nend+1], self.ends[end_nbegin:end_nend+1] = 1., 1.
             except IndexError:
                 print(len(self.ends), nbegin_ind, nend_ind)
