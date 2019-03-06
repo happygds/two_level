@@ -9,7 +9,7 @@ from attention.utils import *
 
 class BinaryClassifier(torch.nn.Module):
     def __init__(self, num_class, course_segment, args, dropout=0.5, test_mode=False):
-    
+        
         super(BinaryClassifier, self).__init__()
 
         if args.dropout > 0:
@@ -43,6 +43,19 @@ class BinaryClassifier(torch.nn.Module):
             enc_input = self.reduce_layer(feature)
         else:
             enc_input = feature
+            
+        mb_size, len_k = enc_input.size()[:2]
+        if feature_mask is not None:
+            enc_slf_attn_mask = (
+                1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
+        else:
+            enc_slf_attn_mask = torch.zeros((mb_size, len_k, len_k)).byte().cuda()
+        local_attn_mask = None
+        if self.num_local > 0:
+            local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
+            if self.dilated_mask:
+                enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
+        enc_slf_attn_mask = torch.gt(enc_slf_attn_mask + enc_slf_attn_mask.transpose(1, 2), 0)
 
         enc_output = enc_input
         enc_output = self.layer_stack(enc_output.transpose(1, 2)).transpose(1, 2)
