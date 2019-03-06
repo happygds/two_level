@@ -17,6 +17,7 @@ class BinaryClassifier(torch.nn.Module):
         else:
             self.dropout = 0.
         self.reduce = args.reduce_dim > 0
+        
         if self.reduce:
             self.reduce_layer = nn.Sequential(
                 nn.Linear(args.input_dim, args.reduce_dim), nn.SELU(), nn.Dropout(self.dropout))
