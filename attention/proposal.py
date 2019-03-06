@@ -31,7 +31,7 @@ def gen_prop(x):
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
         # props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[max(int(round(1.1*x-0.1*y)), 0):int(round(0.9*x+0.1*y))+1].mean()*pends[int(round(0.9*y+0.1*x)):min(int(round(1.1*y-0.1*x))+1, num_feat)].mean()))
-                #  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
+        #          for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
         if scores.mean() > min_thre:
             props += [(0, len(scores)-1, 1, scores.mean()
                        * (pstarts[0]*pends[-1]))]
