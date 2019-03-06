@@ -22,9 +22,6 @@ class BinaryClassifier(torch.nn.Module):
                 nn.Linear(args.input_dim, args.reduce_dim), nn.SELU(), nn.Dropout(self.dropout))
         self.n_layers = args.n_layers
 
-        self.layer_stack = nn.Sequential(nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.ReLU(),
-                                         nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.ReLU())
-
         self.d_model = args.d_model
         self.test_mode = test_mode
         self.scores = nn.Sequential(nn.Dropout(self.dropout), nn.Linear(args.d_model, 3))
@@ -45,7 +42,6 @@ class BinaryClassifier(torch.nn.Module):
             enc_input = feature
 
         enc_output = enc_input
-        enc_output = self.layer_stack(enc_output.transpose(1, 2)).transpose(1, 2)
         score_output = F.sigmoid(self.scores(enc_output))
 
         # compute loss for training/validation stage
