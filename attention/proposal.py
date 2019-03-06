@@ -183,7 +183,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rois_relative_pos = rois_relative_pos * \
         rpn_rois_mask[:, :, np.newaxis, np.newaxis] * \
         rpn_rois_mask[:, np.newaxis, :, np.newaxis]
-    # import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
 
     start_rois = torch.from_numpy(
         start_rois).cuda().requires_grad_(False).cuda()
