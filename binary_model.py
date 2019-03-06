@@ -41,6 +41,19 @@ class BinaryClassifier(torch.nn.Module):
             enc_input = self.reduce_layer(feature)
         else:
             enc_input = feature
+            
+        mb_size, len_k = enc_input.size()[:2]
+        if feature_mask is not None:
+            enc_slf_attn_mask = (
+                1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
+        else:
+            enc_slf_attn_mask = torch.zeros((mb_size, len_k, len_k)).byte().cuda()
+        local_attn_mask = None
+        if self.num_local > 0:
+            local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
+            if self.dilated_mask:
+                enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
+        enc_slf_attn_mask = torch.gt(enc_slf_attn_mask + enc_slf_attn_mask.transpose(1, 2), 0)
 
         enc_output = enc_input
         score_output = F.sigmoid(self.scores(enc_output))
