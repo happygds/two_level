@@ -33,7 +33,6 @@ def gen_prop(x):
         props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
     bboxes.extend(props)
-    bboxes.sort(key=lambda b: b[3], reverse=True)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
     # to remove duplicate proposals
     # bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
@@ -42,7 +41,9 @@ def gen_prop(x):
     # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
     num_keep = rpn_post_nms_top
     # if epoch_id is not None and epoch_id < 10:
-    bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
+    # bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
+    bboxes.sort(key=lambda b: b[3], reverse=True)
+    bboxes = bboxes[:num_keep]
     if len(bboxes) == 0:
         bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
     
