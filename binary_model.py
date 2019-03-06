@@ -41,19 +41,6 @@ class BinaryClassifier(torch.nn.Module):
             enc_input = self.reduce_layer(feature)
         else:
             enc_input = feature
-            
-        mb_size, len_k = enc_input.size()[:2]
-        if feature_mask is not None:
-            enc_slf_attn_mask = (
-                1. - feature_mask).unsqueeze(1).expand(mb_size, len_k, len_k).byte()
-        else:
-            enc_slf_attn_mask = torch.zeros((mb_size, len_k, len_k)).byte().cuda()
-        local_attn_mask = None
-        if self.num_local > 0:
-            local_attn_mask = get_attn_local_mask(enc_slf_attn_mask, num_local=self.num_local)
-            if self.dilated_mask:
-                enc_slf_attn_mask = get_attn_dilated_mask(enc_slf_attn_mask, num_local=self.num_local)
-        enc_slf_attn_mask = torch.gt(enc_slf_attn_mask + enc_slf_attn_mask.transpose(1, 2), 0)
 
         enc_output = enc_input
         score_output = F.sigmoid(self.scores(enc_output))
@@ -73,6 +60,6 @@ class BinaryClassifier(torch.nn.Module):
         roi_scores = F.softmax(self.roi_cls(roi_feats), dim=2)
 
         if not test_mode:
-            return score_output, enc_slf_attn, roi_scores, labels, rois_mask
+            return score_output, None, roi_scores, labels, rois_mask
 
         return rois[:, :, 1:], actness, roi_scores
