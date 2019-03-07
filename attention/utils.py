@@ -74,7 +74,7 @@ class CE_Criterion_multi(nn.Module):
 
 
 class Rank_Criterion(nn.Module):
-    def __init__(self, epsilon=0.01):
+    def __init__(self, epsilon=0.1):
         super(Rank_Criterion, self).__init__()
         self.epsilon = epsilon
 
