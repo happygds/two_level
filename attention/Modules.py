@@ -95,7 +95,6 @@ class ScaledDotProductAttention(nn.Module):
             # attn = torch.exp(attn - attn_max)
             # attn.data.masked_fill_(attn_mask, 0)
             # attn = attn_pos_emb * attn
-            # import pdb; pdb.set_trace()
         else:
             raise NotImplementedError()
 
@@ -119,6 +118,7 @@ class ScaledDotProductAttention(nn.Module):
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
+        import pdb; pdb.set_trace()
         out_attn = attn
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
