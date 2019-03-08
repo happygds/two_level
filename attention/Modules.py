@@ -118,14 +118,14 @@ class ScaledDotProductAttention(nn.Module):
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         else:
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         out_attn = attn
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
         if attn_pos_emb is not None and self.kernel_type in ['self_attn', 'roi_remov']:
-            # v_gate = F.sigmoid(torch.mean(v_pos_emb + v.unsqueeze(1), dim=2))
-            # output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
-            output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
+            v_gate = F.sigmoid(torch.mean(v_pos_emb + v.unsqueeze(1), dim=2))
+            output = v_gate * output + (1. - v_gate) * torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
+            # output += torch.sum(attn.unsqueeze(3) * v_pos_emb, dim=2)
 
         return output, out_attn
 
