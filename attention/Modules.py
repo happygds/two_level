@@ -114,7 +114,7 @@ class ScaledDotProductAttention(nn.Module):
         else:
             attn.data.masked_fill_(torch.isnan(attn), 0)
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         out_attn = attn
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
