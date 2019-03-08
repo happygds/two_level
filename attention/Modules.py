@@ -105,7 +105,7 @@ class ScaledDotProductAttention(nn.Module):
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
-        if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal']:
+        if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal', 'roi_remov']:
             attn = self.softmax(attn)
             attn.data.masked_fill_(torch.isnan(attn), 0)
             # shp = attn.size()
