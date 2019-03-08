@@ -105,13 +105,14 @@ class ScaledDotProductAttention(nn.Module):
             else:
                 attn.data.masked_fill_(attn_mask, 0)
 
-        if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal', 'roi_remov']:
+        if self.kernel_type in ['self_attn', 'addition', 'inner_prod', 'highorder', 'highorder-causal']:
             attn = self.softmax(attn)
             attn.data.masked_fill_(torch.isnan(attn), 0)
             # shp = attn.size()
             # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         else:
+            attn.data.masked_fill_(torch.isnan(attn), 0)
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
         # import pdb; pdb.set_trace()
         out_attn = attn
