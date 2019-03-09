@@ -69,6 +69,8 @@ class CE_Criterion_multi(nn.Module):
             tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
             tmp_output = 1. - (attn * target_cov).sum(2).sum(1).clamp(eps) / tmp.clamp(eps)
             attn_output = (tmp_output * mask[:, 0]).mean() * self.l_step ** i
+        else:
+            attn_output = None
     
         return score_loss, start_loss, end_loss, attn_output
 
