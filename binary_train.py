@@ -38,7 +38,6 @@ def main():
     dataset_configs = get_actionness_configs(args.dataset)
     sampling_configs = dataset_configs['sampling']
     num_class = dataset_configs['num_class']
-    args.dropout = 0.8
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
     db = ANetDB.get_db("1.3")
@@ -198,7 +197,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
             score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
         roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-        loss = score_loss + 10. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
+        loss = score_loss + 0.01 * roi_loss + 0.5 * start_loss + 0.5 * end_loss
         score_losses.update(score_loss.item(), feature.size(0))
         start_losses.update(start_loss.item(), feature.size(0))
         end_losses.update(end_loss.item(), feature.size(0))
@@ -281,11 +280,11 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
 
             # compute output
             score_output, enc_slf_attn, roi_scores, labels, rois_mask = model(
-                feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=epoch)
+                feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=None)
             score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
                 score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
             roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-            loss = score_loss + 10. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
+            loss = score_loss + 0.01 * roi_loss + 0.5 * start_loss + 0.5 * end_loss
             score_losses.update(score_loss.item(), feature.size(0))
             start_losses.update(start_loss.item(), feature.size(0))
             end_losses.update(end_loss.item(), feature.size(0))
