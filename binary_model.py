@@ -96,7 +96,7 @@ class BinaryClassifier(torch.nn.Module):
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
         roi_feats = self.batchnorm(roi_feats.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
-        roi_scores = F.sigmoid(self.roi_cls(roi_feats), dim=2)
+        roi_scores = F.sigmoid(self.roi_cls(roi_feats))
         # import pdb; pdb.set_trace()
 
         if not test_mode:
