@@ -9,7 +9,7 @@ from attention.utils import *
 
 class BinaryClassifier(torch.nn.Module):
     def __init__(self, num_class, course_segment, args, dropout=0.1, test_mode=False):
-
+    
         super(BinaryClassifier, self).__init__()
 
         self.reduce = args.reduce_dim > 0
@@ -45,7 +45,7 @@ class BinaryClassifier(torch.nn.Module):
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
-        self.batchnorm = nn.InstanceNorm1d(args.d_model)
+        self.batchnorm = nn.BatchNorm1d(args.d_model)
         self.roi_cls = nn.Linear(args.d_model, 2)
 
     def forward(self, feature, pos_ind, target=None, gts=None, 
