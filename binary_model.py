@@ -8,7 +8,7 @@ from attention.proposal import proposal_layer
 from attention.utils import *
 
 class BinaryClassifier(torch.nn.Module):
-    def __init__(self, num_class, course_segment, args, dropout=0.5, test_mode=False):
+    def __init__(self, num_class, course_segment, args, dropout=0.1, test_mode=False):
         
         super(BinaryClassifier, self).__init__()
 
@@ -19,7 +19,7 @@ class BinaryClassifier(torch.nn.Module):
         self.reduce = args.reduce_dim > 0
         if self.reduce:
             self.reduce_layer = nn.Sequential(
-                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU(), nn.Dropout(self.dropout))
+                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU())
         self.n_layers = args.n_layers
 
         self.layer_stack = nn.Sequential(nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.ReLU(),
