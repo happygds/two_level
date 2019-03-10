@@ -27,7 +27,7 @@ class BinaryClassifier(torch.nn.Module):
 
         self.d_model = args.d_model
         self.test_mode = test_mode
-        self.scores = nn.Sequential(nn.Dropout(self.dropout), nn.Linear(args.d_model, 3))
+        self.scores = nn.Linear(args.d_model, 3)
         self.num_local = args.num_local
         self.dilated_mask = args.dilated_mask
         self.trn_kernel = args.groupwise_heads
@@ -35,7 +35,7 @@ class BinaryClassifier(torch.nn.Module):
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=self.dropout)
         self.batchnorm = nn.BatchNorm1d(args.d_model)
-        self.roi_cls = nn.Sequential(nn.Dropout(self.dropout), nn.Linear(args.d_model, 2))
+        self.roi_cls = nn.Linear(args.d_model, 2)
 
     def forward(self, feature, pos_ind, target=None, gts=None, 
                 feature_mask=None, test_mode=False, epoch_id=None):
