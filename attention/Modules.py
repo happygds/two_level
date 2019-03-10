@@ -230,7 +230,7 @@ class PositionwiseFeedForward(nn.Module):
 
     def __init__(self, d_hid, d_inner_hid, dropout=0.1):
         super(PositionwiseFeedForward, self).__init__()
-        self.w_1 = nn.Linear(d_in, d_inner_hid)  # position-wise
+        self.w_1 = nn.Linear(d_hid, d_inner_hid)  # position-wise
         self.w_2 = nn.Linear(d_inner_hid, d_hid)  # position-wise
         self.dropout = nn.Dropout(dropout)
         self.relu = nn.ReLU()
