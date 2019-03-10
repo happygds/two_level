@@ -87,13 +87,9 @@ class ScaledDotProductAttention(nn.Module):
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             assert attn_pos_emb is not None
             k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
+            # k_gate = F.sigmoid(torch.mean(k.unsqueeze(1) + k_pos_emb, dim=3))
+            # attn = k_gate * attn + (1. - k_gate) * torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
             attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
-            # attn.data.masked_fill_(attn_mask, -1e+32)
-            # attn_max = torch.max(attn, 2, keepdim=True)[0]
-            # attn = torch.exp(attn - attn_max)
-            # attn.data.masked_fill_(attn_mask, 0)
-            # attn = attn_pos_emb * attn
-            # import pdb; pdb.set_trace()
         else:
             raise NotImplementedError()
 
@@ -116,7 +112,9 @@ class ScaledDotProductAttention(nn.Module):
             # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         else:
+            attn.data.masked_fill_(torch.isnan(attn), 0)
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
+        # import pdb; pdb.set_trace()
         out_attn = attn
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
@@ -230,14 +228,10 @@ class MultiHeadAttention(nn.Module):
 class PositionwiseFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''
 
-    def __init__(self, d_hid, d_inner_hid, d_in=None, dropout=0.1):
+    def __init__(self, d_hid, d_inner_hid, dropout=0.1):
         super(PositionwiseFeedForward, self).__init__()
-        self.d_in = d_in
-        if d_in is None:
-            d_in = d_hid
-        self.w_1 = nn.Linear(d_in, d_inner_hid)  # position-wise
+        self.w_1 = nn.Linear(d_hid, d_inner_hid)  # position-wise
         self.w_2 = nn.Linear(d_inner_hid, d_hid)  # position-wise
-        self.layer_norm = nn.LayerNorm(d_hid)
         self.dropout = nn.Dropout(dropout)
         self.relu = nn.ReLU()
 
@@ -246,7 +240,4 @@ class PositionwiseFeedForward(nn.Module):
         output = self.relu(self.w_1(x))
         output = self.w_2(output)
         output = self.dropout(output)
-        if self.d_in is None:
-            return self.layer_norm(output + residual)
-        else:
-            return self.layer_norm(output)
+        return output + residual
