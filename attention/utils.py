@@ -79,7 +79,7 @@ class Rank_Criterion(nn.Module):
         self.epsilon = epsilon
 
     def forward(self, x, y, mask):
-        x, y = x[:, :, 1], y[:, :, 1]
+        x, y = x[:, :, 0], y[:, :, 1]
         # sort_inds = y.sort(1, descending=True)[1]
         # sort_x = torch.gather(x, 1, sort_inds)
         # output = F.relu(self.epsilon - (sort_x[:, :-1] - sort_x[:, :-1]), 0.) * mask[:, 1:]
@@ -87,8 +87,8 @@ class Rank_Criterion(nn.Module):
         mask = mask.unsqueeze(1) * mask.unsqueeze(2)
         y_mask = torch.gt(y.unsqueeze(1) - y.unsqueeze(2), 0.).float()
         
-        # pred = F.relu((y.unsqueeze(1) - y.unsqueeze(2)) - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
-        pred = F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
+        pred = F.relu((y.unsqueeze(1) - y.unsqueeze(2)) - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
+        # pred = F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
         output = (pred).sum(2).sum(1)
         # output = torch.exp( - (x.unsqueeze(1) - x.unsqueeze(2))) * F.relu(y.unsqueeze(1) - y.unsqueeze(2)) * mask
         # output = torch.abs(output).sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
