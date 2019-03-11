@@ -219,7 +219,7 @@ class MultiHeadAttention(nn.Module):
         outputs = self.proj(outputs)
         outputs = self.dropout(outputs)
 
-        if self.d_out is None:
+        if self.d_out is not None:
             return self.layer_norm(outputs + residual), attns
         else:
             return self.layer_norm(outputs), cluster_outputs
