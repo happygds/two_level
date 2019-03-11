@@ -7,9 +7,10 @@ from attention.Layers import EncoderLayer, Local_EncoderLayer, ROI_Relation
 from attention.proposal import proposal_layer
 from attention.utils import *
 
+
 class BinaryClassifier(torch.nn.Module):
     def __init__(self, num_class, course_segment, args, dropout=0.1, test_mode=False):
-        
+
         super(BinaryClassifier, self).__init__()
 
         if args.dropout > 0:
@@ -22,8 +23,10 @@ class BinaryClassifier(torch.nn.Module):
                 nn.Linear(args.input_dim, args.reduce_dim), nn.SELU())
         self.n_layers = args.n_layers
 
-        self.layer_stack = nn.Sequential(nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.Dropout(dropout), nn.ReLU(),
-                                         nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.Dropout(dropout), nn.ReLU())
+        self.layer_stack = nn.Sequential(nn.Conv1d(args.d_model, args.d_model, 3, padding=1),
+                                         nn.Dropout(self.dropout), nn.ReLU(),
+                                         nn.Conv1d(args.d_model,args.d_model, 3, padding=1),
+                                         nn.Dropout(self.dropout), nn.ReLU())
 
         self.d_model = args.d_model
         self.test_mode = test_mode
@@ -32,12 +35,12 @@ class BinaryClassifier(torch.nn.Module):
         self.dilated_mask = args.dilated_mask
         self.trn_kernel = args.groupwise_heads
 
-        self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
+        self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid,
                                           args.n_head, args.d_k, args.d_v, dropout=self.dropout)
         # self.batchnorm = nn.BatchNorm1d(args.d_model)
         self.roi_cls = nn.Linear(args.d_model, 2)
 
-    def forward(self, feature, pos_ind, target=None, gts=None, 
+    def forward(self, feature, pos_ind, target=None, gts=None,
                 feature_mask=None, test_mode=False, epoch_id=None):
         # Word embedding look up
         if self.reduce:
@@ -46,7 +49,8 @@ class BinaryClassifier(torch.nn.Module):
             enc_input = feature
 
         enc_output = enc_input
-        enc_output = self.layer_stack(enc_output.transpose(1, 2)).transpose(1, 2)
+        enc_output = self.layer_stack(
+            enc_output.transpose(1, 2)).transpose(1, 2)
         score_output = F.sigmoid(self.scores(enc_output))
 
         # compute loss for training/validation stage
@@ -59,10 +63,12 @@ class BinaryClassifier(torch.nn.Module):
 
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
-        roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
+        roi_feats = self.roi_relations(
+            enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
         # roi_feats = self.batchnorm(roi_feats.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
         roi_scores = F.softmax(self.roi_cls(roi_feats), dim=2)
-        import pdb; pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
         if not test_mode:
             return score_output, None, roi_scores, labels, rois_mask
