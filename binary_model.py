@@ -22,8 +22,8 @@ class BinaryClassifier(torch.nn.Module):
                 nn.Linear(args.input_dim, args.reduce_dim), nn.SELU())
         self.n_layers = args.n_layers
 
-        self.layer_stack = nn.Sequential(nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.SELU(),
-                                         nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.SELU())
+        self.layer_stack = nn.Sequential(nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.ReLU(),
+                                         nn.Conv1d(args.d_model, args.d_model, 3, padding=1), nn.ReLU())
 
         self.d_model = args.d_model
         self.test_mode = test_mode
