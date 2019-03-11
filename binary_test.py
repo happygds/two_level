@@ -45,8 +45,8 @@ parser.add_argument('--use_flow', default=True, type=int,
                     help='whether use i3d_flow feature')
 parser.add_argument('--only_flow', default=False, type=int,
                     help='whether only use i3d_flow feature') # for self-attetion encoder
-parser.add_argument('--dropout', '--do', default=0.8, type=float,
-                    metavar='DO', help='dropout ratio (default: 0.8)')
+parser.add_argument('--dropout', '--do', default=0.1, type=float,
+                    metavar='DO', help='dropout ratio (default: 0.1)')
 parser.add_argument('--pos_enc', default=False, type=int,
                     help='whether slice the original position indices of the input video sequence')
 parser.add_argument('--att_kernel_type', default='self_attn',
@@ -165,7 +165,7 @@ def process(loader, state_dict, net):
             rois, actness, roi_scores = net(
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             rois, actness, roi_scores = rois[0].cpu().numpy(
-            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 0]
+            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
             # import pdb; pdb.set_trace()
             outputs = [rois, actness, roi_scores, num_feat]
             result[video_id] = outputs
