@@ -35,7 +35,7 @@ def gen_prop(x):
         if scores.mean() > min_thre:
             props += [(0, len(scores)-1, 1, scores.mean()
                        * (pstarts[0]*pends[-1]))]
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
     else:
         props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
