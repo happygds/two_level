@@ -20,17 +20,15 @@ class EncoderLayer(nn.Module):
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, 
             kernel_type=kernel_type, groupwise_heads=groupwise_heads)
-        # self.pos_ffn = PositionwiseFeedForward(
-        #     d_model, d_inner_hid, dropout=dropout)
-        self.fc = nn.Sequential(nn.Linear(d_model, d_model), nn.ReLU())
+        self.pos_ffn = PositionwiseFeedForward(
+            d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, enc_input, local_attn_mask=None, 
                 slf_attn_mask=None, attn_pos_emb=None):
         enc_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input,
             attn_mask=slf_attn_mask, attn_pos_emb=attn_pos_emb)
-        # enc_output = self.pos_ffn(enc_output)
-        enc_output = self.fc(enc_output)
+        enc_output = self.pos_ffn(enc_output)
         return enc_output, enc_slf_attn
 
 
@@ -114,9 +112,8 @@ class ROI_Relation(nn.Module):
         self.slf_attn = MultiHeadAttention(
             n_head, d_model, d_k, d_v, dropout=dropout, 
             kernel_type=kernel_type)
-        # self.pos_ffn = PositionwiseFeedForward(
-        #     d_model, d_inner_hid, dropout=dropout)
-        self.fc = nn.Sequential(nn.Linear(d_model, d_model), nn.ReLU())
+        self.pos_ffn = PositionwiseFeedForward(
+            d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         len_feat = features.size()[1]
@@ -144,7 +141,6 @@ class ROI_Relation(nn.Module):
         enc_output, _ = self.slf_attn(
             enc_output, enc_output, enc_output,
             attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
-        # enc_output = self.pos_ffn(enc_output)
-        enc_output = self.fc(enc_output)
+        enc_output = self.pos_ffn(enc_output)
         
         return enc_output
