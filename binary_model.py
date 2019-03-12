@@ -95,7 +95,7 @@ class BinaryClassifier(torch.nn.Module):
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
         roi_scores = F.softmax(self.roi_cls(roi_feats), dim=2)
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
 
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
