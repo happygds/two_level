@@ -45,7 +45,6 @@ class BinaryClassifier(torch.nn.Module):
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=0.1)
-        self.batchnorm = nn.BatchNorm1d(args.d_model)
         self.roi_cls = nn.Linear(args.d_model, 2)
 
     def forward(self, feature, pos_ind, target=None, gts=None, 
@@ -53,7 +52,6 @@ class BinaryClassifier(torch.nn.Module):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
-            enc_input = self.batchnorm(enc_input.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
         else:
             enc_input = feature
 
