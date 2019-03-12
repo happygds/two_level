@@ -47,7 +47,7 @@ def gen_prop(x):
     # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
     num_keep = rpn_post_nms_top
     # if epoch_id is not None and epoch_id < 3:
-    bboxes = temporal_nms(bboxes, 0.95)[:num_keep]
+    bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
     # else:
     # bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
     if len(bboxes) == 0:
