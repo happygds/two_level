@@ -42,9 +42,11 @@ class BinaryVideoRecord:
         self.id = self._data.id
         files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
         frame_cnt = len(files)
+        duration = self._data.duration
         # frame_cnt = frame_counts[self.id]
         self.frame_cnt = frame_cnt
         vid_name = self.id
+        self.fps = frame_cnt / duration
 
         f = pd.read_csv(os.path.join(rgb_csv_path, vid_name+'.csv'))
         rgb_feat = f.values
