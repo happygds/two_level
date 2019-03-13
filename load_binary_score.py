@@ -292,6 +292,8 @@ class BinaryDataSet(data.Dataset):
         if frame_tick is None:
             return out_feat, out_mask, out_label, out_starts, out_ends, pos_ind, gts
         else:
+            frame_tick = np.array([frame_tick]).reshape((1,)).astype('float32')
+            index = np.array([index]).reshape((1,)).astype('float32')
             return out_feat, out_mask, pos_ind, torch.from_numpy(frame_tick), torch.from_numpy(index)
 
     def get_test_data(self, video, gen_batchsize=1):
