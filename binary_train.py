@@ -287,7 +287,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             index = index.cpu().numpy().reshape((-1,))
 
             # compute output
-            this_rois, this_actness, this_roi_scores = net(
+            this_rois, this_actness, this_roi_scores = model(
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             this_rois, this_actness, this_roi_scores = this_rois.cpu().numpy(
             ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()[:, :, 1]
