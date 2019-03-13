@@ -289,8 +289,10 @@ class BinaryDataSet(data.Dataset):
             out_starts), torch.from_numpy(out_ends)
         out_mask = torch.from_numpy(out_mask)
 
-        # print(out_feats.size(), out_prop_type.size())
-        return out_feat, out_mask, out_label, out_starts, out_ends, pos_ind, gts
+        if frame_tick is None:
+            return out_feat, out_mask, out_label, out_starts, out_ends, pos_ind, gts
+        else:
+            return out_feat, out_mask, pos_ind, torch.from_numpy(frame_tick), torch.from_numpy(index)
 
     def get_test_data(self, video, gen_batchsize=1):
         props = []

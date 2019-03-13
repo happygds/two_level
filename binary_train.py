@@ -145,7 +145,7 @@ def main():
 
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
-            loss, score_loss, start_loss, end_loss, roi_loss = validate(
+            loss = validate(
                 val_loader, model, criterion_stage1, criterion_stage2, (epoch + 1) * len(train_loader), epoch)
             # # 1. Log scalar values (scalar summary)
             # info = {'val_loss': loss,
@@ -274,50 +274,44 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
 
     end_time = time.time()
 
-    for i, (feature, feature_mask, target, start, end, pos_ind, gts) in enumerate(val_loader):
+    video_lst, t_start_lst, t_end_lst, score_lst = [], [], [], []
+
+    for i, (feature, feature_mask, pos_ind, seg_ind, index) in enumerate(val_loader):
         with torch.no_grad():
             # feature_mask = feature.abs().mean(2).ne(0).float()
-            feature = feature.cuda().requires_grad_(False)
-            feature_mask = feature_mask.cuda().requires_grad_(False)
-            pos_ind = pos_ind.cuda().requires_grad_(False)
+            feature = feature.cuda()
+            feature_mask = feature_mask.cuda()
+            pos_ind = pos_ind.cuda()
+            index = index.cpu().numpy().reshape((-1,))
 
             # compute output
-            score_output, enc_slf_attn, roi_scores, labels, rois_mask = model(
-                feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=epoch)
-            score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
-                score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
-            roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-            loss = score_loss + 10. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
-            score_losses.update(score_loss.item(), feature.size(0))
-            start_losses.update(start_loss.item(), feature.size(0))
-            end_losses.update(end_loss.item(), feature.size(0))
-            roi_losses.update(roi_loss.item(), feature.size(0))
-            losses.update(loss.item(), feature.size(0))
-            if np.isnan(loss.data.cpu().numpy()).any():
-                import pdb; pdb.set_trace()
-        del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask
+            this_rois, this_actness, this_roi_scores = net(
+                feature, pos_ind, feature_mask=feature_mask, test_mode=True)
+            this_rois, this_actness, this_roi_scores = this_rois.cpu().numpy(
+            ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()[:, :, 1]
+            this_rois += seg_ind.cpu().numpy().reshape((-1, 1, 1))
+            this_roi_scores *= this_actness
+            for k, v in enumerate(this_rois):
+                video_id = val_loader.dataset.video_list[index[k]]
+                video_lst.extend([video_id] * len(v))
+                t_start_lst.extend([x[0] / 30. for x in v])
+                t_end_lst.extend([x[1] / 30. for x in v])
+                score_lst.extend([x for x in this_roi_scores[k]])
 
-        batch_time.update(time.time() - end_time)
-        end_time = time.time()
+    prediction = pd.DataFrame({'video-id': video_lst,
+                        't-start': t_start_lst,
+                        't-end': t_end_lst,
+                        'score': score_lst})
 
-        if i % (args.print_freq * 2) == 0:
-            print('Test: [{0}/{1}]\t'
-                  'Time {batch_time.val:.4f} ({batch_time.avg:.4f})\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Score_Loss {score_loss.val:.4f} ({score_loss.avg:.4f})\t'
-                  'Start_Loss {start_loss.val:.4f} ({start_loss.avg:.4f})\t'
-                  'End_Loss {end_loss.val:.4f} ({end_loss.avg:.4f})\t'
-                  'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
-                  .format(i, len(val_loader), batch_time=batch_time, 
-                  loss=losses, score_loss=score_losses, start_loss=start_losses, 
-                  end_loss=end_losses, roi_loss=roi_losses))
+    ground_truth, cls_to_idx = grd_thumos(
+        'data/thumos_annots.json', subset='testing')
+    del cls_to_idx['Ambiguous']
+    auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=1000,
+                                                        tiou_thresholds=np.linspace(0.5, 1.0, 11))
+    for j, nr_proposals in enumerate(nr_proposals_lst[9::10]):
+        print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*10]))
 
-    print('Testing Results: Loss {loss.avg:.5f} \t'
-          .format(loss=losses))
-    if math.isnan(losses.avg):
-        import pdb; pdb.set_trace()
-
-    return losses.avg, score_losses.avg, start_losses.avg, end_losses.avg, roi_losses.avg
+    return -1. * ar_at_prop[-1]
 
 
 def save_checkpoint(state, is_best, save_path, filename='/checkpoint.pth.tar'):
