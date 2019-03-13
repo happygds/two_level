@@ -101,11 +101,11 @@ class ROI_Relation(nn.Module):
         self.roi_pool = BRoI1DPool(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
         # self.roi_pool = BRoI1DAlign(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
         self.bpool_size = start_pool_size
-        self.roipoll_size = roipool_size
+        self.roipool_size = roipool_size
         self.roi_conv = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU(),
                                       nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU(),
                                       nn.MaxPool1d(5, stride=4, padding=2))
-        in_ch = ((2*self.bpool_size+self.roipoll_size) - 1) // 4 + 1
+        in_ch = ((2*self.bpool_size+self.roipool_size) - 1) // 4 + 1
         self.roi_fc = nn.Sequential(nn.Linear(d_model*in_ch, d_model), nn.Dropout(dropout), nn.SELU())
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
