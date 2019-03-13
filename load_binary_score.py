@@ -246,26 +246,13 @@ class BinaryDataSet(data.Dataset):
         out_mask = np.zeros_like(out_label).astype('float32')
         out_mask[:min_len] = 1.
 
+        out_label = np.zeros_like(out_label)
+        out_starts, out_ends = np.zeros_like(out_starts), np.zeros_like(out_ends)
         target_segments = video.gts
         test_segments = np.asarray([begin_ind, end_ind]).reshape((-1, 2))
         intersect, ratio_target = intersection(
             target_segments, test_segments, return_ratio_target=True)
         for i, ratio in enumerate(ratio_target[:, 0]):
-            this_begin, this_end = target_segments[i]
-            this_dura = this_end - this_begin
-            start_begin, start_end = this_begin - \
-                this_dura / 10., this_begin + this_dura / 10.
-            end_begin, end_end = this_end - this_dura / 10., this_end + this_dura / 10.
-
-            this_begin, this_end = max(min(self.sample_duration, int(round(this_begin - begin_ind))), 0), max(
-                min(self.sample_duration, int(round(this_end - begin_ind))), 0)
-            start_begin, start_end = max(min(self.sample_duration, int(math.floor(start_begin - begin_ind))), 0), max(
-                min(self.sample_duration, int(math.floor(start_end - begin_ind))), 0)
-            end_begin, end_end = max(min(self.sample_duration, int(math.ceil(end_begin - begin_ind))), 0), max(
-                min(self.sample_duration, int(math.ceil(end_end - begin_ind))), 0)
-            out_label[this_begin:this_end + 1] = 0.
-            out_starts[start_begin:start_end + 1] = 0.
-            out_ends[end_begin:end_end + 1] = 0.
             if ratio >= 0.5:
                 this_intersect = intersect[i, 0]
                 this_begin, this_end = this_intersect[0], this_intersect[1]
