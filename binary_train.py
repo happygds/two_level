@@ -295,7 +295,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             this_roi_scores *= this_actness
             for k, v in enumerate(this_rois):
                 video_info = val_loader.dataset.video_list[index[k]]
-                video_id, fps = video_info.id, video.fps
+                video_id, fps = video_info.id, video_info.fps
                 video_lst.extend([video_id] * len(v))
                 t_start_lst.extend([x[0] / fps for x in v])
                 t_end_lst.extend([x[1] / fps for x in v])
