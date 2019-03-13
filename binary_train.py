@@ -120,13 +120,13 @@ def main():
         batch_size=args.batch_size//2, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
-    # optimizer = torch.optim.Adam(
-    #         model.parameters(),
-    #         args.lr, weight_decay=args.weight_decay)
-    optimizer = torch.optim.SGD(model.parameters(),
-                                args.lr,
-                                momentum=args.momentum,
-                                weight_decay=args.weight_decay, nesterov=False)
+    optimizer = torch.optim.Adam(
+            model.parameters(),
+            args.lr, weight_decay=args.weight_decay)
+    # optimizer = torch.optim.SGD(model.parameters(),
+    #                             args.lr,
+    #                             momentum=args.momentum,
+    #                             weight_decay=args.weight_decay, nesterov=False)
 
     if args.resume is not None and len(args.resume) > 0:
         model.load_state_dict(torch.load(args.resume)['state_dict'])
