@@ -311,7 +311,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
     auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=1000,
                                                         tiou_thresholds=np.linspace(0.5, 1.0, 11))
     for j, nr_proposals in enumerate(nr_proposals_lst[9::10]):
-        print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*10]))
+        print('AR@AN({}) is {}'.format(int(nr_proposals), ar_at_prop[j*10+9]))
 
     return -1. * ar_at_prop[-1]
 
