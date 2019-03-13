@@ -284,7 +284,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             feature = feature.cuda()
             feature_mask = feature_mask.cuda()
             pos_ind = pos_ind.cuda()
-            index = index.cpu().numpy().reshape((-1,))
+            index = index.cpu().numpy().reshape((-1,)).astype('int32')
 
             # compute output
             this_rois, this_actness, this_roi_scores = model(
