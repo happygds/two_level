@@ -33,9 +33,9 @@ parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
 
 parser.add_argument('--annotation_path', default='data/thumos_annots.json',
                     type=str, help='Annotation file path')
-parser.add_argument('--feat_root', default='../../../data/thumos14',
+parser.add_argument('--feat_root', default='/data1/matheguo/important/data/thumos14',
                     type=str, help='Feature directory path')
-parser.add_argument('--result_path', default='../../../result/thumos14',
+parser.add_argument('--result_path', default='/data1/matheguo/important/result/thumos14',
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | TAG')
