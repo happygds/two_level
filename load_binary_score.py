@@ -251,6 +251,21 @@ class BinaryDataSet(data.Dataset):
         intersect, ratio_target = intersection(
             target_segments, test_segments, return_ratio_target=True)
         for i, ratio in enumerate(ratio_target[:, 0]):
+            this_begin, this_end = target_segments[i]
+            this_dura = this_end - this_begin
+            start_begin, start_end = this_begin - \
+                this_dura / 10., this_begin + this_dura / 10.
+            end_begin, end_end = this_end - this_dura / 10., this_end + this_dura / 10.
+
+            this_begin, this_end = max(min(self.sample_duration, int(round(this_begin - begin_ind))), 0), max(
+                min(self.sample_duration, int(round(this_end - begin_ind))), 0)
+            start_begin, start_end = max(min(self.sample_duration, int(math.floor(start_begin - begin_ind))), 0), max(
+                min(self.sample_duration, int(math.floor(start_end - begin_ind))), 0)
+            end_begin, end_end = max(min(self.sample_duration, int(math.ceil(end_begin - begin_ind))), 0), max(
+                min(self.sample_duration, int(math.ceil(end_end - begin_ind))), 0)
+            out_label[this_begin:this_end + 1] = 0.
+            out_starts[start_begin:start_end + 1] = 0.
+            out_ends[end_begin:end_end + 1] = 0.
             if ratio >= 0.5:
                 this_intersect = intersect[i, 0]
                 this_begin, this_end = this_intersect[0], this_intersect[1]
@@ -268,22 +283,6 @@ class BinaryDataSet(data.Dataset):
                 out_label[this_begin:this_end + 1] = 1.
                 out_starts[start_begin:start_end + 1] = 1.
                 out_ends[end_begin:end_end + 1] = 1.
-            else:
-                this_begin, this_end = target_segments[i]
-                this_dura = this_end - this_begin
-                start_begin, start_end = this_begin - \
-                    this_dura / 10., this_begin + this_dura / 10.
-                end_begin, end_end = this_end - this_dura / 10., this_end + this_dura / 10.
-
-                this_begin, this_end = max(min(self.sample_duration, int(round(this_begin - begin_ind))), 0), max(
-                    min(self.sample_duration, int(round(this_end - begin_ind))), 0)
-                start_begin, start_end = max(min(self.sample_duration, int(math.floor(start_begin - begin_ind))), 0), max(
-                    min(self.sample_duration, int(math.floor(start_end - begin_ind))), 0)
-                end_begin, end_end = max(min(self.sample_duration, int(math.ceil(end_begin - begin_ind))), 0), max(
-                    min(self.sample_duration, int(math.ceil(end_end - begin_ind))), 0)
-                out_label[this_begin:this_end + 1] = 0.
-                out_starts[start_begin:start_end + 1] = 0.
-                out_ends[end_begin:end_end + 1] = 0.
 
         # convert label using haar wavelet decomposition
         gts = np.zeros((256, 2), dtype='float32')
