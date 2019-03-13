@@ -297,8 +297,8 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
                 video_info = val_loader.dataset.video_list[index[k]]
                 video_id, fps = video_info.id, video.fps
                 video_lst.extend([video_id] * len(v))
-                t_start_lst.extend([x[0] / fps. for x in v])
-                t_end_lst.extend([x[1] / fps. for x in v])
+                t_start_lst.extend([x[0] / fps for x in v])
+                t_end_lst.extend([x[1] / fps for x in v])
                 score_lst.extend([x for x in this_roi_scores[k]])
 
     prediction = pd.DataFrame({'video-id': video_lst,
