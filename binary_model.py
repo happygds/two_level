@@ -20,6 +20,7 @@ class BinaryClassifier(torch.nn.Module):
         if self.reduce:
             self.reduce_layer = nn.Sequential(
                 nn.Linear(args.input_dim, args.reduce_dim), nn.SELU(), nn.Dropout(self.dropout))
+            self.inputnorm = nn.BatchNorm1d(args.d_model)
         self.n_layers = args.n_layers
 
         if args.num_local > 0:
@@ -52,6 +53,7 @@ class BinaryClassifier(torch.nn.Module):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
+            enc_input = self.inputnorm(enc_input.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
         else:
             enc_input = feature
 
