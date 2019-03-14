@@ -261,10 +261,10 @@ class BinaryDataSet(data.Dataset):
 
                 this_begin, this_end = max(min(self.sample_duration, int(round(this_begin - begin_ind))), 0), max(
                     min(self.sample_duration, int(round(this_end - begin_ind))), 0)
-                start_begin, start_end = max(min(self.sample_duration, int(round(start_begin - begin_ind))), 0), max(
-                    min(self.sample_duration, int(round(start_end - begin_ind))), 0)
-                end_begin, end_end = max(min(self.sample_duration, int(round(end_begin - begin_ind))), 0), max(
-                    min(self.sample_duration, int(round(end_end - begin_ind))), 0)
+                start_begin, start_end = max(min(self.sample_duration, int(math.floor(start_begin - begin_ind))), 0), max(
+                    min(self.sample_duration, int(math.floor(start_end - begin_ind))), 0)
+                end_begin, end_end = max(min(self.sample_duration, int(math.ceil(end_begin - begin_ind))), 0), max(
+                    min(self.sample_duration, int(math.ceil(end_end - begin_ind))), 0)
                 out_label[this_begin:this_end + 1] = 0.
                 out_starts[start_begin:start_end + 1] = 0.
                 out_ends[end_begin:end_end + 1] = 0.
