@@ -301,9 +301,11 @@ class BinaryDataSet(data.Dataset):
         frame_cnt = video.frame_cnt
 
         frame_ticks = np.arange(
-            0, feat.shape[0] - self.sample_duration // 2, self.sample_duration // 2).astype('int32')
+            0, feat.shape[0] - self.sample_duration, self.sample_duration // 2).astype('int32')
         if len(frame_ticks) == 0:
             frame_ticks = [0]
+        if frame_ticks[-1] + self.sample_duration < feat.shape[0]:
+            frame_ticks = list(frame_ticks.ravel()) + [int(feat.shape[0] - self.sample_duration)]
         num_sampled_frames = len(frame_ticks)
         # print("the number of samples is {}".format(num_sampled_frames))
 
