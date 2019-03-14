@@ -186,7 +186,7 @@ class BinaryDataSet(data.Dataset):
             for i, x in enumerate(self.video_list):
                 frame_cnt = x.frame_cnt
                 frame_ticks = np.arange(
-                    0, frame_cnt / feat_stride - self.sample_duration // 2, tick_stride).astype('int32')
+                    0, frame_cnt / feat_stride - self.sample_duration + tick_stride, tick_stride).astype('int32')
                 if len(frame_ticks) == 0:
                     frame_ticks = [0]
                 for _, frame_tick in enumerate(frame_ticks):
