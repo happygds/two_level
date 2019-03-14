@@ -135,7 +135,7 @@ def main():
     if args.resume is not None and len(args.resume) > 0:
         model.load_state_dict(torch.load(args.resume)['state_dict'])
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
-    criterion_stage2 = Rank_Criterion(epsilon=0.02)
+    criterion_stage2 = Rank_Criterion(epsilon=0.05)
 
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):
