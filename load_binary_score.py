@@ -186,7 +186,7 @@ class BinaryDataSet(data.Dataset):
             for i, x in enumerate(self.video_list):
                 frame_cnt = x.frame_cnt
                 frame_ticks = np.arange(
-                    0, frame_cnt / feat_stride - self.sample_duration, tick_stride).astype('int32')
+                    0, frame_cnt / feat_stride - self.sample_duration // 2, tick_stride).astype('int32')
                 if len(frame_ticks) == 0:
                     frame_ticks = [0]
                 for _, frame_tick in enumerate(frame_ticks):
@@ -215,7 +215,7 @@ class BinaryDataSet(data.Dataset):
         if frame_tick is None:
             if feat_num > self.sample_duration:
                 begin_index = random.randrange(
-                    0, feat_num - self.sample_duration, 4)
+                    0, feat_num - self.sample_duration + 1, 4)
             else:
                 begin_index = 0
         else:
