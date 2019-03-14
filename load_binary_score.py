@@ -245,8 +245,7 @@ class BinaryDataSet(data.Dataset):
 
         out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len \
             = self._sample_feat(feat, label, starts, ends, frame_tick=frame_tick)
-        out_mask = np.zeros_like(out_label).astype('float32')
-        out_mask[:min_len] = 1.
+        out_mask = (np.abs(out_feat).mean(axis=2) > 0.).astype('float32')
 
         # out_label = np.zeros_like(out_label)
         # out_starts, out_ends = np.zeros_like(out_starts), np.zeros_like(out_ends)
