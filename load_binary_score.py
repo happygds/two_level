@@ -225,7 +225,7 @@ class BinaryDataSet(data.Dataset):
         out_label = np.zeros((self.sample_duration,), dtype='float32')
         out_starts = np.zeros((self.sample_duration,), dtype='float32')
         out_ends = np.zeros((self.sample_duration,), dtype='float32')
-        min_len = min(feat_num, self.sample_duration)
+        min_len = min(feat_num - begin_index, self.sample_duration)
 
         out[:min_len] = feat[begin_index:(begin_index+min_len)]
         out_label[:min_len] = label[begin_index:(begin_index+min_len)]
@@ -305,7 +305,7 @@ class BinaryDataSet(data.Dataset):
         frame_cnt = video.frame_cnt
 
         frame_ticks = np.arange(
-            0, feat.shape[0], self.sample_duration // 2).astype('int32')
+            0, feat.shape[0] - self.sample_duration // 2, self.sample_duration // 2).astype('int32')
         if len(frame_ticks) == 0:
             frame_ticks = [0]
         num_sampled_frames = len(frame_ticks)
