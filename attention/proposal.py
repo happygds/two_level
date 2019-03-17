@@ -34,7 +34,7 @@ def gen_prop(x):
         #          for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
         # if scores.mean() > min_thre:
         #     props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
     else:
         props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
@@ -121,20 +121,12 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             gt_k = list(filter(lambda b: b[1] > 0 or b[0] < num_feat, gt_k))
             sample_infos.append(
                 [k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-            # _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-        pool = mp.Pool(processes=8)
-        handle = [pool.apply_async(gen_prop, args=(
-            x,), callback=call_back) for x in sample_infos]
-        pool.close()
-        pool.join()
-
-    # if test_mode:
-    #     assert batch_size == 1
-    #     rpn_post_nms_top = len(bboxes_dict[0])
-    #     actness = np.zeros((batch_size, rpn_post_nms_top))
-    #     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
-    #     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
-    #     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
+            _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
+        # pool = mp.Pool(processes=8)
+        # handle = [pool.apply_async(gen_prop, args=(
+        #     x,), callback=call_back) for x in sample_infos]
+        # pool.close()
+        # pool.join()
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k][:rpn_post_nms_top]
