@@ -190,7 +190,7 @@ class BinaryDataSet(data.Dataset):
                     frame_ticks = np.arange(
                         0, frame_cnt / feat_stride - self.sample_duration + tick_stride, tick_stride).astype('int32')
                 else:
-                    tmp = max(round(math.sqrt(frame_cnt / feat_stride // self.sample_duration * len(gts))), 1)
+                    tmp = max(round(math.sqrt(frame_cnt / feat_stride / self.sample_duration * len(gts))), 1)
                     frame_ticks = [0] * int(tmp)
                 if len(frame_ticks) == 0:
                     frame_ticks = [0]
