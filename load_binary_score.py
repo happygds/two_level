@@ -109,7 +109,7 @@ class BinaryDataSet(data.Dataset):
                  test_mode=False, feat_stride=5, input_dim=400,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
-                 bg_coverage_thresh=0.02, sample_duration=128*5,
+                 bg_coverage_thresh=0.02, sample_duration=100*5,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1, val_mode=False,
                  use_flow=True, only_flow=False, num_local=8,
