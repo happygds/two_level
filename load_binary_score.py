@@ -210,12 +210,18 @@ class BinaryDataSet(data.Dataset):
             video_index = self.video_key_list[real_index]
             return self.get_training_data(video_index)
 
-    def _sample_feat(self, feat, label, starts, ends, frame_tick=None):
+    def _sample_feat(self, feat, label, starts, ends, target_segments, frame_tick=None):
         feat_num = feat.shape[0]
         if frame_tick is None:
             if feat_num > self.sample_duration:
-                begin_index = random.randrange(
-                    0, feat_num - self.sample_duration + 1, 4)
+                max_ratio = 0.
+                while max_ratio < 0.5:
+                    begin_index = random.randrange(
+                        0, feat_num - self.sample_duration + 1, 4)
+                    test_segments = np.asarray([begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
+                    intersect, ratio_target = intersection(
+                        target_segments, test_segments, return_ratio_target=True)
+                    max_ratio = ratio_target.max()
             else:
                 begin_index = 0
         else:
@@ -226,13 +232,28 @@ class BinaryDataSet(data.Dataset):
         out_starts = np.zeros((self.sample_duration,), dtype='float32')
         out_ends = np.zeros((self.sample_duration,), dtype='float32')
         min_len = min(feat_num - begin_index, self.sample_duration)
-
-        out[:min_len] = feat[begin_index:(begin_index+min_len)]
-        out_label[:min_len] = label[begin_index:(begin_index+min_len)]
-        out_starts[:min_len] = starts[begin_index:(begin_index+min_len)]
-        out_ends[:min_len] = ends[begin_index:(begin_index+min_len)]
-        assert len(out) == self.sample_duration
         end_ind = begin_index + self.sample_duration
+
+        test_segments = np.asarray([begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
+        intersect, ratio_target = intersection(
+            target_segments, test_segments, return_ratio_target=True)
+        for i, ratio in enumerate(ratio_target[:, 0]):
+            if ratio >= 0.5:
+                this_begin, this_end = target_segments[i]
+                this_dura = this_end - this_begin
+                start_begin, start_end = this_begin - \
+                    this_dura / 10., this_begin + this_dura / 10.
+                end_begin, end_end = this_end - this_dura / 10., this_end + this_dura / 10.
+
+                this_begin, this_end = max(min(self.sample_duration, int(round(this_begin - begin_index))), 0), max(
+                    min(self.sample_duration, int(round(this_end - begin_index))), 0)
+                start_begin, start_end = max(min(self.sample_duration, int(math.floor(start_begin - begin_index))), 0), max(
+                    min(self.sample_duration, int(math.floor(start_end - begin_index))), 0)
+                end_begin, end_end = max(min(self.sample_duration, int(math.ceil(end_begin - begin_index))), 0), max(
+                    min(self.sample_duration, int(math.ceil(end_end - begin_index))), 0)
+                out_label[this_begin:this_end + 1] = 1.
+                out_starts[start_begin:start_end + 1] = 1.
+                out_ends[end_begin:end_end + 1] = 1.
 
         return out, out_label, out_starts, out_ends, begin_index, end_ind, min_len
 
@@ -240,34 +261,14 @@ class BinaryDataSet(data.Dataset):
         video = self.video_list[index]
         feat = video.feat
         label = video.label
+        target_segments = video.gts
         starts, ends = video.starts, video.ends
         num_feat = feat.shape[0]
 
         out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len \
-            = self._sample_feat(feat, label, starts, ends, frame_tick=frame_tick)
+            = self._sample_feat(feat, label, starts, ends, target_segments, frame_tick=frame_tick)
         out_mask = (np.abs(out_feat).mean(axis=1) > 0.).astype('float32')
 
-        target_segments = video.gts
-        test_segments = np.asarray([begin_ind, end_ind]).reshape((-1, 2))
-        intersect, ratio_target = intersection(
-            target_segments, test_segments, return_ratio_target=True)
-        for i, ratio in enumerate(ratio_target[:, 0]):
-            if ratio < 0.5 and ratio > 0.:
-                this_begin, this_end = target_segments[i]
-                this_dura = this_end - this_begin
-                start_begin, start_end = this_begin - \
-                    this_dura / 10., this_begin + this_dura / 10.
-                end_begin, end_end = this_end - this_dura / 10., this_end + this_dura / 10.
-
-                this_begin, this_end = max(min(self.sample_duration, int(round(this_begin - begin_ind))), 0), max(
-                    min(self.sample_duration, int(round(this_end - begin_ind))), 0)
-                start_begin, start_end = max(min(self.sample_duration, int(math.floor(start_begin - begin_ind))), 0), max(
-                    min(self.sample_duration, int(math.floor(start_end - begin_ind))), 0)
-                end_begin, end_end = max(min(self.sample_duration, int(math.ceil(end_begin - begin_ind))), 0), max(
-                    min(self.sample_duration, int(math.ceil(end_end - begin_ind))), 0)
-                out_label[this_begin:this_end + 1] = 0.
-                out_starts[start_begin:start_end + 1] = 0.
-                out_ends[end_begin:end_end + 1] = 0.
 
         # convert label using haar wavelet decomposition
         gts = np.zeros((256, 2), dtype='float32')
