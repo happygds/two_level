@@ -185,8 +185,13 @@ class BinaryDataSet(data.Dataset):
                 self.val_tick_list = {}
             for i, x in enumerate(self.video_list):
                 frame_cnt = x.frame_cnt
-                frame_ticks = np.arange(
-                    0, frame_cnt / feat_stride - self.sample_duration + tick_stride, tick_stride).astype('int32')
+                gts = x.gts
+                if val_mode:
+                    frame_ticks = np.arange(
+                        0, frame_cnt / feat_stride - self.sample_duration + tick_stride, tick_stride).astype('int32')
+                else:
+                    tmp = max(round(frame_cnt / feat_stride // self.sample_duration * len(gts)), 1)
+                    frame_ticks = [0] * int(tmp)
                 if len(frame_ticks) == 0:
                     frame_ticks = [0]
                 for _, frame_tick in enumerate(frame_ticks):
@@ -216,7 +221,7 @@ class BinaryDataSet(data.Dataset):
             if feat_num > self.sample_duration:
                 max_ratio = 0.
                 count = 0.
-                while max_ratio < 0.5 and count < 10.:
+                while max_ratio < 0.1 and count < 10.:
                     begin_index = random.randrange(
                         0, feat_num - self.sample_duration + 1, 4)
                     test_segments = np.asarray([begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
