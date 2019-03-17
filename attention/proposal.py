@@ -19,7 +19,7 @@ def gen_prop(x):
 
     # # use change point
     scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     if len(scores) > 1:
         diff_pstarts, diff_pends = pstarts[1:, ] - \
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
