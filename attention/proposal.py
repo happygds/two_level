@@ -19,6 +19,7 @@ def gen_prop(x):
 
     # # use change point
     scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
+    import pdb; pdb.set_trace()
     if len(scores) > 1:
         diff_pstarts, diff_pends = pstarts[1:, ] - \
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
@@ -34,7 +35,7 @@ def gen_prop(x):
         #          for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
         # if scores.mean() > min_thre:
         #     props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
     else:
         props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
