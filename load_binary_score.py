@@ -235,6 +235,7 @@ class BinaryDataSet(data.Dataset):
         out_ends = np.zeros((self.sample_duration,), dtype='float32')
         min_len = min(feat_num - begin_index, self.sample_duration)
         end_ind = begin_index + self.sample_duration
+        out[:min_len] = feat[begin_index:(begin_index+min_len)]
 
         test_segments = np.asarray([begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
         intersect, ratio_target = intersection(

@@ -19,7 +19,6 @@ def gen_prop(x):
 
     # # use change point
     scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
-    import pdb; pdb.set_trace()
     if len(scores) > 1:
         diff_pstarts, diff_pends = pstarts[1:, ] - \
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
@@ -122,12 +121,12 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             gt_k = list(filter(lambda b: b[1] > 0 or b[0] < num_feat, gt_k))
             sample_infos.append(
                 [k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-            _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-        # pool = mp.Pool(processes=8)
-        # handle = [pool.apply_async(gen_prop, args=(
-        #     x,), callback=call_back) for x in sample_infos]
-        # pool.close()
-        # pool.join()
+            # _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
+        pool = mp.Pool(processes=8)
+        handle = [pool.apply_async(gen_prop, args=(
+            x,), callback=call_back) for x in sample_infos]
+        pool.close()
+        pool.join()
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k][:rpn_post_nms_top]
