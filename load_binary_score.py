@@ -224,6 +224,7 @@ class BinaryDataSet(data.Dataset):
                         target_segments, test_segments, return_ratio_target=True)
                     max_ratio = ratio_target.max()
                     count += 1.
+                    print(max_ratio)
             else:
                 begin_index = 0
         else:
