@@ -269,7 +269,6 @@ class BinaryDataSet(data.Dataset):
             = self._sample_feat(feat, label, starts, ends, target_segments, frame_tick=frame_tick)
         out_mask = (np.abs(out_feat).mean(axis=1) > 0.).astype('float32')
 
-
         # convert label using haar wavelet decomposition
         gts = np.zeros((256, 2), dtype='float32')
         video_gts = np.zeros((256, 2), dtype='float32')
