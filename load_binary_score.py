@@ -215,7 +215,7 @@ class BinaryDataSet(data.Dataset):
         if frame_tick is None:
             if feat_num > self.sample_duration:
                 max_ratio = 0.
-                while max_ratio < 0.1:
+                while max_ratio < 0.5:
                     begin_index = random.randrange(
                         0, feat_num - self.sample_duration + 1, 4)
                     test_segments = np.asarray([begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
