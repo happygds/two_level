@@ -255,8 +255,8 @@ class BinaryDataSet(data.Dataset):
                     this_dura / 10., this_begin + this_dura / 10.
                 end_begin, end_end = this_end - this_dura / 10., this_end + this_dura / 10.
 
-                this_begin, this_end = max(min(self.sample_duration, int(round(this_begin - begin_index))), 0), max(
-                    min(self.sample_duration, int(round(this_end - begin_index))), 0)
+                this_begin = max(min(self.sample_duration, int(round(this_begin - begin_index))), 0)
+                this_end = max(min(self.sample_duration, int(round(this_end - begin_index))), 0)
                 start_begin, start_end = max(min(self.sample_duration, int(math.floor(start_begin - begin_index))), 0), max(
                     min(self.sample_duration, int(math.floor(start_end - begin_index))), 0)
                 end_begin, end_end = max(min(self.sample_duration, int(math.ceil(end_begin - begin_index))), 0), max(
