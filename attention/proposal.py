@@ -19,7 +19,7 @@ def gen_prop(x):
 
     # # use change point
     scores, pstarts, pends = scores[:, 0], scores[:, 1], scores[:, 2]
-    if len(scores) > 1 and pstarts.max() > pstarts.mean() and pends.max() > pends.mean():
+    if len(scores) > 1:
         diff_pstarts, diff_pends = pstarts[1:, ] - \
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
         # gd_scores = gaussian_filter(diff_scores, bw)
