@@ -24,9 +24,9 @@ class BinaryClassifier(torch.nn.Module):
         self.n_layers = args.n_layers
 
         self.layer_stack = nn.Sequential(nn.Conv1d(args.d_model, args.d_model, 3, padding=1),
-                                         nn.Dropout(self.dropout), nn.ReLU(),
+                                         nn.ReLU(), nn.Dropout(self.dropout), 
                                          nn.Conv1d(args.d_model,args.d_model, 3, padding=1),
-                                         nn.Dropout(self.dropout), nn.ReLU())
+                                         nn.ReLU(), nn.Dropout(self.dropout))
 
         self.d_model = args.d_model
         self.test_mode = test_mode
