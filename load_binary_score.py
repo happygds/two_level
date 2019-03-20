@@ -222,10 +222,10 @@ class BinaryDataSet(data.Dataset):
                 max_ratio = 0.
                 count = 0.
                 begin_index = random.randrange(
-                    0, feat_num - self.sample_duration + 1, 8)
+                    0, feat_num - self.sample_duration + 1, 4)
                 while max_ratio < 0.5 and count < 10.:
                     begin_index = random.randrange(
-                        0, feat_num - self.sample_duration + 1, 8)
+                        0, feat_num - self.sample_duration + 1, 4)
                     test_segments = np.asarray([begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
                     intersect, ratio_target = intersection(
                         target_segments, test_segments, return_ratio_target=True)
