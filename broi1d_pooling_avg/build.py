@@ -3,13 +3,13 @@ import torch
 from torch.utils.ffi import create_extension
 import subprocess
 
-cmd = 'source deactivate && cd src/cuda && nvcc -c -o broi1d_pooling.cu.o broi1d_pooling_kernel.cu -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -arch=sm_52'
+cmd = 'cd src/cuda && nvcc -c -o broi1d_pooling.cu.o broi1d_pooling_kernel.cu -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -arch=sm_52'
 print(cmd)
 subprocess.call(cmd, shell=True)
 print('\n')
 
-sources = ['src/roi1d_pooling.c']
-headers = ['src/roi1d_pooling.h']
+# sources = ['src/roi1d_pooling.c']
+# headers = ['src/roi1d_pooling.h']
 sources = []
 headers = []
 defines = []
