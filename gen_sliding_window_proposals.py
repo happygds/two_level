@@ -24,7 +24,7 @@ parser.add_argument("--dataset",  default="activitynet",
                     choices=['thumos14', 'activitynet'])
 args = parser.parse_args()
 
-name_pattern = 'frame*.jpg' if args.modality == 'rgb' else 'flow_x_*.jpg'
+name_pattern = 'image_*.jpg' if args.modality == 'rgb' else 'flow_x_*.jpg'
 
 if args.dataset == 'activitynet':
     db = ANetDB.get_db(args.version)
