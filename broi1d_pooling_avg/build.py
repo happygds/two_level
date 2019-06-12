@@ -1,6 +1,7 @@
 import os
 import torch
-from torch.utils.ffi import create_extension
+# from torch.utils.ffi import create_extension
+from torch.utils.cpp_extension import BuildExtension
 import subprocess
 
 cmd = 'source deactivate && cd src/cuda && nvcc -c -o broi1d_pooling.cu.o broi1d_pooling_kernel.cu -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -arch=sm_52'
@@ -27,7 +28,7 @@ print(this_file)
 extra_objects = ['src/cuda/broi1d_pooling.cu.o']
 extra_objects = [os.path.join(this_file, fname) for fname in extra_objects]
 
-ffi = create_extension(
+ffi = BuildExtension(
     '_ext.broi1d_pooling',
     headers=headers,
     sources=sources,
