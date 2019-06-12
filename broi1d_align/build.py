@@ -9,8 +9,8 @@ print(cmd)
 subprocess.call(cmd, shell=True)
 print('\n')
 
-sources = ['src/crop_and_resize.c']
-headers = ['src/crop_and_resize.h']
+# sources = ['src/crop_and_resize.c']
+# headers = ['src/crop_and_resize.h']
 sources = []
 headers = []
 defines = []
