@@ -40,7 +40,7 @@ class BinaryVideoRecord:
                  use_flow=True, feat_stride=5, sample_duration=100, only_flow=False):
         self._data = video_record
         self.id = self._data.id
-        files = glob.glob(os.path.join(frame_path, self.id, 'frame*.jpg'))
+        files = glob.glob(os.path.join(frame_path, self.id, 'image_*.jpg'))
         frame_cnt = len(files)
         duration = self._data.duration
         # frame_cnt = frame_counts[self.id]
