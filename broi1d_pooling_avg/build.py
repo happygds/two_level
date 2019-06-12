@@ -8,8 +8,8 @@ print(cmd)
 subprocess.call(cmd, shell=True)
 print('\n')
 
-# sources = ['src/roi1d_pooling.c']
-# headers = ['src/roi1d_pooling.h']
+sources = ['src/roi1d_pooling.c']
+headers = ['src/roi1d_pooling.h']
 sources = []
 headers = []
 defines = []
