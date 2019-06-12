@@ -1,7 +1,6 @@
 import os
 import torch
-# from torch.utils.ffi import create_extension
-from torch.utils.cpp_extension import BuildExtension
+from torch.utils.ffi import create_extension
 import subprocess
 
 cmd = 'source deactivate && cd src/cuda && nvcc -c -o crop_and_resize_kernel.cu.o crop_and_resize_kernel.cu \
@@ -34,7 +33,7 @@ sources = [os.path.join(this_file, fname) for fname in sources]
 headers = [os.path.join(this_file, fname) for fname in headers]
 extra_objects = [os.path.join(this_file, fname) for fname in extra_objects]
 
-ffi = BuildExtension(
+ffi = create_extension(
     '_ext.crop_and_resize',
     headers=headers,
     sources=sources,
