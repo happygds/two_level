@@ -48,11 +48,10 @@ class BinaryVideoRecord:
         vid_name = self.id
         self.fps = frame_cnt / duration
 
-        f = pd.read_csv(os.path.join(rgb_csv_path, vid_name+'.csv'))
+        f = pd.read_csv(os.path.join(rgb_csv_path, vid_name+'.csv'), error_bad_lines=False)
         rgb_feat = f.values
         if use_flow:
-            print(flow_csv_path, vid_name)
-            f = pd.read_csv(os.path.join(flow_csv_path, vid_name+'.csv'))
+            f = pd.read_csv(os.path.join(flow_csv_path, vid_name+'.csv'), error_bad_lines=False)
             flow_feat = f.values
             if only_flow:
                 rgb_feat = flow_feat
