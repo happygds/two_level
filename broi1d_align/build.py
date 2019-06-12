@@ -1,7 +1,7 @@
 import os
 import torch
 # from torch.utils.ffi import create_extension
-from torch.utils.cpp_extension import create_extension
+from torch.utils.cpp_extension import BuildExtension
 import subprocess
 
 cmd = 'source deactivate && cd src/cuda && nvcc -c -o crop_and_resize_kernel.cu.o crop_and_resize_kernel.cu \
