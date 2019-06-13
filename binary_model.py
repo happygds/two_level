@@ -101,7 +101,7 @@ class BinaryClassifier(torch.nn.Module):
         # roi_feats = self.batchnorm(roi_feats.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
         roi_feat_max = self.roi_feat_max(roi_feats).max(1)[0].unsqueeze(1)
         # roi_scores = F.sigmoid(self.roi_cls(roi_feats)).squeeze(2)
-        roi_scores = (roi_feat_max * roi_feats).sum(2) / torch.sqrt((roi_feat_max ** 2).sum(2) * (roi_feats ** 2).sum(2)).clip(1e-14)
+        roi_scores = (roi_feat_max * roi_feats).sum(2) / torch.sqrt((roi_feat_max ** 2).sum(2) * (roi_feats ** 2).sum(2)).clamp(1e-14)
 
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
