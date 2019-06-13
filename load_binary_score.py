@@ -40,7 +40,7 @@ class BinaryVideoRecord:
                  use_flow=True, feat_stride=5, sample_duration=100, only_flow=False):
         self._data = video_record
         self.id = self._data.id
-        files = glob.glob(os.path.join(frame_path, self.id, 'image_*.jpg'))
+        files = glob.glob(os.path.join(frame_path, self.id, 'image*.jpg'))
         frame_cnt = len(files)
         duration = self._data.duration
         # frame_cnt = frame_counts[self.id]
@@ -114,7 +114,7 @@ class BinaryDataSet(data.Dataset):
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1, val_mode=False,
                  use_flow=True, only_flow=False, num_local=8,
-                 frame_path='/data1/matheguo/important/data/thumos14/frames'):
+                 frame_path='/media/dl/expand/cdc/THUMOS14/frames'):
         self.verbose = verbose
         self.num_local = num_local
 
