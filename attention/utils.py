@@ -82,6 +82,7 @@ class Rank_Criterion(nn.Module):
         x, y = x, y[:, :, 1]
         mask = mask.unsqueeze(1) * mask.unsqueeze(2)
         y_mask = torch.gt(y.unsqueeze(1) - y.unsqueeze(2), 0.).float()
+        import pdb; pdb.set_trace()
 
         pred = F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
         # pred = torch.exp( - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
