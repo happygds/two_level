@@ -47,6 +47,7 @@ class BinaryVideoRecord:
         self.frame_cnt = frame_cnt
         vid_name = self.id
         self.fps = frame_cnt / duration
+        import pdb; pdb.set_trace()
 
         f = pd.read_csv(os.path.join(rgb_csv_path, vid_name+'.csv'), error_bad_lines=False)
         rgb_feat = f.values
