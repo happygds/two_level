@@ -46,6 +46,8 @@ class BinaryClassifier(torch.nn.Module):
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid, 
                                           args.n_head, args.d_k, args.d_v, dropout=self.dropout)
         # self.batchnorm = nn.BatchNorm1d(args.d_model)
+        self.roi_feat_max = nn.Sequential(
+                nn.Linear(args.d_model, args.d_model), nn.SELU(), nn.Dropout(self.dropout))
         self.roi_cls = nn.Linear(args.d_model, 1)
 
     def forward(self, feature, pos_ind, target=None, gts=None, 
@@ -97,7 +99,9 @@ class BinaryClassifier(torch.nn.Module):
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
         # roi_feats = self.batchnorm(roi_feats.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
-        roi_scores = F.sigmoid(self.roi_cls(roi_feats)).squeeze(2)
+        roi_feat_max = self.roi_feat_max(roi_feats).max(1).unsqueeze(1)
+        # roi_scores = F.sigmoid(self.roi_cls(roi_feats)).squeeze(2)
+        roi_scores = (roi_feat_max * roi_feats).sum(2) / torch.sqrt((roi_feat_max ** 2).sum(2) * (roi_feats ** 2).sum(2)).clip(1e-14)
 
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
