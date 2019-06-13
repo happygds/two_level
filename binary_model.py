@@ -48,7 +48,7 @@ class BinaryClassifier(torch.nn.Module):
         # self.batchnorm = nn.BatchNorm1d(args.d_model)
         self.roi_feat_max = nn.Sequential(
                 nn.Linear(args.d_model, args.d_model), nn.SELU(), nn.Dropout(self.dropout))
-        self.roi_cls = nn.Linear(args.d_model, 1)
+        # self.roi_cls = nn.Linear(args.d_model, 1)
 
     def forward(self, feature, pos_ind, target=None, gts=None, 
                 feature_mask=None, test_mode=False, epoch_id=None):
