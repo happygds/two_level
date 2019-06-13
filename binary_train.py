@@ -296,6 +296,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             for k, v in enumerate(this_rois):
                 video_info = val_loader.dataset.video_list[index[k]]
                 video_id, fps = video_info.id, video_info.fps
+                import pdb; pdb.set_trace()
                 video_lst.extend([video_id] * len(v))
                 t_start_lst.extend([x[0] * 5 / fps for x in v])
                 t_end_lst.extend([x[1] * 5 / fps for x in v])
