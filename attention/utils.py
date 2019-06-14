@@ -81,11 +81,11 @@ class Rank_Criterion(nn.Module):
     def forward(self, x, y, mask):
         x, y = x[:, :, 1], y[:, :, 1]
         y_max, y_min = y.max(1)[0].unsqueeze(1), y.min(1)[0].unsqueeze(1)
-        y = (y - y_min) / (y_max - y_min).clamp(eps)
+        # y = (y - y_min) / (y_max - y_min).clamp(eps)
         mask = mask.unsqueeze(1) * mask.unsqueeze(2)
         y_mask = torch.gt(y.unsqueeze(1) - y.unsqueeze(2), 0.).float()
 
-        pred = F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
+        pred = F.relu(self.epsilon * (y_max-y_min).unsqueeze(2) - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
         # pred = torch.exp( - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
         output = pred.sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
 
