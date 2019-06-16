@@ -113,7 +113,7 @@ class BinaryDataSet(data.Dataset):
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1, val_mode=False,
                  use_flow=True, only_flow=False, num_local=8,
-                 frame_path='/media/dl/expand/cdc/THUMOS14/frames'):
+                 frame_path='../THUMOS14/frames'):
         self.verbose = verbose
         self.num_local = num_local
 

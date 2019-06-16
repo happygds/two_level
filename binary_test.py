@@ -31,11 +31,11 @@ parser.add_argument('--num_body_segments', type=int, default=5)
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 
-parser.add_argument('--annotation_path', default='/media/dl/expand/cdc/THUMOS14/thumos_annots.json',
+parser.add_argument('--annotation_path', default='../THUMOS14/thumos_annots.json',
                     type=str, help='Annotation file path')
-parser.add_argument('--feat_root', default='/media/dl/expand/cdc/THUMOS14',
+parser.add_argument('--feat_root', default='../THUMOS14',
                     type=str, help='Feature directory path')
-parser.add_argument('--result_path', default='/media/dl/expand/cdc/THUMOS14/result_two_level',
+parser.add_argument('--result_path', default='../THUMOS14/result_two_level',
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | TAG')
