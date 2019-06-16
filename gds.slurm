@@ -9,11 +9,15 @@
 #SBATCH --mail-user=YOUR@MAIL
 #SBATCH --output=out.out
 #SBATCH --error=err.err
-#SBATCH --time=06:15:00
+#SBATCH --time=32:15:00
 
 source /usr/share/Modules/init/bash
 module purge
-module load gcc/4.9 cuda/8.0 cudnn/5.1 anaconda/3 opencv/3.1
+module load gcc/4.9 cuda/8.0 cudnn/5.1 miniconda3
 source activate py36
 
-python main.py --no_train 1 --no_val 1 --test 1 --convert_model 1 --test_subset all
+cd broi1d_pooling_avg
+python build.py
+
+CUDA_VISIBLE_DEVICES=0 python binary_train.py thumos14 -b 32 --epochs 10 --n_layers 1 --pos_enc 0 --result_path ../THUMOS14/result_two_level/seed1 --num_local 0 --local_type qkv --dilated_mask 0 --seed 1 --groupwise_heads 5 --roi_poolsize 3 --feat_model feature_anet_200 && \
+python binary_test.py activitynet1.3 validation ../THUMOS14/result_two_level/seed1/self_attn_N1_nopos_G5_roi3/model_best.pth.tar  ../THUMOS14/result_two_level/seed1/self_attn_N1_nopos_G5_roi3/val_actionness.pkl --n_layers 1 --pos_enc 0 --num_local 0 --local_type qkv --dilated_mask 0 --groupwise_heads 5 --roi_poolsize 3 --feat_model feature_anet_200
