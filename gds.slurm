@@ -2,7 +2,6 @@
 #SBATCH --job-name=test
 #SBATCH --partition=k80
 #SBATCH -n 1
-#SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:1
 #SBATCH --mail-type=end
 #SBATCH --mail-user=YOUR@MAIL
