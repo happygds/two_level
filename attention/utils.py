@@ -88,7 +88,7 @@ class Rank_Criterion(nn.Module):
 
     def forward(self, x, y, mask):
         x, y = x[:, :, 1], y[:, :, 1]
-        y_max, y_min = y.max(1)[0].unsqueeze(1), y.min(1)[0].unsqueeze(1)
+        # y_max, y_min = y.max(1)[0].unsqueeze(1), y.min(1)[0].unsqueeze(1)
         # y = (y - y_min) / (y_max - y_min).clamp(eps)
         mask = mask.unsqueeze(1) * mask.unsqueeze(2)
         y_mask = torch.gt(y.unsqueeze(1) - y.unsqueeze(2), 0.).float()
@@ -98,7 +98,6 @@ class Rank_Criterion(nn.Module):
         output = pred.sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
 
         return output.mean()
-
 
 def position_encoding_init(n_position, d_pos_vec):
     ''' Init the sinusoid position encoding table '''
