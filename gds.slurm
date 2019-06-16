@@ -13,7 +13,7 @@
 
 source /usr/share/Modules/init/bash
 module purge
-module load gcc/4.9 cuda/8.0 cudnn/5.1 miniconda3
+module load gcc/4.9 cuda cudnn miniconda3
 source activate py36
 
 cd broi1d_pooling_avg
