@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #SBATCH --job-name=test
 #SBATCH --partition=k80
 #SBATCH -n 1
