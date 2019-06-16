@@ -12,10 +12,8 @@
 #SBATCH --time=06:15:00
 
 source /usr/share/Modules/init/bash
-unset MODULEPATH
-module use /lustre/usr/modulefiles/pi
 module purge
-module load gcc/4.9 cuda/8.0 cudnn/5.1 anaconda/3 opencv/3.1 glog boost phdf5 gflags protobuf leveldb lmdb
+module load gcc/4.9 cuda/8.0 cudnn/5.1 anaconda/3 opencv/3.1
 source activate py36
 
 python main.py --no_train 1 --no_val 1 --test 1 --convert_model 1 --test_subset all
