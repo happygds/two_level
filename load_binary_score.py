@@ -248,8 +248,8 @@ class BinaryDataSet(data.Dataset):
         end_ind = begin_index + self.sample_duration
         try:
             out[:min_len] = feat[begin_index:(begin_index+min_len)]
-        else:
-            raise ValueError("out shape is {}, feat shape is {}, begin_index is {}, min_len is {}".format(
+        except ValueError:
+            print("out shape is {}, feat shape is {}, begin_index is {}, min_len is {}".format(
                 out.shape(), feat.shape(), begin_index, min_len))
 
         test_segments = np.asarray(
