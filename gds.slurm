@@ -1,8 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=test
 #SBATCH --partition=cpu
-#SBATCH -n 16
-#SBATCH --ntasks-per-node=16
+#SBATCH -N 1
 #SBATCH --mail-type=end
 #SBATCH --mail-user=YOUR@MAIL
 #SBATCH --output=out.out
