@@ -252,7 +252,6 @@ class BinaryDataSet(data.Dataset):
             print("out shape is {}, feat shape is {}, begin_index is {}, min_len is {}, video_id is {}".format(
                 out.shape, feat.shape, begin_index, min_len, vid_id))
 
-
         test_segments = np.asarray(
             [begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
         intersect, ratio_target = intersection(
@@ -293,7 +292,7 @@ class BinaryDataSet(data.Dataset):
         num_feat = feat.shape[0]
 
         out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len \
-            = self._sample_feat(feat, label, starts, ends, target_segments, frame_tick=frame_tick， vid_id=video.id)
+            = self._sample_feat(feat, label, starts, ends, target_segments, frame_tick=frame_tick, vid_id=video.id)
         out_mask = (np.abs(out_feat).mean(axis=1) > 0.).astype('float32')
 
         # convert label using haar wavelet decomposition
