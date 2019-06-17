@@ -48,10 +48,12 @@ class BinaryVideoRecord:
         vid_name = self.id
         self.fps = frame_cnt / duration
 
-        f = pd.read_csv(os.path.join(rgb_csv_path, vid_name+'.csv'), error_bad_lines=False)
+        f = pd.read_csv(os.path.join(rgb_csv_path, vid_name +
+                                     '.csv'), error_bad_lines=False)
         rgb_feat = f.values
         if use_flow:
-            f = pd.read_csv(os.path.join(flow_csv_path, vid_name+'.csv'), error_bad_lines=False)
+            f = pd.read_csv(os.path.join(
+                flow_csv_path, vid_name+'.csv'), error_bad_lines=False)
             flow_feat = f.values
             if only_flow:
                 rgb_feat = flow_feat
@@ -190,7 +192,8 @@ class BinaryDataSet(data.Dataset):
                     frame_ticks = np.arange(
                         0, frame_cnt / feat_stride - self.sample_duration + tick_stride - 1, tick_stride).astype('int32')
                 else:
-                    tmp = max(round(math.sqrt(frame_cnt / feat_stride / self.sample_duration * len(gts) * 9)), 1)
+                    tmp = max(round(math.sqrt(frame_cnt / feat_stride /
+                                              self.sample_duration * len(gts) * 9)), 1)
                     frame_ticks = [0] * int(tmp)
                 if len(frame_ticks) == 0:
                     frame_ticks = [0]
@@ -226,7 +229,8 @@ class BinaryDataSet(data.Dataset):
                 while max_ratio < 0.5 and count < 10.:
                     begin_index = random.randrange(
                         0, feat_num - self.sample_duration + 1, 4)
-                    test_segments = np.asarray([begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
+                    test_segments = np.asarray(
+                        [begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
                     intersect, ratio_target = intersection(
                         target_segments, test_segments, return_ratio_target=True)
                     max_ratio = ratio_target.max()
@@ -242,9 +246,14 @@ class BinaryDataSet(data.Dataset):
         out_ends = np.zeros((self.sample_duration,), dtype='float32')
         min_len = min(feat_num - begin_index, self.sample_duration)
         end_ind = begin_index + self.sample_duration
-        out[:min_len] = feat[begin_index:(begin_index+min_len)]
+        try:
+            out[:min_len] = feat[begin_index:(begin_index+min_len)]
+        else:
+            raise ValueError("out shape is {}, feat shape is {}, begin_index is {}, min_len is {}".format(
+                out.shape(), feat.shape(), begin_index, min_len))
 
-        test_segments = np.asarray([begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
+        test_segments = np.asarray(
+            [begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
         intersect, ratio_target = intersection(
             target_segments, test_segments, return_ratio_target=True)
         for i, ratio in enumerate(ratio_target[:, 0]):
@@ -255,13 +264,19 @@ class BinaryDataSet(data.Dataset):
                     this_dura / 10., this_begin + this_dura / 10.
                 end_begin, end_end = this_end - this_dura / 10., this_end + this_dura / 10.
 
-                this_begin = max(min(self.sample_duration, int(round(this_begin - begin_index))), 0)
-                this_end = max(min(self.sample_duration, int(round(this_end - begin_index))), 0)
+                this_begin = max(min(self.sample_duration, int(
+                    round(this_begin - begin_index))), 0)
+                this_end = max(min(self.sample_duration, int(
+                    round(this_end - begin_index))), 0)
 
-                start_begin= max(min(self.sample_duration, int(round(start_begin - begin_index))), 0)
-                start_end = max(min(self.sample_duration, int(round(2*this_begin - start_begin))), 0)
-                end_end = max(min(self.sample_duration, int(round(end_end - begin_index))), 0)
-                end_begin = max(min(self.sample_duration, int(round(2*this_end - end_end))), 0)
+                start_begin = max(min(self.sample_duration, int(
+                    round(start_begin - begin_index))), 0)
+                start_end = max(min(self.sample_duration, int(
+                    round(2*this_begin - start_begin))), 0)
+                end_end = max(min(self.sample_duration, int(
+                    round(end_end - begin_index))), 0)
+                end_begin = max(min(self.sample_duration, int(
+                    round(2*this_end - end_end))), 0)
                 out_label[this_begin:this_end + 1] = 1.
                 out_starts[start_begin:start_end + 1] = 1.
                 out_ends[end_begin:end_end + 1] = 1.
