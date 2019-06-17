@@ -60,7 +60,7 @@ if __name__ == "__main__":
     root_path = '../THUMOS14/'
     dst_dir_path = os.path.join(root_path, 'frames')
 
-    subsets = ['val_video', 'test_video']
+    subsets = ['video']
 
     for subset in subsets:
         dir_path = os.path.join(root_path, subset)
