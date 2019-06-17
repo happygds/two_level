@@ -7,7 +7,6 @@
 #SBATCH --mail-user=YOUR@MAIL
 #SBATCH --output=out.out
 #SBATCH --error=err.err
-#SBATCH --qos=QosLong
 #SBATCH --time=32:15:00
 
 source /usr/share/Modules/init/bash
