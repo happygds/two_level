@@ -141,8 +141,8 @@ First of all, we generate a series of sliding-window proposals.
 
 - THUMOS14
 ```bash
-python gen_sliding_window_proposals.py validation rgb /data1/matheguo/important/data/thumos14/frames data/thumos14_sw_val_proposal_list.txt --dataset thumos14 
-python gen_sliding_window_proposals.py testing rgb /data1/matheguo/important/data/thumos14/frames data/thumos14_sw_test_proposal_list.txt --dataset thumos14 
+python gen_sliding_window_proposals.py validation rgb /media/dl/expand/cdc/THUMOS14/frames data/thumos14_sw_val_proposal_list.txt --dataset thumos14 
+python gen_sliding_window_proposals.py testing rgb /media/dl/expand/cdc/THUMOS14/frames data/thumos14_sw_test_proposal_list.txt --dataset thumos14 
 ```
 
 - ActivityNet v1.2

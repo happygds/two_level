@@ -218,7 +218,7 @@ class BinaryDataSet(data.Dataset):
             video_index = self.video_key_list[real_index]
             return self.get_training_data(video_index)
 
-    def _sample_feat(self, feat, label, starts, ends, target_segments, frame_tick=None):
+    def _sample_feat(self, feat, label, starts, ends, target_segments, frame_tick=None, vid_id=None):
         feat_num = feat.shape[0]
         if frame_tick is None:
             if feat_num > self.sample_duration:
@@ -249,8 +249,8 @@ class BinaryDataSet(data.Dataset):
         try:
             out[:min_len] = feat[begin_index:(begin_index+min_len)]
         except ValueError:
-            print("out shape is {}, feat shape is {}, begin_index is {}, min_len is {}".format(
-                out.shape, feat.shape, begin_index, min_len))
+            print("out shape is {}, feat shape is {}, begin_index is {}, min_len is {}, video_id is {}".format(
+                out.shape, feat.shape, begin_index, min_len, vid_id))
 
         test_segments = np.asarray(
             [begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
@@ -292,7 +292,7 @@ class BinaryDataSet(data.Dataset):
         num_feat = feat.shape[0]
 
         out_feat, out_label, out_starts, out_ends, begin_ind, end_ind, min_len \
-            = self._sample_feat(feat, label, starts, ends, target_segments, frame_tick=frame_tick)
+            = self._sample_feat(feat, label, starts, ends, target_segments, frame_tick=frame_tick， vid_id=video.id)
         out_mask = (np.abs(out_feat).mean(axis=1) > 0.).astype('float32')
 
         # convert label using haar wavelet decomposition
