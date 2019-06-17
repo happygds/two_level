@@ -190,7 +190,7 @@ class BinaryDataSet(data.Dataset):
                 gts = x.gts
                 if val_mode:
                     frame_ticks = np.arange(
-                        0, frame_cnt / feat_stride - self.sample_duration + tick_stride - 1, tick_stride).astype('int32')
+                        0, frame_cnt / feat_stride - self.sample_duration + tick_stride, tick_stride).astype('int32')
                 else:
                     tmp = max(round(math.sqrt(frame_cnt / feat_stride /
                                               self.sample_duration * len(gts) * 9)), 1)
