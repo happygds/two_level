@@ -193,7 +193,7 @@ class BinaryDataSet(data.Dataset):
                         0, frame_cnt / feat_stride - self.sample_duration + tick_stride - 1, tick_stride).astype('int32')
                 else:
                     tmp = max(round(math.sqrt(frame_cnt / feat_stride /
-                                              self.sample_duration * len(gts) * 9)), 1)
+                                              self.sample_duration * len(gts) * 1)), 1)
                     frame_ticks = [0] * int(tmp)
                 if len(frame_ticks) == 0:
                     frame_ticks = [0]

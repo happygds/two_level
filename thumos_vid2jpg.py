@@ -57,7 +57,7 @@ def resolution(filename):
 
 
 if __name__ == "__main__":
-    root_path = '/data1/matheguo/important/data/thumos14/'
+    root_path = '../THUMOS14/'
     dst_dir_path = os.path.join(root_path, 'frames')
 
     subsets = ['val_video', 'test_video']
