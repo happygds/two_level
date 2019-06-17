@@ -79,7 +79,7 @@ if __name__ == "__main__":
             os.makedirs(dst_directory_path)
 
             cmd = 'ffmpeg -i {} -vf scale={}:{} {}/frame%06d.jpg'.format(
-                video_file_path, 128, 128, dst_directory_path)
+                video_file_path, 64, 64, dst_directory_path)
             print(cmd)
             subprocess.call(cmd, shell=True)
             print('\n')
