@@ -252,6 +252,7 @@ class BinaryDataSet(data.Dataset):
             print("out shape is {}, feat shape is {}, begin_index is {}, min_len is {}, video_id is {}".format(
                 out.shape, feat.shape, begin_index, min_len, vid_id))
 
+
         test_segments = np.asarray(
             [begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
         intersect, ratio_target = intersection(
