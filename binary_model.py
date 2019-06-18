@@ -52,7 +52,7 @@ class BinaryClassifier(torch.nn.Module):
         #     nn.Linear(args.d_model, args.d_model), nn.SELU(), nn.Dropout(self.dropout))
         # self.w_roi = nn.Parameter(torch.FloatTensor(1, 1, args.d_model))
         # init.xavier_normal_(self.w_roi)
-        self.roi_cls = nn.Linear(args.d_model, 2)
+        self.roi_cls = nn.Linear(args.d_model, 1)
 
     def forward(self, feature, pos_ind, target=None, gts=None,
                 feature_mask=None, test_mode=False, epoch_id=None):
