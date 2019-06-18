@@ -94,12 +94,10 @@ class Rank_Criterion(nn.Module):
         y_mask = torch.gt(y.unsqueeze(1) - y.unsqueeze(2), 0.).float()
 
         # pred = F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
-        pred = F.relu(0.5 - (x.unsqueeze(1) - x.unsqueeze(2)) /
-                      (y.unsqueeze(1) - y.unsqueeze(2)).clamp(eps)) * y_mask * mask
+        pred = F.relu((y.unsqueeze(1) - y.unsqueeze(2)) - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
         output = pred.sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
 
         return output.mean()
-
 
 def position_encoding_init(n_position, d_pos_vec):
     ''' Init the sinusoid position encoding table '''
