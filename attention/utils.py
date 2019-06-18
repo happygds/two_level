@@ -87,7 +87,7 @@ class Rank_Criterion(nn.Module):
         self.epsilon = epsilon
 
     def forward(self, x, y, mask):
-        x, y = x[:, :, 1], y[:, :, 1]
+        x, y = x, y[:, :, 1]
         # y_max, y_min = y.max(1)[0].unsqueeze(1), y.min(1)[0].unsqueeze(1)
         # y = (y - y_min) / (y_max - y_min).clamp(eps)
         mask = mask.unsqueeze(1) * mask.unsqueeze(2)
