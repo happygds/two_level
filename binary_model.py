@@ -52,7 +52,7 @@ class BinaryClassifier(torch.nn.Module):
         #     nn.Linear(args.d_model, args.d_model), nn.SELU(), nn.Dropout(self.dropout))
         # self.w_roi = nn.Parameter(torch.FloatTensor(1, 1, args.d_model))
         # init.xavier_normal_(self.w_roi)
-        self.roi_cls0 = nn.Linear(args.d_model, 1)
+        self.roi_cls = nn.Linear(args.d_model, 1)
 
     def forward(self, feature, pos_ind, target=None, gts=None,
                 feature_mask=None, test_mode=False, epoch_id=None):
@@ -111,7 +111,7 @@ class BinaryClassifier(torch.nn.Module):
         roi_feats = self.norm(roi_feats.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
         # roi_feat_max = self.roi_feat_max(roi_feats).max(1)[0].unsqueeze(1)
         # roi_feat_max = self.w_roi
-        roi_scores = torch.sigmoid(self.roi_cls0(roi_feats))[:, :, 0]
+        roi_scores = torch.sigmoid(self.roi_cls(roi_feats))[:, :, 0]
         # roi_scores = ((roi_feat_max * roi_feats).sum(2) / torch.sqrt(
         #     (roi_feat_max ** 2).sum(2) * (roi_feats ** 2).sum(2)).clamp(1e-14)).clamp(0.)
 
