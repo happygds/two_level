@@ -4,7 +4,7 @@ from torch.utils.ffi import create_extension
 import subprocess
 
 cmd = 'cd src/cuda && nvcc -c -o crop_and_resize_kernel.cu.o crop_and_resize_kernel.cu \
-     -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -arch=sm_35'
+     -D GOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -arch=sm_37'
 print(cmd)
 subprocess.call(cmd, shell=True)
 print('\n')
