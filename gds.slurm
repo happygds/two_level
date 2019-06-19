@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=test
-#SBATCH --partition=k40
+#SBATCH --partition=k80
 #SBATCH -n 1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:1
