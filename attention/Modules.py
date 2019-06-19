@@ -239,7 +239,7 @@ class PositionwiseFeedForward(nn.Module):
             d_in = d_hid
         self.w_1 = nn.Linear(d_in, d_inner_hid)  # position-wise
         self.w_2 = nn.Linear(d_inner_hid, d_hid)  # position-wise
-        # self.layer_norm = nn.LayerNorm(d_hid)
+        self.layer_norm = nn.LayerNorm(d_hid)
         self.dropout = nn.Dropout(dropout)
         self.relu = nn.ReLU()
 
@@ -248,5 +248,5 @@ class PositionwiseFeedForward(nn.Module):
         output = self.relu(self.w_1(x))
         output = self.w_2(output)
         output = self.dropout(output)
-        # return self.layer_norm(output + residual)
-        return output + residual
+        return self.layer_norm(output + residual)
+        # return output + residual

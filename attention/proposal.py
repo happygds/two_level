@@ -152,7 +152,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rpn_rois_mask = (np.abs(rpn_rois[:, :, 1:]).mean(
         axis=2) > 0.).astype('float32')
     rois_relative_pos = np.zeros(
-        (batch_size, rpn_post_nms_top, rpn_post_nms_top, 2)).astype('float32')
+        (batch_size, rpn_post_nms_top, rpn_post_nms_top, 4)).astype('float32')
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois[:, :, 1:].mean(
         axis=2), rpn_rois[:, :, 2] - rpn_rois[:, :, 1]
@@ -163,8 +163,10 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
                                           rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos[:, :, :, 1] = 1. * (rois_end[:, np.newaxis, :] -
                                           rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    # rois_relative_pos[:, :, :, 1] = 20. * np.log((np.abs(rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
-    # rois_relative_pos[:, :, :, 2] = 20. * np.log((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
+    rois_relative_pos[:, :, :, 2] = 1. * (rois_start[:, np.newaxis, :] -
+                                          rois_start[:, :, np.newaxis]) / rois_dura[:, :, np.newaxis].clip(1e-14)
+    rois_relative_pos[:, :, :, 3] = 1. * (rois_end[:, np.newaxis, :] -
+                                          rois_end[:, :, np.newaxis]) / rois_dura[:, :, np.newaxis].clip(1e-14)
     rois_relative_pos = rois_relative_pos * \
         rpn_rois_mask[:, :, np.newaxis, np.newaxis] * \
         rpn_rois_mask[:, np.newaxis, :, np.newaxis]
