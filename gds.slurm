@@ -12,7 +12,7 @@
 
 source /usr/share/Modules/init/bash
 module purge
-module load gcc/4.9 miniconda3
+module load gcc/4.9 miniconda3 cuda/8.0
 source activate py36
 
 # rm -r ../THUMOS14/frames
