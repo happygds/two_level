@@ -258,6 +258,7 @@ thumos_results.to_csv('two_level.csv')
 # prediction.to_csv('{}.csv'.format('val'))
 ground_truth, cls_to_idx = grd_thumos(
     'data/thumos_annots.json', subset='testing')
+import pdb; pdb.set_trace()
 del cls_to_idx['Ambiguous']
 auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=1000,
                                                      tiou_thresholds=np.linspace(0.5, 1.0, 11))
