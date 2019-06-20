@@ -148,6 +148,7 @@ def average_recall_vs_avg_nr_proposals(proposals, ground_truth,
             int(this_video_proposals.shape[0] * ratio), this_video_proposals.shape[0])
         total_nr_proposals += nr_proposals
         this_video_proposals = this_video_proposals[:nr_proposals, :]
+        import pdb; pdb.set_trace()
 
         # Compute tiou scores.
         tiou = wrapper_segment_iou(
