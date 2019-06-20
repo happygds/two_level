@@ -181,7 +181,7 @@ def call_back(rst):
     sys.stdout.flush()
 
 
-pool = mp.Pool(processes=32)
+pool = mp.Pool(processes=16)
 lst = []
 handle = [pool.apply_async(gen_prop, args=(
     x, ), callback=call_back) for x in video_list]
