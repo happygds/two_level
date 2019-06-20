@@ -29,6 +29,6 @@ cd ..
 nvidia-smi
 
 python binary_train.py thumos14 -b 64 --epochs 10 --n_layers 1 --pos_enc 0 --result_path ../THUMOS14/result_2level/seed1 --num_local 0 --local_type qkv --dilated_mask 0 --seed 1 --groupwise_heads 5 --roi_poolsize 3 --feat_model feature_anet_200 && \
-python binary_test.py activitynet1.3 validation ../THUMOS14/result_2level/seed1/self_attn_N1_nopos_G5_roi3/model_best.pth.tar  ../THUMOS14/result_2level/seed1/self_attn_N1_nopos_G5_roi3/val_actionness.pkl --n_layers 1 --pos_enc 0 --num_local 0 --local_type qkv --dilated_mask 0 --groupwise_heads 5 --roi_poolsize 3 --feat_model feature_anet_200
+python binary_test.py thumos14 validation ../THUMOS14/result_2level/seed1/self_attn_N1_nopos_G5_roi3/model_best.pth.tar  ../THUMOS14/result_2level/seed1/self_attn_N1_nopos_G5_roi3/val_actionness.pkl --n_layers 1 --pos_enc 0 --num_local 0 --local_type qkv --dilated_mask 0 --groupwise_heads 5 --roi_poolsize 3 --feat_model feature_anet_200
 
-python gen_bottom_up_proposals.py ../THUMOS14/result_2level/seed1/self_attn_N1_nopos_G5_roi3/val_actionness.pkl --dataset activitynet --subset validation  --write_proposals data/activitynet1.3_tag_val_proposal_list.txt  --frame_path /data1/matheguo/important/data/activitynet/activity_net_frames
+python gen_bottom_up_proposals.py ../THUMOS14/result_two_level/seed1/self_attn_N1_nopos_G5_roi3/val_actionness.pkl --dataset thumos14 --subset validation  --write_proposals data/thumos14_tag_val_proposal_list.txt  --frame_path ../THUMOS14/frames

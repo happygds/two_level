@@ -28,7 +28,7 @@ parser.add_argument('--test_batchsize', type=int, default=32)
 parser.add_argument('--gpus', nargs='+', type=int, default=None)
 parser.add_argument('--max_num', type=int, default=-1)
 parser.add_argument('--num_body_segments', type=int, default=5)
-parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=2, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 
 parser.add_argument('--annotation_path', default='../THUMOS14/thumos_annots.json',
@@ -120,7 +120,7 @@ else:
     args.d_v = args.d_k
 args.d_model = args.n_head * args.d_k
 
-gpu_list = args.gpus if args.gpus is not None else range(4)
+gpu_list = args.gpus if args.gpus is not None else range(2)
 
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):

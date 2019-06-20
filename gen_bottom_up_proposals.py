@@ -74,7 +74,7 @@ video_list = db.get_subset_videos(args.subset)
 video_list = [v for v in video_list if v.instances != []]
 print("video list size: {}".format(len(video_list)))
 video_list = [compute_frame_count(
-    v, args.frame_path, 'frame*.jpg') for v in video_list]
+    v, args.frame_path, 'image*.jpg') for v in video_list]
 # video_list = pickle.load(open('./video_list', 'rb'))
 
 # load scores
@@ -213,7 +213,7 @@ print('Average Recall: {:.04f} {:.04f}'.format(*(np.mean(p_list, axis=0)*100)))
 
 if args.write_proposals:
 
-    name_pattern = 'frame*.jpg'
+    name_pattern = 'image*.jpg'
     frame_path = args.frame_path
 
     named_proposal_list = [name_proposal(
