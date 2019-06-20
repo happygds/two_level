@@ -161,6 +161,7 @@ def average_recall_vs_avg_nr_proposals(proposals, ground_truth,
     # retrieved per video.
 
     # Computes average recall.
+    import pdb; pdb.set_trace()
     pcn_lst = np.arange(1, 101) / 100.0 * (max_avg_nr_proposals *
                                            float(video_lst.shape[0])/total_nr_proposals)
     matches = np.empty((video_lst.shape[0], pcn_lst.shape[0]))
