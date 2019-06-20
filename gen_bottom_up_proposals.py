@@ -255,7 +255,7 @@ thumos_results = pd.DataFrame({'video-name': video_lst,
                                'score': score_lst})
 thumos_results.to_csv('two_level.csv')
 
-prediction.to_csv('{}.csv'.format('val'))
+# prediction.to_csv('{}.csv'.format('val'))
 ground_truth, cls_to_idx = grd_thumos(
     'data/thumos_annots.json', subset='testing')
 del cls_to_idx['Ambiguous']
