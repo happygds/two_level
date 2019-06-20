@@ -6,8 +6,8 @@
 #SBATCH --gres=gpu:2
 #SBATCH --mail-type=end
 #SBATCH --mail-user=YOUR@MAIL
-#SBATCH --output=out.out
-#SBATCH --error=err.err
+#SBATCH --output=out2.out
+#SBATCH --error=err2.err
 #SBATCH --time=32:15:00
 
 source /usr/share/Modules/init/bash
