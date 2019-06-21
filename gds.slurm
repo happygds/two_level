@@ -9,7 +9,6 @@
 #SBATCH --output=out.out
 #SBATCH --error=out.err
 #SBATCH --time=32:15:00
-#SBATCH --exclusive
 
 source /usr/share/Modules/init/bash
 module purge
