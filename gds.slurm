@@ -7,7 +7,7 @@
 #SBATCH --mail-type=end
 #SBATCH --mail-user=YOUR@MAIL
 #SBATCH --output=out.out
-#SBATCH --error=out.err
+#SBATCH --error=err.err
 #SBATCH --time=32:15:00
 
 source /usr/share/Modules/init/bash
