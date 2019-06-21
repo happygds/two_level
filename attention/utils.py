@@ -94,7 +94,7 @@ class Rank_Criterion(nn.Module):
         y_mask = torch.gt(y.unsqueeze(1) - y.unsqueeze(2), eps).float()
 
         # pred = F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
-        pred = (F.relu((self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2)))) ** 2 * y_mask * mask
+        pred = (F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2)) )) ** 2 * y_mask * mask
         output = pred.sum(2).sum(1)
 
         return output.mean()
