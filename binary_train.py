@@ -202,7 +202,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
             score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
         roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-        loss = score_loss + 2. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
+        loss = score_loss + 10. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
         score_losses.update(score_loss.item(), feature.size(0))
         start_losses.update(start_loss.item(), feature.size(0))
         end_losses.update(end_loss.item(), feature.size(0))
@@ -290,7 +290,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             this_rois, this_actness, this_roi_scores = model(
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             this_rois, this_actness, this_roi_scores = this_rois.cpu().numpy(
-            ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()
+            ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()[:, :, 1]
             this_rois += seg_ind.cpu().numpy().reshape((-1, 1, 1))
             this_roi_scores *= this_actness
             for k, v in enumerate(this_rois):
