@@ -42,6 +42,7 @@ class BinaryVideoRecord:
         self.id = self._data.id
         files = glob.glob(os.path.join(frame_path, self.id, 'image*.jpg'))
         frame_cnt = len(files)
+        assert frame_cnt > 2, "{} is empty".format(self.id)
         duration = self._data.duration
         # frame_cnt = frame_counts[self.id]
         self.frame_cnt = frame_cnt
