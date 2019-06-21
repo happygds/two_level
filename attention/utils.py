@@ -95,7 +95,7 @@ class Rank_Criterion(nn.Module):
 
         pred = F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
         # pred = (F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2)) )) ** 2 * y_mask * mask
-        output = pred.sum(2).sum(1) / (y_mask*mask).sum(2).sum(1).clamp(eps)
+        output = pred.sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
 
         return output.mean()
 
