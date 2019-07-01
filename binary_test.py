@@ -120,7 +120,7 @@ else:
     args.d_v = args.d_k
 args.d_model = args.n_head * args.d_k
 
-gpu_list = args.gpus if args.gpus is not None else range(2)
+gpu_list = args.gpus if args.gpus is not None else range(1)
 
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
