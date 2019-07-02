@@ -90,7 +90,7 @@ class Rank_Criterion(nn.Module):
         x, y = x[:, :, 1], y[:, :, 1]
         # y_max, y_min = y.max(1)[0].unsqueeze(1), y.min(1)[0].unsqueeze(1)
         # y = (y - y_min) / (y_max - y_min).clamp(eps)
-        mask = torch.gt(y, 0.).float()
+        # mask = torch.gt(y, 0.).float()
         mask = mask.unsqueeze(1) * mask.unsqueeze(2)
         y_mask = torch.gt(y.unsqueeze(1) - y.unsqueeze(2), 0.).float()
 
