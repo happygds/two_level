@@ -165,24 +165,26 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     #                                       rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos[:, :, :, 0] = 1. * (rois_cent[:, np.newaxis, :] -
                                           rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = 1. * np.log(rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14))
-    rois_relative_pos=10. *
+    rois_relative_pos[:, :, :, 1] = 1. * \
+        np.log(rois_dura[:, :, np.newaxis] /
+               rois_dura[:, np.newaxis, :].clip(1e-14))
+    rois_relative_pos = 10. * \
         rois_relative_pos.clip(-5., 5.) * rpn_rois_mask[:, :, np.newaxis,
-                               np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
+                                                        np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
-    start_rois=torch.from_numpy(
+    start_rois = torch.from_numpy(
         start_rois).cuda().requires_grad_(False).cuda()
-    end_rois=torch.from_numpy(end_rois).cuda().requires_grad_(False).cuda()
-    rpn_rois=torch.from_numpy(rpn_rois).cuda().requires_grad_(False).float()
-    rpn_rois_mask=torch.from_numpy(
+    end_rois = torch.from_numpy(end_rois).cuda().requires_grad_(False).cuda()
+    rpn_rois = torch.from_numpy(rpn_rois).cuda().requires_grad_(False).float()
+    rpn_rois_mask = torch.from_numpy(
         rpn_rois_mask).cuda().requires_grad_(False).float()
-    rois_relative_pos=torch.from_numpy(
+    rois_relative_pos = torch.from_numpy(
         rois_relative_pos).cuda().requires_grad_(False).float()
 
     if not test_mode:
-        labels=torch.from_numpy(labels).cuda().requires_grad_(False).float()
+        labels = torch.from_numpy(labels).cuda().requires_grad_(False).float()
         return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels
     else:
-        actness=torch.from_numpy(
+        actness = torch.from_numpy(
             actness).cuda().requires_grad_(False).float()
         return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, actness
