@@ -165,7 +165,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
                                           rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     # rois_relative_pos[:, :, :, 1] = 20. * np.log((np.abs(rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
     # rois_relative_pos[:, :, :, 2] = 20. * np.log((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-3))
-    rois_relative_pos = 10. * rois_relative_pos.clip(-10., 10.) * \
+    rois_relative_pos = 10. * rois_relative_pos.clip(-5., 5.) * \
         rpn_rois_mask[:, :, np.newaxis, np.newaxis] * \
         rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
