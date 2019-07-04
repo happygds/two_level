@@ -102,7 +102,7 @@ class ROI_Relation(nn.Module):
         self.roipoll_size = roipool_size
         self.roi_conv = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU(),
                                       nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU(),
-                                      nn.MaxPool1d(5, stride=4, padding=2))
+                                      nn.AveragePool1d(5, stride=4, padding=2))
         in_ch = ((2*self.bpool_size+self.roipoll_size) - 1) // 4 + 1
         self.roi_fc = nn.Sequential(nn.Linear(d_model*in_ch, d_model), nn.Dropout(dropout), nn.SELU())
 

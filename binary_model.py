@@ -107,7 +107,7 @@ class BinaryClassifier(torch.nn.Module):
         # use relative position embedding
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(
-            enc_output, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
+            enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
         # roi_feats = self.norm(roi_feats.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
         # roi_feat_max = self.roi_feat_max(roi_feats).max(1)[0].unsqueeze(1)
         # roi_feat_max = self.w_roi
