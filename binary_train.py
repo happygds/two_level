@@ -290,7 +290,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             this_rois, this_actness, this_roi_scores = model(
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             this_rois, this_actness, this_roi_scores = this_rois.cpu().numpy(
-            ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()
+            ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()[:, :, 1]
             this_rois += seg_ind.cpu().numpy().reshape((-1, 1, 1))
             this_roi_scores *= this_actness
             for k, v in enumerate(this_rois):
