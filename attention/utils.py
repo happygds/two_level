@@ -87,7 +87,7 @@ class Rank_Criterion(nn.Module):
         self.epsilon = epsilon
 
     def forward(self, x, y, mask):
-        x, y = x[:, :, 1]*mask, y[:, :, 1]*mask
+        x, y = x*mask, y[:, :, 1]*mask
         # y_max, y_min = y.max(1)[0].unsqueeze(1), y.min(1)[0].unsqueeze(1)
         # y = (y - y_min) / (y_max - y_min).clamp(eps)
         # mask = torch.gt(y, 0.).float()
