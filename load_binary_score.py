@@ -227,15 +227,15 @@ class BinaryDataSet(data.Dataset):
                 count = 0.
                 begin_index = random.randrange(
                     0, feat_num - self.sample_duration + 1, 4)
-                while max_ratio <= 0. and count < 10.:
-                    begin_index = random.randrange(
-                        0, feat_num - self.sample_duration + 1, 4)
-                    test_segments = np.asarray(
-                        [begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
-                    intersect, ratio_target = intersection(
-                        target_segments, test_segments, return_ratio_target=True)
-                    max_ratio = ratio_target.max()
-                    count += 1.
+                # while max_ratio < 0.5 and count < 10.:
+                #     begin_index = random.randrange(
+                #         0, feat_num - self.sample_duration + 1, 4)
+                #     test_segments = np.asarray(
+                #         [begin_index, begin_index + self.sample_duration]).reshape((-1, 2))
+                #     intersect, ratio_target = intersection(
+                #         target_segments, test_segments, return_ratio_target=True)
+                #     max_ratio = ratio_target.max()
+                #     count += 1.
             else:
                 begin_index = 0
         else:
