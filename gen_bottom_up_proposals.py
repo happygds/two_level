@@ -157,7 +157,7 @@ def gen_prop(v):
               for (roi, roi_score) in zip(rois, roi_scores)]
     # filter out too short proposals
     bboxes = list(filter(lambda b: b[1] - b[0] > args.minimum_len, bboxes))
-    bboxes = temporal_nms(bboxes, 1. - 1e-2)
+    bboxes = temporal_nms(bboxes, 1. - 1e-1)
     # bboxes = Soft_NMS(bboxes, length=frm_cnt)
 
     if len(bboxes) == 0:
