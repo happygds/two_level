@@ -149,7 +149,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
                 this_rois, this_actness, this_roi_scores = this_rois.cpu().numpy(
                 ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()[:, :, 1]
                 this_rois += seg_ind.cpu().numpy().reshape((-1, 1, 1))
-                this_roi_scores *= this_actness
+                # this_roi_scores *= this_actness
                 
                 this_rois, this_roi_scores = this_rois.reshape((-1, 2)), this_roi_scores.reshape((-1))
                 if len(rois) == 0:
