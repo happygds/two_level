@@ -37,7 +37,7 @@ def gen_prop(x):
         # import pdb; pdb.set_trace()
     else:
         props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
-    # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
+    props = [(x[0], x[1], 1, x[3] ** (1./3)) for x in props]
     bboxes.extend(props)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
     # to remove duplicate proposals
