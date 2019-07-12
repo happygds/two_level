@@ -227,7 +227,7 @@ class BinaryDataSet(data.Dataset):
                 count = 0.
                 begin_index = random.randrange(
                     0, feat_num - self.sample_duration + 1, 4)
-                while max_ratio <= 0. and count < 10.:
+                while max_ratio <= 0.5 and count < 10.:
                     begin_index = random.randrange(
                         0, feat_num - self.sample_duration + 1, 4)
                     test_segments = np.asarray(
