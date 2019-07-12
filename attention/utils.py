@@ -91,6 +91,7 @@ class Rank_Criterion(nn.Module):
         bs = x.size()[0]
         x = torch.cat([x, torch.zeros((bs, 1)).cuda(), torch.ones((bs, 1)).cuda()], dim=1)
         y = torch.cat([y, torch.zeros((bs, 1)).cuda(), torch.ones((bs, 1)).cuda()], dim=1)
+        mask = torch.cat([mask, torch.ones((bs, 1)).cuda(), torch.ones((bs, 1)).cuda()], dim=1)
         # y_max, y_min = y.max(1)[0].unsqueeze(1), y.min(1)[0].unsqueeze(1)
         # y = (y - y_min) / (y_max - y_min).clamp(eps)
         # mask = torch.gt(y, 0.).float()
