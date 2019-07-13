@@ -53,11 +53,11 @@ parser.add_argument('--att_kernel_type', default='self_attn',
                     type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot, highorder)')
 parser.add_argument('--n_layers', default=1,
                     type=int, help='the number of encoder layers in the self_attention encoder')
-parser.add_argument('--reduce_dim', default=512,
+parser.add_argument('--reduce_dim', default=256,
                     type=int, help='if -1, not rediced; if > 0, reduce the input feature dimension first')
 parser.add_argument('--n_head', default=8,
                     type=int, help='the number of attention head used in one encoder layer')
-parser.add_argument('--d_inner_hid', default=2048, type=int,
+parser.add_argument('--d_inner_hid', default=1024, type=int,
                     help='the layer dimension for positionwise fc layers')
 parser.add_argument('--prop_per_video', type=int, default=12)
 parser.add_argument('--num_local', type=int, default=0)
@@ -120,7 +120,7 @@ else:
     args.d_v = args.d_k
 args.d_model = args.n_head * args.d_k
 
-gpu_list = args.gpus if args.gpus is not None else range(4)
+gpu_list = args.gpus if args.gpus is not None else range(1)
 
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
