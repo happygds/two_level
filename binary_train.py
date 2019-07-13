@@ -119,13 +119,13 @@ def main():
         batch_size=args.batch_size//2, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
-    # optimizer = torch.optim.Adam(
-    #         model.parameters(),
-    #         args.lr, weight_decay=args.weight_decay)
-
-    optimizer = AdamW(
+    optimizer = torch.optim.Adam(
             model.parameters(),
             args.lr, weight_decay=args.weight_decay)
+
+    # optimizer = AdamW(
+    #         model.parameters(),
+    #         args.lr, weight_decay=args.weight_decay)
 
     # optimizer = torch.optim.SGD(model.parameters(),
     #                             args.lr,
