@@ -4,9 +4,9 @@ parser.add_argument('dataset', type=str, choices=['activitynet1.2', 'activitynet
 
 parser.add_argument('--annotation_path', default='../ActivityNet/activity_net.v1-3.min_save.json',
                     type=str, help='Annotation file path')
-parser.add_argument('--feat_root', default='../ActivityNet',
+parser.add_argument('--feat_root', default='../ActivityNet/i3d_trained',
                     type=str, help='Feature directory path')
-parser.add_argument('--result_path', default='../ActivityNet',
+parser.add_argument('--result_path', default='../ActivityNet/result',
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | cluster')
