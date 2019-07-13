@@ -80,7 +80,7 @@ def temporal_nms_fallback(bboxes, thresh, score_ind=3):
     t2 = np.array([x[1] for x in bboxes])
     scores = np.array([x[score_ind] for x in bboxes])
 
-    durations = t2 - t1 + 1
+    durations = t2 - t1
     order = scores.argsort()[::-1]
 
     keep = []
@@ -89,7 +89,7 @@ def temporal_nms_fallback(bboxes, thresh, score_ind=3):
         keep.append(i)
         tt1 = np.maximum(t1[i], t1[order[1:]])
         tt2 = np.minimum(t2[i], t2[order[1:]])
-        intersection = tt2 - tt1 + 1
+        intersection = tt2 - tt1
         IoU = intersection / (durations[i] + durations[order[1:]] - intersection).astype(float)
 
         inds = np.where(IoU <= thresh)[0]
@@ -101,8 +101,8 @@ def temporal_nms_fallback(bboxes, thresh, score_ind=3):
 def IOU(s1,e1,s2,e2):
     if (s2>e1) or (s1>e2):
         return 0
-    Aor=max(e1,e2)-min(s1,s2) + 1
-    Aand=min(e1,e2)-max(s1,s2) + 1
+    Aor=max(e1,e2)-min(s1,s2)
+    Aand=min(e1,e2)-max(s1,s2)
     return float(Aand)/Aor
 
 def Soft_NMS(bboxes, length=128., score_ind=3, max_num=100):
@@ -122,7 +122,7 @@ def Soft_NMS(bboxes, length=128., score_ind=3, max_num=100):
             if idx!=max_index:
                 tmp_iou=IOU(tstart[max_index],tend[max_index],tstart[idx],tend[idx])
                 tmp_width=(tend[max_index]-tstart[max_index]) / length
-                if tmp_iou>0.65+0.3*tmp_width:#*1/(1+np.exp(-max_index)):        
+                if tmp_iou>0.65+0.25*tmp_width:#*1/(1+np.exp(-max_index)):        
                     tscore[idx]=tscore[idx]*np.exp(-np.square(tmp_iou)/0.75)
             
         rstart.append(tstart[max_index])
