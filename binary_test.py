@@ -53,7 +53,7 @@ parser.add_argument('--att_kernel_type', default='self_attn',
                     type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot, highorder)')
 parser.add_argument('--n_layers', default=1,
                     type=int, help='the number of encoder layers in the self_attention encoder')
-parser.add_argument('--reduce_dim', default=256,
+parser.add_argument('--reduce_dim', default=512,
                     type=int, help='if -1, not rediced; if > 0, reduce the input feature dimension first')
 parser.add_argument('--n_head', default=8,
                     type=int, help='the number of attention head used in one encoder layer')
