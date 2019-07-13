@@ -17,7 +17,7 @@ from ops.utils import get_actionness_configs, ScheduledOptim
 from ops.anet_db import ANetDB
 from torch.utils import model_zoo
 from attention.utils import Rank_Criterion, CE_Criterion_multi
-# from tensorboard import Logger
+from ops.AdamW import AdamW
 best_loss = 100
 
 
@@ -122,6 +122,11 @@ def main():
     optimizer = torch.optim.Adam(
             model.parameters(),
             args.lr, weight_decay=args.weight_decay)
+
+    # optimizer = AdamW(
+    #         model.parameters(),
+    #         args.lr, weight_decay=args.weight_decay)
+
     # optimizer = torch.optim.SGD(model.parameters(),
     #                             args.lr,
     #                             momentum=args.momentum,
