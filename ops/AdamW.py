@@ -49,7 +49,7 @@ class AdamW(Optimizer):
         for group in self.param_groups:
             group.setdefault('amsgrad', False)
 
-[docs]    def step(self, closure=None):
+    def step(self, closure=None):
         """Performs a single optimization step.
 
         Arguments:
