@@ -144,7 +144,7 @@ def roi_embedding(position_mat, feat_dim, wave_length=10000.):
     return embedding.view(pos_size[:2] + (feat_dim,)).float()
 
 
-def rank_embedding(position_mat, feat_dim, wave_length=1000.):
+def rank_embedding(position_mat, feat_dim, wave_length=10000.):
     feat_range = torch.arange(0, feat_dim / 2)
     dim_mat = torch.pow(wave_length, (2. / feat_dim) * feat_range)
     dim_mat = dim_mat.view(1, 1, -1).cuda()
