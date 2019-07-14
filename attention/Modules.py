@@ -87,9 +87,13 @@ class ScaledDotProductAttention(nn.Module):
             attn = torch.bmm(q, k.transpose(1, 2)) / self.temper
             assert attn_pos_emb is not None
             k_pos_emb, v_pos_emb = torch.split(attn_pos_emb, q.size(2), dim=3)
-            # k_gate = F.sigmoid(torch.mean(k.unsqueeze(1) + k_pos_emb, dim=3))
-            # attn = k_gate * attn + (1. - k_gate) * torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
             attn += torch.sum(q.unsqueeze(2) * k_pos_emb, dim=3) / self.temper
+            # attn.data.masked_fill_(attn_mask, -1e+32)
+            # attn_max = torch.max(attn, 2, keepdim=True)[0]
+            # attn = torch.exp(attn - attn_max)
+            # attn.data.masked_fill_(attn_mask, 0)
+            # attn = attn_pos_emb * attn
+            # import pdb; pdb.set_trace()
         else:
             raise NotImplementedError()
 
@@ -112,9 +116,7 @@ class ScaledDotProductAttention(nn.Module):
             # lengths = (1. - attn_mask)[:, 0].sum(-1).long().cuda()
             # attn = self.softmax(attn.data.cpu(), lengths.data.cpu()).view(shp).cuda()
         else:
-            attn.data.masked_fill_(torch.isnan(attn), 0)
             attn = attn / attn.sum(dim=2, keepdim=True).clamp(1e-14)
-        # import pdb; pdb.set_trace()
         out_attn = attn
         attn = self.dropout(attn)
         output = torch.bmm(attn, v)
@@ -130,7 +132,7 @@ class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
     def __init__(self, n_head, d_model, d_k, d_v, d_out=None, 
-                 dropout=0.1, kernel_type='self_attn', groupwise_heads=0):
+                 dropout=0.5, kernel_type='self_attn', groupwise_heads=0):
         super(MultiHeadAttention, self).__init__()
         self.groupwise_heads = groupwise_heads
         self.d_out = d_out
@@ -145,6 +147,7 @@ class MultiHeadAttention(nn.Module):
         self.attention = ScaledDotProductAttention(
             d_model, d_k, n_head, attn_dropout=dropout, kernel_type=kernel_type)
         self.layer_norm = nn.LayerNorm(d_model)
+
         self.proj = nn.Linear(n_head*d_v, d_model)
         if self.d_out is not None:
             self.proj_cluster = nn.Linear(n_head*d_v, d_out)
@@ -222,6 +225,7 @@ class MultiHeadAttention(nn.Module):
         if self.d_out is None:
             return self.layer_norm(outputs + residual), attns
         else:
+            raise NotImplementedError()
             return self.layer_norm(outputs), cluster_outputs
 
 
@@ -244,7 +248,5 @@ class PositionwiseFeedForward(nn.Module):
         output = self.relu(self.w_1(x))
         output = self.w_2(output)
         output = self.dropout(output)
-        if self.d_in is None:
-            return self.layer_norm(output + residual)
-        else:
-            return self.layer_norm(output)
+        return self.layer_norm(output + residual)
+        # return output + residual
