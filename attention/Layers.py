@@ -102,20 +102,20 @@ class ROI_Relation(nn.Module):
         # self.roi_pool = BRoI1DAlign(roipool_size, 1., start_pool_size, start_pool_size, 1./5)
         self.bpool_size = start_pool_size
         self.roipool_size = roipool_size
-        self.roi_conv = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU(),
-                                      nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU(),
-                                      nn.AvgPool1d(5, stride=4, padding=2))
-        in_ch = ((2*self.bpool_size+self.roipool_size) - 1) // 4 + 1
-        self.roi_fc = nn.Sequential(nn.Linear(d_model*in_ch, d_model), nn.Dropout(dropout), nn.SELU())
+        # self.roi_conv = nn.Sequential(nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU(),
+        #                               nn.Conv1d(d_model, d_model, 3, padding=1), nn.Dropout(dropout), nn.SELU(),
+        #                               nn.AvgPool1d(5, stride=4, padding=2))
+        # in_ch = ((2*self.bpool_size+self.roipool_size) - 1) // 4 + 1
+        # self.roi_fc = nn.Sequential(nn.Linear(d_model*in_ch, d_model), nn.Dropout(dropout), nn.SELU())
 
-        # self.left_fc = nn.Sequential(nn.Linear(
-        #     (self.bpool_size+roipool_size//2+1)*d_model, d_model), nn.Dropout(dropout), nn.SELU())
-        # self.inner_fc = nn.Sequential(
-        #     nn.Linear(roipool_size*d_model, d_model), nn.Dropout(dropout), nn.SELU())
-        # self.right_fc = nn.Sequential(nn.Linear(
-        #     (self.bpool_size+roipool_size//2+1)*d_model, d_model), nn.Dropout(dropout), nn.SELU())
-        # self.roi_fc = nn.Sequential(
-        #     nn.Linear(3*d_model, d_model), nn.Dropout(dropout), nn.SELU())
+        self.left_fc = nn.Sequential(nn.Linear(
+            (self.bpool_size+roipool_size//2+1)*d_model, d_model), nn.Dropout(dropout), nn.SELU())
+        self.inner_fc = nn.Sequential(
+            nn.Linear(roipool_size*d_model, d_model), nn.Dropout(dropout), nn.SELU())
+        self.right_fc = nn.Sequential(nn.Linear(
+            (self.bpool_size+roipool_size//2+1)*d_model, d_model), nn.Dropout(dropout), nn.SELU())
+        self.roi_fc = nn.Sequential(
+            nn.Linear(3*d_model, d_model), nn.Dropout(dropout), nn.SELU())
 
         # self.rank_fc = nn.Linear(d_model, d_model)
         # self.rois_emb = nn.Linear(d_model, d_model)
@@ -131,17 +131,17 @@ class ROI_Relation(nn.Module):
         features = features.transpose(1, 2)
         roi_feats = self.roi_pool(features, rois)
         roi_feat_size = roi_feats.size()
-        roi_feats = self.roi_conv(roi_feats.view((-1,)+roi_feat_size[2:])).view(roi_feat_size[:2]+(-1,))
-        roi_feats = self.roi_fc(roi_feats).view(roi_feat_size[:3])
+        # roi_feats = self.roi_conv(roi_feats.view((-1,)+roi_feat_size[2:])).view(roi_feat_size[:2]+(-1,))
+        # roi_feats = self.roi_fc(roi_feats).view(roi_feat_size[:3])
 
-        # # use SSN-like fc-layers
-        # left_feats = self.left_fc(roi_feats[:, :, :, 0:(
-        #     self.roipool_size//2+self.bpool_size+1)].contiguous().view(roi_feat_size[:2]+(-1,)))
-        # inner_feats = self.inner_fc(roi_feats[:, :, :, self.bpool_size:(
-        #     self.roipool_size+self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
-        # right_feats = self.left_fc(roi_feats[:, :, :, (self.roipool_size//2+self.bpool_size):(
-        #     self.roipool_size+2*self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
-        # roi_feats = self.roi_fc(torch.cat([left_feats, inner_feats, right_feats], dim=2))
+        # use SSN-like fc-layers
+        left_feats = self.left_fc(roi_feats[:, :, :, 0:(
+            self.roipool_size//2+self.bpool_size+1)].contiguous().view(roi_feat_size[:2]+(-1,)))
+        inner_feats = self.inner_fc(roi_feats[:, :, :, self.bpool_size:(
+            self.roipool_size+self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
+        right_feats = self.left_fc(roi_feats[:, :, :, (self.roipool_size//2+self.bpool_size):(
+            self.roipool_size+2*self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
+        roi_feats = self.roi_fc(torch.cat([left_feats, inner_feats, right_feats], dim=2))
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
