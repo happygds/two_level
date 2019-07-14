@@ -132,7 +132,7 @@ class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
     def __init__(self, n_head, d_model, d_k, d_v, d_out=None, 
-                 dropout=0.1, kernel_type='self_attn', groupwise_heads=0):
+                 dropout=0.5, kernel_type='self_attn', groupwise_heads=0):
         super(MultiHeadAttention, self).__init__()
         self.groupwise_heads = groupwise_heads
         self.d_out = d_out
@@ -147,6 +147,7 @@ class MultiHeadAttention(nn.Module):
         self.attention = ScaledDotProductAttention(
             d_model, d_k, n_head, attn_dropout=dropout, kernel_type=kernel_type)
         self.layer_norm = nn.LayerNorm(d_model)
+
         self.proj = nn.Linear(n_head*d_v, d_model)
         if self.d_out is not None:
             self.proj_cluster = nn.Linear(n_head*d_v, d_out)
@@ -224,6 +225,7 @@ class MultiHeadAttention(nn.Module):
         if self.d_out is None:
             return self.layer_norm(outputs + residual), attns
         else:
+            raise NotImplementedError()
             return self.layer_norm(outputs), cluster_outputs
 
 
@@ -246,7 +248,5 @@ class PositionwiseFeedForward(nn.Module):
         output = self.relu(self.w_1(x))
         output = self.w_2(output)
         output = self.dropout(output)
-        if self.d_in is None:
-            return self.layer_norm(output + residual)
-        else:
-            return self.layer_norm(output)
+        return self.layer_norm(output + residual)
+        # return output + residual

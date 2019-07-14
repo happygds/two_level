@@ -2,11 +2,11 @@ import argparse
 parser = argparse.ArgumentParser(description="PyTorch code to train Structured Segment Networks (SSN)")
 parser.add_argument('dataset', type=str, choices=['activitynet1.2', 'activitynet1.3', 'thumos14'])
 
-parser.add_argument('--annotation_path', default='../../data/activitynet/activity_net.v1-3.min_save.json',
+parser.add_argument('--annotation_path', default='../ActivityNet/activity_net.v1-3.min_save.json',
                     type=str, help='Annotation file path')
-parser.add_argument('--feat_root', default='../../data/activitynet',
+parser.add_argument('--feat_root', default='../ActivityNet/i3d_trained',
                     type=str, help='Feature directory path')
-parser.add_argument('--result_path', default='../../result/activitynet',
+parser.add_argument('--result_path', default='../ActivityNet/result',
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | cluster')
@@ -23,11 +23,11 @@ parser.add_argument('--att_kernel_type', default='self_attn',
                     type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot, highorder)')
 parser.add_argument('--n_layers', default=1,
                     type=int, help='the number of encoder layers in the self_attention encoder')
-parser.add_argument('--reduce_dim', default=512,
+parser.add_argument('--reduce_dim', default=256,
                     type=int, help='if -1, not rediced; if > 0, reduce the input feature dimension first')
 parser.add_argument('--n_head', default=8,
                     type=int, help='the number of attention head used in one encoder layer')
-parser.add_argument('--d_inner_hid', default=2048, type=int,
+parser.add_argument('--d_inner_hid', default=1024, type=int,
                     help='the layer dimension for positionwise fc layers')
 parser.add_argument('--prop_per_video', type=int, default=12)
 parser.add_argument('--num_local', type=int, default=0)
@@ -42,7 +42,7 @@ parser.add_argument('--num_aug_segments', type=int, default=2)
 parser.add_argument('--num_body_segments', type=int, default=5)
 
 parser.add_argument('--dropout', '--do', default=0.1, type=float,
-                    metavar='DO', help='dropout ratio (default: 0.8)')
+                    metavar='DO', help='dropout ratio (default: 0.5)')
 
 # ========================= Learning Configs ==========================
 parser.add_argument('--epochs', default=15, type=int, metavar='N',
