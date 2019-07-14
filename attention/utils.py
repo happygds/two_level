@@ -99,9 +99,6 @@ class Rank_Criterion(nn.Module):
         # pred = (F.relu(1. - (x.unsqueeze(1) - x.unsqueeze(2)) / (y.unsqueeze(1) - y.unsqueeze(2)).clamp(eps) )) * mask * y_mask
         output = pred.sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
 
-        # pred = (F.relu((y.unsqueeze(1) - y.unsqueeze(2)) - (x.unsqueeze(1) - x.unsqueeze(2)) )) ** 2 * mask
-        # output = pred.sum(2).sum(1) / mask.sum(2).sum(1).clamp(eps)
-
         return output.mean()
 
 def position_encoding_init(n_position, d_pos_vec):
