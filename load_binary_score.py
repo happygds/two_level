@@ -62,7 +62,8 @@ class BinaryVideoRecord:
         if rgb_feat.shape[0] % 2 != 0:
             rgb_feat = rgb_feat[:-1]
         shp = rgb_feat.shape
-        rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
+        if shp[0] > 2 * sample_duration:
+            rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
         shp = rgb_feat.shape
 
         # # use linear interpolation to resize the feature into a fixed length
