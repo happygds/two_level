@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=test
-#SBATCH --partition=k40
-#SBATCH -n 2
-#SBATCH --ntasks-per-node=2
-#SBATCH --gres=gpu:2
+#SBATCH --partition=k80
+#SBATCH -n 1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:1
 #SBATCH --mail-type=end
 #SBATCH --mail-user=YOUR@MAIL
 #SBATCH --output=out.out
