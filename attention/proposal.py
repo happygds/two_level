@@ -14,7 +14,7 @@ def gen_prop(x):
     bboxes = []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
-    min_thre = 0.1
+    min_thre = 0.3
     scores = scores_k[:num_feat]
 
     # # use change point
@@ -24,9 +24,9 @@ def gen_prop(x):
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
         # gd_scores = gaussian_filter(diff_scores, bw)
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[
-                      0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
+                      0] + 1) + list(np.nonzero(pstarts > 0.5)[0])
         ends = list(np.nonzero(
-            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
+            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.5)[0])
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
@@ -47,7 +47,6 @@ def gen_prop(x):
     #     bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
     # else:
     bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
-    bboxes = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[x[1]])) for x in bboxes]
     if len(bboxes) == 0:
         bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
 
