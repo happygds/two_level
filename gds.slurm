@@ -15,13 +15,13 @@ module purge
 module load gcc/4.9 miniconda3 cuda/8.0
 source activate py36
 
-# cd broi1d_pooling_avg
-# python build.py
-# cd ..
+cd broi1d_pooling_avg
+python build.py
+cd ..
 
-# cd broi1d_align
-# python build.py
-# cd ..
+cd broi1d_align
+python build.py
+cd ..
 
 nvidia-smi
 
