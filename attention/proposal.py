@@ -47,6 +47,7 @@ def gen_prop(x):
         bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
     else:
         bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
+        bboxes = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in bboxes]
     if len(bboxes) == 0:
         bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
 
