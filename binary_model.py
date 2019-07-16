@@ -1,5 +1,6 @@
 import torch
-from torch import nn
+import torch.nn as nn
+import torch.nn.init as init
 import torch.nn.functional as F
 import numpy as np
 
@@ -9,7 +10,7 @@ from attention.utils import *
 
 
 class BinaryClassifier(torch.nn.Module):
-    def __init__(self, num_class, course_segment, args, dropout=0.1, test_mode=False):
+    def __init__(self, num_class, course_segment, args, dropout=0.5, test_mode=False):
 
         super(BinaryClassifier, self).__init__()
 
@@ -20,7 +21,8 @@ class BinaryClassifier(torch.nn.Module):
         self.reduce = args.reduce_dim > 0
         if self.reduce:
             self.reduce_layer = nn.Sequential(
-                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU())
+                nn.Linear(args.input_dim, args.reduce_dim), nn.SELU(), nn.Dropout(self.dropout))
+            # self.inputnorm = nn.BatchNorm1d(args.d_model)
         self.n_layers = args.n_layers
 
         self.layer_stack = nn.Sequential(nn.Conv1d(args.d_model, args.d_model, 3, padding=1),
@@ -37,7 +39,11 @@ class BinaryClassifier(torch.nn.Module):
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid,
                                           args.n_head, args.d_k, args.d_v, dropout=self.dropout)
-        # self.batchnorm = nn.BatchNorm1d(args.d_model)
+        self.norm = nn.BatchNorm1d(args.d_model)
+        # self.roi_feat_max = nn.Sequential(
+        #     nn.Linear(args.d_model, args.d_model), nn.SELU(), nn.Dropout(self.dropout))
+        # self.w_roi = nn.Parameter(torch.FloatTensor(1, 1, args.d_model))
+        # init.xavier_normal_(self.w_roi)
         self.roi_cls = nn.Linear(args.d_model, 2)
 
     def forward(self, feature, pos_ind, target=None, gts=None,
@@ -45,14 +51,15 @@ class BinaryClassifier(torch.nn.Module):
         # Word embedding look up
         if self.reduce:
             enc_input = self.reduce_layer(feature)
-            # enc_input = self.batchnorm(enc_input.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
+            # enc_input = self.inputnorm(enc_input.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
         else:
             enc_input = feature
 
         enc_output = enc_input
         enc_output = self.layer_stack(
             enc_output.transpose(1, 2)).transpose(1, 2)
-        score_output = F.sigmoid(self.scores(enc_output))
+        score_output = torch.sigmoid(self.scores(
+            enc_output)) * feature_mask.unsqueeze(2)
 
         # compute loss for training/validation stage
         if not test_mode:
@@ -66,9 +73,14 @@ class BinaryClassifier(torch.nn.Module):
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(
             enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
+        roi_feats = self.norm(roi_feats.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
+        # roi_feat_max = self.roi_feat_max(roi_feats).max(1)[0].unsqueeze(1)
+        # roi_feat_max = self.w_roi
         roi_scores = F.softmax(self.roi_cls(roi_feats), dim=2)
+        # roi_scores = ((roi_feat_max * roi_feats).sum(2) / torch.sqrt(
+        #     (roi_feat_max ** 2).sum(2) * (roi_feats ** 2).sum(2)).clamp(1e-14)).clamp(0.)
 
         if not test_mode:
-            return score_output, None, roi_scores, labels, rois_mask
+            return score_output, enc_slf_attn, roi_scores, labels, rois_mask
 
         return rois[:, :, 1:], actness, roi_scores
