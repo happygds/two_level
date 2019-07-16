@@ -116,7 +116,7 @@ def main():
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6, num_local=args.num_local, 
                       use_flow=args.use_flow, only_flow=args.only_flow),
-        batch_size=args.batch_size//2, shuffle=False,
+        batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
     # optimizer = torch.optim.Adam(
@@ -133,7 +133,7 @@ def main():
     #                             weight_decay=args.weight_decay, nesterov=False)
 
     if args.resume is not None and len(args.resume) > 0:
-        model.load_state_dict(torch.load(args.resume)['state_dict'])
+        model.load_state_dict(torch.load(args.resume)['state_dict'], strict=False)
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
     criterion_stage2 = Rank_Criterion(epsilon=0.02)
 
@@ -184,6 +184,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
 
     # switch to train model
     model.train()
+
     end_time = time.time()
     optimizer.zero_grad()
 
@@ -201,7 +202,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
             score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
         roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-        loss = score_loss + 1. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
+        loss = score_loss + 10. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
         score_losses.update(score_loss.item(), feature.size(0))
         start_losses.update(start_loss.item(), feature.size(0))
         end_losses.update(end_loss.item(), feature.size(0))
@@ -288,7 +289,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
                 score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
             roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-            loss = score_loss + 1. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
+            loss = score_loss + 10. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
             score_losses.update(score_loss.item(), feature.size(0))
             start_losses.update(start_loss.item(), feature.size(0))
             end_losses.update(end_loss.item(), feature.size(0))
