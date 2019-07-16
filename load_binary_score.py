@@ -62,7 +62,8 @@ class BinaryVideoRecord:
         if rgb_feat.shape[0] % 2 != 0:
             rgb_feat = rgb_feat[:-1]
         shp = rgb_feat.shape
-        rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
+        if shp[0] > 2 * sample_duration:
+            rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
         shp = rgb_feat.shape
 
         # # use linear interpolation to resize the feature into a fixed length
@@ -97,9 +98,9 @@ class BinaryVideoRecord:
                     # end_nbegin, end_nend = int(max(math.floor(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
                     #             int(min(math.ceil(frame_cnt * end_ind / feat_stride + dura_i), len(self.label)-1))
                     start_nbegin = int(max(round(sample_duration * begin_ind - dura_i), 0))
-                    start_nend = int(round(2*sample_duration * begin_ind - start_nbegin))
+                    start_nend =  int(min(round(2*sample_duration*begin_ind - start_nbegin), len(self.label)-1))
                     end_nend = int(min(round(sample_duration * end_ind + dura_i), len(self.label)-1))
-                    end_nbegin= int(round(2*sample_duration * end_ind - end_nend))
+                    end_nbegin = int(max(round(2*sample_duration*end_ind - end_nend), 0))
                     self.starts[start_nbegin:start_nend+1], self.ends[end_nbegin:end_nend+1] = 1., 1.
             except IndexError:
                 print(len(self.ends), nbegin_ind, nend_ind)
@@ -114,7 +115,7 @@ class BinaryDataSet(data.Dataset):
                  test_mode=False, feat_stride=16, input_dim=1024,
                  prop_per_video=12, fg_ratio=6, bg_ratio=6,
                  fg_iou_thresh=0.7, bg_iou_thresh=0.01,
-                 bg_coverage_thresh=0.02, sample_duration=2048,
+                 bg_coverage_thresh=0.02, sample_duration=100*16,
                  gt_as_fg=True, test_interval=6, verbose=True,
                  exclude_empty=True, epoch_multiplier=1,
                  use_flow=True, only_flow=False, num_local=8,
@@ -268,6 +269,9 @@ class BinaryDataSet(data.Dataset):
         frame_ticks = np.arange(feat.shape[0]).astype('int32').reshape((1, -1))
         # num_sampled_frames = len(frame_ticks)
         pos_ind = torch.from_numpy(frame_ticks).long()
+
+        # gts = np.zeros((32, 2), dtype='float32')
+        # gts[:len(video.gts)] = video.gts
 
         num_feat = feat.shape[0]
         # if num_feat < 16:
