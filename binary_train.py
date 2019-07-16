@@ -184,7 +184,6 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
 
     # switch to train model
     model.train()
-
     end_time = time.time()
     optimizer.zero_grad()
 
