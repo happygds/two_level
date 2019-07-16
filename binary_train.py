@@ -133,7 +133,7 @@ def main():
     #                             weight_decay=args.weight_decay, nesterov=False)
 
     if args.resume is not None and len(args.resume) > 0:
-        model.load_state_dict(torch.load(args.resume)['state_dict'])
+        model.load_state_dict(torch.load(args.resume)['state_dict'], strict=False)
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
     criterion_stage2 = Rank_Criterion(epsilon=0.01)
 
