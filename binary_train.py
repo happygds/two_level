@@ -17,7 +17,7 @@ from ops.utils import get_actionness_configs, ScheduledOptim
 from ops.anet_db import ANetDB
 from torch.utils import model_zoo
 from attention.utils import Rank_Criterion, CE_Criterion_multi
-# from tensorboard import Logger
+from ops.AdamW import AdamW
 best_loss = 100
 
 
@@ -116,21 +116,26 @@ def main():
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6, num_local=args.num_local, 
                       use_flow=args.use_flow, only_flow=args.only_flow),
-        batch_size=args.batch_size//2, shuffle=False,
+        batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
-    optimizer = torch.optim.Adam(
+    # optimizer = torch.optim.Adam(
+    #         model.parameters(),
+    #         args.lr, weight_decay=args.weight_decay)
+
+    optimizer = AdamW(
             model.parameters(),
             args.lr, weight_decay=args.weight_decay)
+
     # optimizer = torch.optim.SGD(model.parameters(),
     #                             args.lr,
     #                             momentum=args.momentum,
     #                             weight_decay=args.weight_decay, nesterov=False)
 
     if args.resume is not None and len(args.resume) > 0:
-        model.load_state_dict(torch.load(args.resume)['state_dict'])
+        model.load_state_dict(torch.load(args.resume)['state_dict'], strict=False)
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
-    criterion_stage2 = Rank_Criterion(epsilon=0.01)
+    criterion_stage2 = Rank_Criterion(epsilon=0.02)
 
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):
@@ -280,7 +285,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
 
             # compute output
             score_output, enc_slf_attn, roi_scores, labels, rois_mask = model(
-                feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=None)
+                feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=epoch)
             score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
                 score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
             roi_loss = criterion_stage2(roi_scores, labels, rois_mask)

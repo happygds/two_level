@@ -30,11 +30,11 @@ parser.add_argument('--num_body_segments', type=int, default=5)
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 
-parser.add_argument('--annotation_path', default='../../data/activitynet/activity_net.v1-3.min_save.json',
+parser.add_argument('--annotation_path', default='../ActivityNet/activity_net.v1-3.min_save.json',
                     type=str, help='Annotation file path')
-parser.add_argument('--feat_root', default='../../data/activitynet',
+parser.add_argument('--feat_root', default='../ActivityNet/i3d_trained',
                     type=str, help='Feature directory path')
-parser.add_argument('--result_path', default='../../result/activitynet/self_att',
+parser.add_argument('--result_path', default='../ActivityNet/result',
                     type=str, help='Result directory path')
 parser.add_argument('--model', default='TAG', type=str,
                     help='(self_att | TAG')
@@ -46,18 +46,18 @@ parser.add_argument('--use_flow', default=True, type=int,
 parser.add_argument('--only_flow', default=False, type=int,
                     help='whether only use i3d_flow feature') # for self-attetion encoder
 parser.add_argument('--dropout', '--do', default=0.1, type=float,
-                    metavar='DO', help='dropout ratio (default: 0.8)')
+                    metavar='DO', help='dropout ratio (default: 0.1)')
 parser.add_argument('--pos_enc', default=False, type=int,
                     help='whether slice the original position indices of the input video sequence')
 parser.add_argument('--att_kernel_type', default='self_attn',
                     type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot, highorder)')
 parser.add_argument('--n_layers', default=1,
                     type=int, help='the number of encoder layers in the self_attention encoder')
-parser.add_argument('--reduce_dim', default=512,
+parser.add_argument('--reduce_dim', default=256,
                     type=int, help='if -1, not rediced; if > 0, reduce the input feature dimension first')
 parser.add_argument('--n_head', default=8,
                     type=int, help='the number of attention head used in one encoder layer')
-parser.add_argument('--d_inner_hid', default=2048, type=int,
+parser.add_argument('--d_inner_hid', default=1024, type=int,
                     help='the layer dimension for positionwise fc layers')
 parser.add_argument('--prop_per_video', type=int, default=12)
 parser.add_argument('--num_local', type=int, default=0)
@@ -120,7 +120,7 @@ else:
     args.d_v = args.d_k
 args.d_model = args.n_head * args.d_k
 
-gpu_list = args.gpus if args.gpus is not None else range(4)
+gpu_list = args.gpus if args.gpus is not None else range(1)
 
 
 def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):

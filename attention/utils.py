@@ -69,31 +69,23 @@ class CE_Criterion_multi(nn.Module):
             tmp = torch.sqrt((attn * attn).sum(2).sum(1)) * torch.sqrt((target_cov * target_cov).sum(2).sum(1))
             tmp_output = 1. - (attn * target_cov).sum(2).sum(1).clamp(eps) / tmp.clamp(eps)
             attn_output = (tmp_output * mask[:, 0]).mean() * self.l_step ** i
-        else:
-            attn_output = None
     
         return score_loss, start_loss, end_loss, attn_output
 
 
 class Rank_Criterion(nn.Module):
-    def __init__(self, epsilon=0.1):
+    def __init__(self, epsilon=0.01):
         super(Rank_Criterion, self).__init__()
         self.epsilon = epsilon
 
     def forward(self, x, y, mask):
         x, y = x[:, :, 1], y[:, :, 1]
-        # sort_inds = y.sort(1, descending=True)[1]
-        # sort_x = torch.gather(x, 1, sort_inds)
-        # output = F.relu(self.epsilon - (sort_x[:, :-1] - sort_x[:, :-1]), 0.) * mask[:, 1:]
-        # output = output.sum(1)
         mask = mask.unsqueeze(1) * mask.unsqueeze(2)
         y_mask = torch.gt(y.unsqueeze(1) - y.unsqueeze(2), 0.).float()
-        
-        # pred = F.relu((y.unsqueeze(1) - y.unsqueeze(2)) - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
+
         pred = F.relu(self.epsilon - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
-        output = (pred).sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
-        # output = torch.exp( - (x.unsqueeze(1) - x.unsqueeze(2))) * F.relu(y.unsqueeze(1) - y.unsqueeze(2)) * mask
-        # output = torch.abs(output).sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
+        # pred = F.relu((y.unsqueeze(1) - y.unsqueeze(2)) - (x.unsqueeze(1) - x.unsqueeze(2))) * y_mask * mask
+        output = torch.abs(pred).sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
 
         return output.mean()
 
@@ -121,7 +113,7 @@ def pos_embedding(position_mat, feat_dim, wave_length=10000.):
     sin_mat = torch.sin(div_mat)
     cos_mat = torch.cos(div_mat)
     embedding = torch.cat([sin_mat, cos_mat], dim=4)
-    return embedding.view(pos_size[:3] + (-1,)).float()
+    return embedding.view(pos_size[:3] + (feat_dim,)).float()
 
 def roi_embedding(position_mat, feat_dim, wave_length=10000.):
     feat_range = torch.arange(0, feat_dim / 4)
@@ -135,7 +127,7 @@ def roi_embedding(position_mat, feat_dim, wave_length=10000.):
     embedding = torch.cat([sin_mat, cos_mat], dim=3)
     return embedding.view(pos_size[:2] + (feat_dim,)).float()
 
-def rank_embedding(position_mat, feat_dim, wave_length=1000.):
+def rank_embedding(position_mat, feat_dim, wave_length=10000.):
     feat_range = torch.arange(0, feat_dim / 2)
     dim_mat = torch.pow(wave_length, (2. / feat_dim) * feat_range)
     dim_mat = dim_mat.view(1, 1, -1).cuda()
