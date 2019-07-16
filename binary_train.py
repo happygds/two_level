@@ -116,7 +116,7 @@ def main():
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
                       fg_ratio=6, bg_ratio=6, num_local=args.num_local, 
                       use_flow=args.use_flow, only_flow=args.only_flow),
-        batch_size=args.batch_size//2, shuffle=False,
+        batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=pin_memory)
 
     # optimizer = torch.optim.Adam(
@@ -133,9 +133,9 @@ def main():
     #                             weight_decay=args.weight_decay, nesterov=False)
 
     if args.resume is not None and len(args.resume) > 0:
-        model.load_state_dict(torch.load(args.resume)['state_dict'])
+        model.load_state_dict(torch.load(args.resume)['state_dict'], strict=False)
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
-    criterion_stage2 = Rank_Criterion(epsilon=0.01)
+    criterion_stage2 = Rank_Criterion(epsilon=0.02)
 
     patience = 0
     for epoch in range(args.start_epoch, args.epochs):
