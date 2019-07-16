@@ -18,10 +18,10 @@ class EncoderLayer(nn.Module):
                  dropout=0.5, kernel_type='self_attn', groupwise_heads=0):
         super(EncoderLayer, self).__init__()
         self.slf_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=0.1,
+            n_head, d_model, d_k, d_v, dropout=dropout,
             kernel_type=kernel_type, groupwise_heads=groupwise_heads)
         self.pos_ffn = PositionwiseFeedForward(
-            d_model, d_inner_hid, dropout=0.1)
+            d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, enc_input, local_attn_mask=None,
                 slf_attn_mask=None, attn_pos_emb=None):
@@ -121,10 +121,10 @@ class ROI_Relation(nn.Module):
         self.rois_emb = nn.Linear(d_model, d_model)
         # for non-local operation
         self.slf_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=0.1,
+            n_head, d_model, d_k, d_v, dropout=dropout,
             kernel_type=kernel_type)
         self.pos_ffn = PositionwiseFeedForward(
-            d_model, d_inner_hid, dropout=0.1)
+            d_model, d_inner_hid, dropout=dropout)
 
     def forward(self, features, start_rois, end_rois, rois, rois_mask, rois_pos_emb):
         len_feat = features.size()[1]
