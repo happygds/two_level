@@ -19,9 +19,9 @@ cd broi1d_pooling_avg
 python build.py
 cd ..
 
-cd broi1d_align
-python build.py
-cd ..
+# cd broi1d_align
+# python build.py
+# cd ..
 
 nvidia-smi
 
