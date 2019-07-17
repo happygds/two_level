@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=ori
+#SBATCH --job-name=rela
 #SBATCH --partition=k40
 #SBATCH -n 1
 #SBATCH --ntasks-per-node=1
