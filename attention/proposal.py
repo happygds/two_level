@@ -14,7 +14,7 @@ def gen_prop(x):
     bboxes = []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
-    min_thre = 0.1
+    min_thre = 0.3
     scores = scores_k[:num_feat]
 
     # # use change point
@@ -24,9 +24,9 @@ def gen_prop(x):
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
         # gd_scores = gaussian_filter(diff_scores, bw)
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[
-                      0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
+                      0] + 1) + list(np.nonzero(pstarts > 0.7)[0])
         ends = list(np.nonzero(
-            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
+            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7)[0])
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
@@ -164,8 +164,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
                                           rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos[:, :, :, 1] = 1. * \
         np.log2((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
-    rois_relative_pos = 5. * \
-        rois_relative_pos.clip(-5., 5.) * rpn_rois_mask[:, :, np.newaxis,
+    rois_relative_pos = 2. * \
+        rois_relative_pos.clip(-16., 16.) * rpn_rois_mask[:, :, np.newaxis,
                                                         np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
     # import pdb; pdb.set_trace()
 
