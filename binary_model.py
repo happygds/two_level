@@ -106,7 +106,7 @@ class BinaryClassifier(torch.nn.Module):
                 score_output, feature_mask, test_mode=test_mode)
 
         # use relative position embedding
-        rois_relative_pos = self.pos_norm(rois_relative_pos.transpose(1, 3).contiguous()).transpose(1, 3).contiguous())
+        rois_relative_pos = self.pos_norm(rois_relative_pos.transpose(1, 3).contiguous()).transpose(1, 3).contiguous()
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(
             enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
