@@ -30,10 +30,8 @@ def gen_prop(x):
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
-        # props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[max(int(round(1.1*x-0.1*y)), 0):int(round(0.9*x+0.1*y))+1].mean()*pends[int(round(0.9*y+0.1*x)):min(int(round(1.1*y-0.1*x))+1, num_feat)].mean()))
-        #          for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
-    else:
-        props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
+    if scores.mean() > min_thre:
+        props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
     bboxes.extend(props)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
@@ -64,7 +62,7 @@ def gen_prop(x):
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0.,
-                   rpn_post_nms_top=100, feat_stride=5, epoch_id=None):
+                   rpn_post_nms_top=100, feat_stride=16, epoch_id=None):
     """
     Parameters
     ----------
@@ -119,7 +117,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             sample_infos.append(
                 [k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
             # _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-        pool = mp.Pool(processes=8)
+        pool = mp.Pool(processes=10)
         handle = [pool.apply_async(gen_prop, args=(
             x,), callback=call_back) for x in sample_infos]
         pool.close()
@@ -160,14 +158,11 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     #                                       rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     # rois_relative_pos[:, :, :, 1] = 1. * (rois_end[:, np.newaxis, :] -
     #                                       rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 0] = 1. * (rois_cent[:, np.newaxis, :] -
-                                          rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = 1. * \
-        np.log2((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
-    rois_relative_pos = 2. * \
+    rois_relative_pos[:, :, :, 0] = (rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
+    rois_relative_pos[:, :, :, 1] = np.log2((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
+    rois_relative_pos = 1. * \
         rois_relative_pos.clip(-16., 16.) * rpn_rois_mask[:, :, np.newaxis,
                                                         np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
-    # import pdb; pdb.set_trace()
 
     start_rois = torch.from_numpy(
         start_rois).cuda().requires_grad_(False).cuda()
