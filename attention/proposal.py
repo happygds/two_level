@@ -14,7 +14,7 @@ def gen_prop(x):
     bboxes = []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
-    min_thre = 0.3
+    min_thre = 0.1
     scores = scores_k[:num_feat]
 
     # # use change point
@@ -114,7 +114,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             sample_infos.append(
                 [k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
             # _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-        pool = mp.Pool(processes=10)
+        pool = mp.Pool(processes=4)
         handle = [pool.apply_async(gen_prop, args=(
             x,), callback=call_back) for x in sample_infos]
         pool.close()
