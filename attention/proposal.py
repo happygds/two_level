@@ -30,8 +30,6 @@ def gen_prop(x):
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
-        # props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[max(int(round(1.1*x-0.1*y)), 0):int(round(0.9*x+0.1*y))+1].mean()*pends[int(round(0.9*y+0.1*x)):min(int(round(1.1*y-0.1*x))+1, num_feat)].mean()))
-        #          for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
     else:
         props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
@@ -162,8 +160,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     #                                       rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos[:, :, :, 0] = (rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos[:, :, :, 1] = np.log2((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
-    rois_relative_pos = 1. * \
-        rois_relative_pos.clip(-16., 16.) * rpn_rois_mask[:, :, np.newaxis,
+    rois_relative_pos = 2. * \
+        rois_relative_pos.clip(-10., 10.) * rpn_rois_mask[:, :, np.newaxis,
                                                         np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
     start_rois = torch.from_numpy(
