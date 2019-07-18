@@ -47,7 +47,6 @@ class BinaryClassifier(torch.nn.Module):
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid,
                                           args.n_head, args.d_k, args.d_v, dropout=self.dropout)
-        self.pos_norm = nn.BatchNorm2d(2)
         self.norm = nn.BatchNorm1d(args.d_model)
         # self.roi_feat_max = nn.Sequential(
         #     nn.Linear(args.d_model, args.d_model), nn.SELU(), nn.Dropout(self.dropout))
@@ -106,7 +105,6 @@ class BinaryClassifier(torch.nn.Module):
                 score_output, feature_mask, test_mode=test_mode)
 
         # use relative position embedding
-        rois_relative_pos = self.pos_norm(rois_relative_pos.transpose(1, 3).contiguous()).transpose(1, 3).contiguous()
         rois_pos_emb = pos_embedding(rois_relative_pos, self.d_model)
         roi_feats = self.roi_relations(
             enc_input, start_rois, end_rois, rois, rois_mask, rois_pos_emb)
