@@ -158,11 +158,13 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     #                                       rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     # rois_relative_pos[:, :, :, 1] = 1. * (rois_end[:, np.newaxis, :] -
     #                                       rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 0] = (rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = np.log2((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
+    rois_relative_pos[:, :, :, 0] = (
+        rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
+    rois_relative_pos[:, :, :, 1] = np.log2(
+        (rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
     rois_relative_pos = 1. * \
         rois_relative_pos.clip(-16., 16.) * rpn_rois_mask[:, :, np.newaxis,
-                                                        np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
+                                                          np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
     start_rois = torch.from_numpy(
         start_rois).cuda().requires_grad_(False).cuda()
