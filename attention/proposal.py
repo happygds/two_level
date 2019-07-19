@@ -28,10 +28,10 @@ def gen_prop(x):
         ends = list(np.nonzero(
             (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
         starts, ends = list(set(starts)), list(set(ends))
-        props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
+        props = [(x, y, scores[x:y+1].mean(), scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
     if scores.mean() > min_thre:
-        props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
+        props += [(0, len(scores)-1, scores.mean(), scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
     bboxes.extend(props)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
@@ -57,7 +57,7 @@ def gen_prop(x):
         rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
         rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
     else:
-        rois_iou = np.asarray([x[3] for x in bboxes])
+        rois_iou = np.asarray([x[2] for x in bboxes])
     return k, bboxes, rois_iou
 
 
