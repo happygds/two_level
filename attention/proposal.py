@@ -46,7 +46,7 @@ def gen_prop(x):
     else:
         bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
     if len(bboxes) == 0:
-        bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
+        bboxes = [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
 
     # compute iou with ground-truths
     if gt_k is not None:
