@@ -28,7 +28,7 @@ def gen_prop(x):
         ends = list(np.nonzero(
             (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
         starts, ends = list(set(starts)), list(set(ends))
-        props = [(x, y+1, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
+        props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
     if scores.mean() > min_thre:
         props += [(0, len(scores), 1, scores.mean()*(pstarts[0]*pends[-1]))]
@@ -36,7 +36,7 @@ def gen_prop(x):
     bboxes.extend(props)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
     # to remove duplicate proposals
-    bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
+    # bboxes = temporal_nms(bboxes, 1.0 - 1e-14)
     # bboxes = bboxes[:rpn_post_nms_top]
     # num_keep = int(round(0.125*len(bboxes)))
     # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
@@ -162,8 +162,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     rois_relative_pos[:, :, :, 1] = np.log2(
         (rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
-    rois_relative_pos = 1. * \
-        rois_relative_pos.clip(-16., 16.) * rpn_rois_mask[:, :, np.newaxis,
+    rois_relative_pos = 5. * \
+        rois_relative_pos.clip(-10., 10.) * rpn_rois_mask[:, :, np.newaxis,
                                                           np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
     start_rois = torch.from_numpy(
