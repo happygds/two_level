@@ -11,7 +11,7 @@ from ops.eval_utils import wrapper_segment_iou
 def gen_prop(x):
     k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id = x
     # the k-th sample
-    bboxes = []
+    bboxes, props = [], []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
     min_thre = 0.3
