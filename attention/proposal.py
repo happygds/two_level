@@ -52,6 +52,8 @@ def gen_prop(x):
     if gt_k is not None:
         if len(gt_k) == 0:
             gt_k = [(0, 1)]
+        if len(bboxes) == 0:
+            bboxes = [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
         rois = [(x[0], x[1]) for x in bboxes]
         gt_k, rois = np.asarray(gt_k), np.asarray(rois)
         rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
