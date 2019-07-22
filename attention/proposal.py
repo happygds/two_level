@@ -41,10 +41,10 @@ def gen_prop(x):
     # num_keep = int(round(0.125*len(bboxes)))
     # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
     num_keep = rpn_post_nms_top
-    if epoch_id is not None and epoch_id < 3:
-        bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
-    else:
-        bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
+    # if epoch_id is not None and epoch_id < 3:
+    #     bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
+    # else:
+    bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
     if len(bboxes) == 0:
         bboxes = [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
         print("only one proposal")
