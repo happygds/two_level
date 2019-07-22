@@ -69,7 +69,7 @@ class BinaryVideoRecord:
         # # use linear interpolation to resize the feature into a fixed length
         ori_grids = np.arange(0, shp[0])
         if shp[0] > 1:
-            f = interpolate.interp1d(ori_grids, rgb_feat, kind='quadratic', axis=0)
+            f = interpolate.interp1d(ori_grids, rgb_feat, kind='cubic', axis=0)
             x_new=[i*float(shp[0]-1)/(sample_duration-1) for i in range(sample_duration)]
             output = f(x_new)
         else:
