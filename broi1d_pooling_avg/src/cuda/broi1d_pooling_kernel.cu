@@ -74,8 +74,8 @@ __global__ void BROI1DPoolForward(
             int roi_depth = max(roi_end_d - roi_start_d, 1);
             float bin_size_d = (float)(roi_depth) / (float)(bpooled_depth);
     
-            int dstart = (int)(floor((float)(pd) * bin_size_d));
-            int dend = (int)(ceil((float)(pd + 1) * bin_size_d));
+            int dstart = (int)(round((float)(pd) * bin_size_d));
+            int dend = (int)(round((float)(pd + 1) * bin_size_d));
             float bin_area = dend - dstart;
     
             // Add roi offsets and clip to input boundaries
@@ -191,8 +191,8 @@ __global__ void BROI1DPoolBackward(
             int roi_depth = max(roi_end_d - roi_start_d, 1);
             float bin_size_d = (float)(roi_depth) / (float)(bpooled_depth);
     
-            int dstart = (int)(floor((float)(pd) * bin_size_d));
-            int dend = (int)(ceil((float)(pd + 1) * bin_size_d));
+            int dstart = (int)(round((float)(pd) * bin_size_d));
+            int dend = (int)(round((float)(pd + 1) * bin_size_d));
             float bin_area = dend - dstart;
     
             // Add roi offsets and clip to input boundaries
