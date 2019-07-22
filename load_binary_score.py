@@ -59,17 +59,12 @@ class BinaryVideoRecord:
                         rgb_feat.shape, flow_feat.shape, vid_name)
                 rgb_feat = np.concatenate(
                     (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
-        if rgb_feat.shape[0] % 2 != 0:
-            rgb_feat = rgb_feat[:-1]
-        shp = rgb_feat.shape
-        if shp[0] > 2 * sample_duration:
-            rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
         shp = rgb_feat.shape
 
         # # use linear interpolation to resize the feature into a fixed length
         ori_grids = np.arange(0, shp[0])
         if shp[0] > 1:
-            f = interpolate.interp1d(ori_grids, rgb_feat, axis=0)
+            f = interpolate.interp1d(ori_grids, rgb_feat, kind='cubic', axis=0)
             x_new=[i*float(shp[0]-1)/(sample_duration-1) for i in range(sample_duration)]
             output = f(x_new)
         else:
