@@ -86,11 +86,11 @@ class BinaryVideoRecord:
             # dura_i = sample_duration * (end_ind - begin_ind) / 10.
             try:
                 if nbegin_ind < nend_ind:
-                    start_nbegin, start_nend = int(max(math.floor(frame_cnt * begin_ind / feat_stride - dura_i), 0)), \
-                        int(min(math.ceil(frame_cnt * begin_ind /
+                    start_nbegin, start_nend = int(max(round(frame_cnt * begin_ind / feat_stride - dura_i), 0)), \
+                        int(min(round(frame_cnt * begin_ind /
                                           feat_stride + dura_i), len(self.label)-1))
-                    end_nbegin, end_nend = int(max(math.floor(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
-                        int(min(math.ceil(frame_cnt * end_ind /
+                    end_nbegin, end_nend = int(max(round(frame_cnt * end_ind / feat_stride - dura_i), 0)), \
+                        int(min(round(frame_cnt * end_ind /
                                           feat_stride + dura_i), len(self.label)-1))
                     # start_nbegin, start_nend = int(max(math.floor(sample_duration * begin_ind - dura_i), 0)), \
                     #             int(min(math.ceil(sample_duration * begin_ind + dura_i), len(self.label)-1))
