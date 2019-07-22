@@ -11,10 +11,10 @@ from ops.eval_utils import wrapper_segment_iou
 def gen_prop(x):
     k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id = x
     # the k-th sample
-    bboxes = []
+    bboxes, props = [], []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
-    min_thre = 0.1
+    min_thre = 0.3
     scores = scores_k[:num_feat]
 
     # # use change point
@@ -24,14 +24,14 @@ def gen_prop(x):
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
         # gd_scores = gaussian_filter(diff_scores, bw)
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[
-                      0] + 1) + list(np.nonzero(pstarts > 0.7)[0])
+                      0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
         ends = list(np.nonzero(
-            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7)[0])
+            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
     if scores.mean() > min_thre:
-        props += [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
+        props += [(0, len(scores), 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
     bboxes.extend(props)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
@@ -46,7 +46,8 @@ def gen_prop(x):
     else:
         bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
     if len(bboxes) == 0:
-        bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
+        bboxes = [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
+        # print("only one proposal")
 
     # compute iou with ground-truths
     if gt_k is not None:
@@ -117,7 +118,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             sample_infos.append(
                 [k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
             # _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-        pool = mp.Pool(processes=10)
+        pool = mp.Pool(processes=8)
         handle = [pool.apply_async(gen_prop, args=(
             x,), callback=call_back) for x in sample_infos]
         pool.close()
@@ -158,11 +159,13 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     #                                       rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     # rois_relative_pos[:, :, :, 1] = 1. * (rois_end[:, np.newaxis, :] -
     #                                       rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 0] = (rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = np.log2((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
+    rois_relative_pos[:, :, :, 0] = (
+        rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
+    rois_relative_pos[:, :, :, 1] = np.log2(
+        (rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
     rois_relative_pos = 1. * \
         rois_relative_pos.clip(-16., 16.) * rpn_rois_mask[:, :, np.newaxis,
-                                                        np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
+                                                          np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
 
     start_rois = torch.from_numpy(
         start_rois).cuda().requires_grad_(False).cuda()
