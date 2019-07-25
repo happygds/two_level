@@ -295,7 +295,6 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             end_losses.update(end_loss.item(), feature.size(0))
             roi_losses.update(roi_loss.item(), feature.size(0))
             losses.update(loss.item(), feature.size(0))
-            
             if np.isnan(loss.data.cpu().numpy()).any():
                 import pdb; pdb.set_trace()
         del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask
