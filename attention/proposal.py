@@ -28,7 +28,7 @@ def gen_prop(x):
         ends = list(np.nonzero(
             (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
         starts, ends = list(set(starts)), list(set(ends))
-        props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
+        props = [(x, y, 1, (scores[x:y+1].mean()*pstarts[x]*pends[y])**(1./3))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
     if scores.mean() > min_thre:
         props += [(0, len(scores), 1, scores.mean()*(pstarts[0]*pends[-1]))]
