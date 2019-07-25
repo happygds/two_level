@@ -114,7 +114,6 @@ class BinaryClassifier(torch.nn.Module):
         roi_scores = F.softmax(self.roi_cls(roi_feats), dim=2)
         # roi_scores = ((roi_feat_max * roi_feats).sum(2) / torch.sqrt(
         #     (roi_feat_max ** 2).sum(2) * (roi_feats ** 2).sum(2)).clamp(1e-14)).clamp(0.)
-        import pdb; pdb.set_trace()
 
         if not test_mode:
             return score_output, enc_slf_attn, roi_scores, labels, rois_mask
