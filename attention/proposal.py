@@ -52,7 +52,7 @@ def gen_prop(x):
     # compute iou with ground-truths
     if gt_k is not None:
         if len(gt_k) == 0:
-            gt_k = [(0, 1)]
+            gt_k = [(0, len(scores))]
         rois = [(x[0], x[1]) for x in bboxes]
         gt_k, rois = np.asarray(gt_k), np.asarray(rois)
         rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
@@ -166,7 +166,6 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     rois_relative_pos[:, :, :, 1] = np.log2(
         (rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14)) * rpn_rois_mask[:, np.newaxis, :] * rpn_rois_mask[:, :, np.newaxis]
     rois_relative_pos = 1. * rois_relative_pos.clip(-16., 16.)
-    import pdb; pdb.set_trace()
 
     start_rois = torch.from_numpy(
         start_rois).cuda().requires_grad_(False).cuda()
