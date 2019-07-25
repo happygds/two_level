@@ -152,21 +152,20 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois[:, :, 1:].mean(
         axis=2), rpn_rois[:, :, 2] - rpn_rois[:, :, 1]
-    rois_start, rois_end = rpn_rois[:, :, 1], rpn_rois[:, :, 2]
-    xx1, yy1 = np.maximum(rois_start[:, np.newaxis, :], rois_start[:, :, np.newaxis]), np.minimum(rois_end[:, np.newaxis, :], rois_end[:, :, np.newaxis])
-    rois_iou = (yy1 - xx1).clip(0.) > 0
+    # rois_start, rois_end = rpn_rois[:, :, 1], rpn_rois[:, :, 2]
+    # xx1, yy1 = np.maximum(rois_start[:, np.newaxis, :], rois_start[:, :, np.newaxis]), np.minimum(rois_end[:, np.newaxis, :], rois_end[:, :, np.newaxis])
+    # rois_iou = (yy1 - xx1).clip(0.) > 0
     # rois_relative_pos[:, :, :, 0] = 1. * (rois_start[:, np.newaxis, :] -
     #                                       rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     # rois_relative_pos[:, :, :, 1] = 1. * (rois_end[:, np.newaxis, :] -
     #                                       rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
+    
     rois_dura_tmp = 0.5 * (rois_dura[:, np.newaxis, :] + rois_dura[:, :, np.newaxis])
     rois_relative_pos[:, :, :, 0] = (
-        rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura_tmp.clip(1e-14) * rois_iou
+        rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura_tmp.clip(1e-14) * rpn_rois_mask[:, np.newaxis, :] * rpn_rois_mask[:, :, np.newaxis]
     rois_relative_pos[:, :, :, 1] = np.log2(
-        (rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14)) * rois_iou
-    rois_relative_pos = 5. * \
-        rois_relative_pos.clip(-5., 5.) * rpn_rois_mask[:, :, np.newaxis,
-                                                          np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
+        (rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14)) * rpn_rois_mask[:, np.newaxis, :] * rpn_rois_mask[:, :, np.newaxis]
+    rois_relative_pos = 1. * rois_relative_pos.clip(-16., 16.)
 
     start_rois = torch.from_numpy(
         start_rois).cuda().requires_grad_(False).cuda()
