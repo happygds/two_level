@@ -50,6 +50,7 @@ def gen_prop(x):
         # print("only one proposal")
 
     # compute iou with ground-truths
+    actness = np.asarray([x[3] for x in bboxes])
     if gt_k is not None:
         if len(gt_k) == 0:
             gt_k = [(0, len(scores))]
@@ -58,9 +59,9 @@ def gen_prop(x):
         rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
         rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
     else:
-        rois_iou = np.asarray([x[3] for x in bboxes])
-        import pdb; pdb.set_trace()
-    return k, bboxes, rois_iou
+        rois_iou = None
+
+    return k, bboxes, rois_iou, actness
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0.,
@@ -87,17 +88,18 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     if test_mode:
         assert len(feature_mask) == 1
         # rpn_post_nms_top = 160
-        actness = np.zeros((batch_size, rpn_post_nms_top))
+    actness = np.zeros((batch_size, rpn_post_nms_top))
     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
     # global bboxes_dict, rois_iou_dict
-    bboxes_dict, rois_iou_dict = {}, {}
+    bboxes_dict, rois_iou_dict, actness_dict = {}, {}, {}
 
     def call_back(rst):
         bboxes_dict[rst[0]] = rst[1]
         rois_iou_dict[rst[0]] = rst[2]
+        actness_dict[rst[0]] = rst[3]
         import sys
         # print(rst[0], len(rst[1]))
         sys.stdout.flush()
@@ -106,7 +108,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         assert batch_size == 1
         num_feat = int(feature_mask[0].sum())
         scores_k = score_output[0][:num_feat]
-        _, bboxes_dict[0], rois_iou_dict[0] = gen_prop(
+        _, bboxes_dict[0], rois_iou_dict[0],  actness_dict[0] = gen_prop(
             [0, num_feat, scores_k, None, rpn_post_nms_top, epoch_id])
     else:
         sample_infos = []
@@ -143,8 +145,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         # import pdb; pdb.set_trace()
         if not test_mode:
             labels[k, :len(bboxes), :] = rois_iou_dict[k][:rpn_post_nms_top]
-        else:
-            actness[k, :len(bboxes)] = rois_iou_dict[k][:rpn_post_nms_top]
+        actness[k, :len(bboxes)] = actness_dict[k][:rpn_post_nms_top]
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois[:, :, 1:]).mean(
         axis=2) > 0.).astype('float32')
@@ -178,7 +179,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     if not test_mode:
         labels = torch.from_numpy(labels).cuda().requires_grad_(False).float()
-        return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels
+        return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels, actness
     else:
         actness = torch.from_numpy(
             actness).cuda().requires_grad_(False).float()

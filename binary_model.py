@@ -98,7 +98,7 @@ class BinaryClassifier(torch.nn.Module):
 
         # compute loss for training/validation stage
         if not test_mode:
-            start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels = proposal_layer(
+            start_rois, end_rois, rois, rois_mask, rois_relative_pos, labels, actness = proposal_layer(
                 score_output, feature_mask, gts=gts, test_mode=test_mode, epoch_id=epoch_id)
         else:
             start_rois, end_rois, rois, rois_mask, rois_relative_pos, actness = proposal_layer(
