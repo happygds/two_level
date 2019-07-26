@@ -59,6 +59,7 @@ def gen_prop(x):
         rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
     else:
         rois_iou = np.asarray([x[3] for x in bboxes])
+        import pdb; pdb.set_trace()
     return k, bboxes, rois_iou
 
 
