@@ -115,7 +115,7 @@ class ROI_Relation(nn.Module):
         self.right_fc = nn.Sequential(nn.Linear(
             (self.bpool_size+roipool_size//2+1)*d_model, d_model), nn.Dropout(dropout), nn.SELU())
         self.roi_fc = nn.Sequential(
-            nn.Linear(3*d_model, d_model), nn.Dropout(dropout), nn.SELU())
+            nn.Linear(2*d_model, d_model), nn.Dropout(dropout), nn.SELU())
 
         # self.rank_fc = nn.Linear(d_model, d_model)
         # self.rois_emb = nn.Linear(d_model, d_model)
