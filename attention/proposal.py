@@ -179,6 +179,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     if not test_mode:
         labels = torch.from_numpy(labels).cuda().requires_grad_(False).float()
+        actness = torch.from_numpy(actness).cuda().requires_grad_(False).float()
         return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels, actness
     else:
         actness = torch.from_numpy(
