@@ -143,7 +143,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
             rois, actness, roi_scores = net(
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             rois, actness, roi_scores = rois[0].cpu().numpy(
-            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()
+            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
             outputs = [rois, actness, roi_scores, num_feat]
 
         result_queue.put(
@@ -165,7 +165,7 @@ def process(loader, state_dict, net):
             rois, actness, roi_scores = net(
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             rois, actness, roi_scores = rois[0].cpu().numpy(
-            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()
+            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
             # import pdb; pdb.set_trace()
             outputs = [rois, actness, roi_scores, num_feat]
             result[video_id] = outputs
