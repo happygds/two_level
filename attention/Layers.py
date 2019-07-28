@@ -158,11 +158,11 @@ class ROI_Relation(nn.Module):
         # rois_emb = 20. * torch.log((rois_emb / (len_feat * 0.5)).clamp(1e-3))
         # import pdb; pdb.set_trace()
         # enc_output = roi_feats + F.selu(self.rois_emb(roi_embedding(rois[:, :, 1:], roi_feat_size[2])))
-        enc_output = inner_feats
+        enc_output = roi_feats
 
         enc_output, _ = self.slf_attn(
             enc_output, enc_output, enc_output,
             attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
-        enc_output = self.pos_ffn(enc_output + roi_feats)
+        enc_output = self.pos_ffn(enc_output)
 
         return enc_output
