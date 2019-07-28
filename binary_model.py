@@ -111,7 +111,7 @@ class BinaryClassifier(torch.nn.Module):
         # roi_feats = self.norm(roi_feats.transpose(1, 2).contiguous()).transpose(1, 2).contiguous()
         # roi_feat_max = self.roi_feat_max(roi_feats).max(1)[0].unsqueeze(1)
         # roi_feat_max = self.w_roi
-        roi_scores = F.sigmoid(self.roi_cls(roi_feats))
+        roi_scores = F.sigmoid(self.roi_cls(roi_feats))[:, :, 0]
         # roi_scores = ((roi_feat_max * roi_feats).sum(2) / torch.sqrt(
         #     (roi_feat_max ** 2).sum(2) * (roi_feats ** 2).sum(2)).clamp(1e-14)).clamp(0.)
         # import pdb; pdb.set_trace()
