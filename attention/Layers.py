@@ -141,7 +141,7 @@ class ROI_Relation(nn.Module):
             self.roipool_size+self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
         right_feats = self.left_fc(roi_feats[:, :, :, (self.roipool_size//2+self.bpool_size):(
             self.roipool_size+2*self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
-        roi_feats = self.roi_fc(torch.cat([left_feats, inner_feats, right_feats], dim=2))
+        roi_feats = self.roi_fc(torch.cat([right_feats - left_feats, inner_feats], dim=2))
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
