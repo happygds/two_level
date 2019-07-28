@@ -105,7 +105,7 @@ def IOU(s1,e1,s2,e2):
     Aand=min(e1,e2)-max(s1,s2)
     return float(Aand)/Aor
 
-def Soft_NMS(bboxes, length=128., score_ind=3, max_num=100):
+def Soft_NMS(bboxes, length=100., score_ind=3, max_num=100):
     tstart = np.array([x[0] for x in bboxes])
     tend = np.array([x[1] for x in bboxes])
     tscore = np.array([x[score_ind] for x in bboxes])
@@ -123,7 +123,7 @@ def Soft_NMS(bboxes, length=128., score_ind=3, max_num=100):
                 tmp_iou=IOU(tstart[max_index],tend[max_index],tstart[idx],tend[idx])
                 tmp_width=(tend[max_index]-tstart[max_index]) / length
                 if tmp_iou>0.65+0.25*tmp_width:#*1/(1+np.exp(-max_index)):        
-                    tscore[idx]=tscore[idx]*np.exp(-np.square(tmp_iou)/0.5)
+                    tscore[idx]=tscore[idx]*np.exp(-np.square(tmp_iou)/0.75)
             
         rstart.append(tstart[max_index])
         rend.append(tend[max_index])
