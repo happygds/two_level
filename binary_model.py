@@ -47,7 +47,7 @@ class BinaryClassifier(torch.nn.Module):
 
         self.roi_relations = ROI_Relation(args.d_model, args.roi_poolsize, args.d_inner_hid,
                                           args.n_head, args.d_k, args.d_v, dropout=self.dropout)
-        self.norm = nn.BatchNorm1d(args.d_model)
+        self.norm = nn.InstanceNorm1d(args.d_model)
         # self.roi_feat_max = nn.Sequential(
         #     nn.Linear(args.d_model, args.d_model), nn.SELU(), nn.Dropout(self.dropout))
         # self.w_roi = nn.Parameter(torch.FloatTensor(1, 1, args.d_model))
