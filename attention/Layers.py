@@ -165,6 +165,6 @@ class ROI_Relation(nn.Module):
             enc_output, enc_output, enc_output,
             attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
         enc_output = self.pos_ffn(enc_output)
-        roi_feats = self.roi_fc(torch.cat([left_feats, enc_output, right_feats], dim=2))
+        enc_output = self.roi_fc(torch.cat([left_feats, enc_output, right_feats], dim=2))
 
         return enc_output
