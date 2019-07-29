@@ -115,7 +115,7 @@ class ROI_Relation(nn.Module):
         self.right_fc = nn.Sequential(nn.Linear(
             (self.bpool_size+roipool_size//2+1)*d_model, d_model), nn.Dropout(dropout), nn.SELU())
         self.roi_fc = nn.Sequential(
-            nn.Linear(2*d_model, d_model), nn.Dropout(dropout), nn.SELU())
+            nn.Linear(3*d_model, d_model), nn.Dropout(dropout), nn.SELU())
 
         # self.rank_fc = nn.Linear(d_model, d_model)
         # self.rois_emb = nn.Linear(d_model, d_model)
@@ -141,7 +141,8 @@ class ROI_Relation(nn.Module):
             self.roipool_size+self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
         right_feats = self.left_fc(roi_feats[:, :, :, (self.roipool_size//2+self.bpool_size):(
             self.roipool_size+2*self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
-        roi_feats = self.roi_fc(torch.cat([right_feats - left_feats, inner_feats], dim=2))
+        # roi_feats = self.roi_fc(torch.cat([left_feats, inner_feats, right_feats], dim=2))
+        roi_feats = inner_feats
 
         # compute mask
         mb_size, len_k = roi_feats.size()[:2]
@@ -164,5 +165,6 @@ class ROI_Relation(nn.Module):
             enc_output, enc_output, enc_output,
             attn_mask=rois_attn_mask, attn_pos_emb=rois_pos_emb)
         enc_output = self.pos_ffn(enc_output)
+        enc_output = self.roi_fc(torch.cat([left_feats, enc_output, right_feats], dim=2))
 
         return enc_output
