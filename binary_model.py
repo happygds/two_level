@@ -117,6 +117,6 @@ class BinaryClassifier(torch.nn.Module):
         # import pdb; pdb.set_trace()
 
         if not test_mode:
-            return score_output, enc_slf_attn, roi_scores, labels, rois_mask, actness, rois[:, :, 1:]
+            return score_output, enc_slf_attn, roi_scores, labels, rois_mask
 
         return rois[:, :, 1:], actness, roi_scores
