@@ -110,14 +110,21 @@ def main():
         num_workers=args.workers, pin_memory=pin_memory,
         drop_last=True)
 
+    # val_loader = torch.utils.data.DataLoader(
+    #     BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, val_videos,
+    #                   exclude_empty=True, body_seg=args.num_body_segments,
+    #                   input_dim=args.d_model, prop_per_video=args.prop_per_video,
+    #                   fg_ratio=6, bg_ratio=6, num_local=args.num_local,
+    #                   use_flow=args.use_flow, only_flow=args.only_flow),
+    #     batch_size=args.batch_size//2, shuffle=False,
+    #     num_workers=args.workers*2, pin_memory=pin_memory)
     val_loader = torch.utils.data.DataLoader(
-        BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, val_videos,
+        BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, subset_videos=val_videos,
                       exclude_empty=True, body_seg=args.num_body_segments,
-                      input_dim=args.d_model, prop_per_video=args.prop_per_video,
-                      fg_ratio=6, bg_ratio=6, num_local=args.num_local,
-                      use_flow=args.use_flow, only_flow=args.only_flow),
-        batch_size=args.batch_size//2, shuffle=False,
-        num_workers=args.workers*2, pin_memory=pin_memory)
+                      input_dim=args.d_model, test_mode=True, use_flow=args.use_flow,
+                      verbose=False, num_local=args.num_local, only_flow=args.only_flow),
+        batch_size=1, shuffle=False,
+        num_workers=8, pin_memory=True)
 
     video_list = pickle.load(open('./video_list', 'rb'))
     ground_truth, cls_to_idx = grd_activity('data/activity_net.v1-3.min_save.json', subset='validation')
