@@ -295,7 +295,6 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
 
         batch_time.update(time.time() - end_time)
         end_time = time.time()
-
         if i % (500) == 0:
             print('Test: [{0}/{1}]\t'
                   'Time {batch_time.val:.4f} ({batch_time.avg:.4f})\t'
