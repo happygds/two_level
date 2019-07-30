@@ -153,16 +153,8 @@ def main():
 
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
-            loss, score_loss, start_loss, end_loss, roi_loss = validate(
+            loss = validate(
                 val_loader, model, criterion_stage1, criterion_stage2, (epoch + 1) * len(train_loader), epoch)
-            # # 1. Log scalar values (scalar summary)
-            # info = {'val_loss': loss,
-            #         'val_score_loss': score_loss,
-            #         'val_start_loss': start_loss,
-            #         'val_end_loss': end_loss,
-            #         'val_roi_loss': roi_loss}
-            # for tag, value in info.items():
-            #     logger.scalar_summary(tag, value, epoch+1)
 
         # remember best prec@1 and save checkpoint
             is_best = 1.0001 * loss < best_loss
@@ -271,10 +263,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
 
 def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch):
     batch_time = AverageMeter()
-    losses = AverageMeter()
-
     model.eval()
-
     end_time = time.time()
 
     video_lst, t_start_lst, t_end_lst, score_lst = [], [], [], []
@@ -303,17 +292,10 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
         batch_time.update(time.time() - end_time)
         end_time = time.time()
 
-        if i % (args.print_freq * 2) == 0:
+        if i % (500) == 0:
             print('Test: [{0}/{1}]\t'
                   'Time {batch_time.val:.4f} ({batch_time.avg:.4f})\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Score_Loss {score_loss.val:.4f} ({score_loss.avg:.4f})\t'
-                  'Start_Loss {start_loss.val:.4f} ({start_loss.avg:.4f})\t'
-                  'End_Loss {end_loss.val:.4f} ({end_loss.avg:.4f})\t'
-                  'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
-                  .format(i, len(val_loader), batch_time=batch_time,
-                          loss=losses, score_loss=score_losses, start_loss=start_losses,
-                          end_loss=end_losses, roi_loss=roi_losses))
+                  .format(i, len(val_loader), batch_time=batch_time))
 
     prediction = pd.DataFrame({'video-id': video_lst,
                                 't-start': t_start_lst,
@@ -325,10 +307,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
     print('AR@1 is {:.6f}, AR@10 is {:.6f}, AR@20 is {:.6f}'.format(ar_at_prop[0], ar_at_prop[9], ar_at_prop[19]))
     print('AR@50 is {:.6f}, AR@100 is {:.6f}, AUC is {:.6f}'.format(ar_at_prop[49], ar_at_prop[99], auc))
 
-    print('Testing Results: Loss {loss.avg:.5f} \t'
-          .format(loss=auc))
-
-    return losses.avg, score_losses.avg, start_losses.avg, end_losses.avg, roi_losses.avg
+    return -1. * auc
 
 
 def save_checkpoint(state, is_best, save_path, filename='/checkpoint.pth.tar'):
