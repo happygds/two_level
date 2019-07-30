@@ -60,7 +60,7 @@ class BinaryVideoRecord:
                 rgb_feat = np.concatenate(
                     (rgb_feat[:min_len], flow_feat[:min_len]), axis=1)
         shp = rgb_feat.shape
-        if shp[0] > 2 * sample_duration:
+        if shp[0] >= 2 * sample_duration:
             if shp[0] % 2 != 0:
                 rgb_feat = rgb_feat[:-1]
             rgb_feat = rgb_feat.reshape((-1, int(feat_stride // 8), shp[1])).mean(axis=1)
