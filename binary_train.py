@@ -281,7 +281,8 @@ def validate(val_loader, model, ground_truth, iter, epoch):
         feature_mask = feature_mask[0].cuda()
         pos_ind = pos_ind[0].cuda()
         video_id = video_id[0]
-        video_duration = video_duration[0]
+        video_duration = video_duration[0].cpu().numpy()
+        import pdb; pdb.set_trace()
         with torch.no_grad():
             rois, actness, roi_scores = model(
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
