@@ -7,6 +7,7 @@ import torch
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim
+import pandas as pd
 from torch.nn.utils import clip_grad_norm_
 
 from ssn_opts import parser
@@ -18,6 +19,7 @@ from ops.anet_db import ANetDB
 from torch.utils import model_zoo
 from attention.utils import Rank_Criterion, CE_Criterion_multi
 from ops.AdamW import AdamW
+from ops.eval_utils import area_under_curve, grd_activity
 best_loss = 100
 
 
