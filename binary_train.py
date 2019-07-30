@@ -289,8 +289,8 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
 
             # save results
             video_lst.extend([video_id] * len(rois))
-            t_start_lst.extend([roi[0] / float(num_feat) * video_duration for x in rois])
-            t_end_lst.extend([roi[1] / float(num_feat) * video_duration for x in v])
+            t_start_lst.extend([x[0] / float(num_feat) * video_duration for x in rois])
+            t_end_lst.extend([x[1] / float(num_feat) * video_duration for x in v])
             score_lst.extend([roi_score*act_score for (act_score, roi_score) in zip(actness, roi_scores)])
 
         batch_time.update(time.time() - end_time)
