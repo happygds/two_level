@@ -281,7 +281,7 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
         pos_ind = pos_ind[0].cuda()
         video_id = video_id[0]
         with torch.no_grad():
-            rois, actness, roi_scores = net(
+            rois, actness, roi_scores = model(
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             rois, actness, roi_scores = rois[0].cpu().numpy(
             ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
