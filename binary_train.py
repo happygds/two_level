@@ -286,13 +286,9 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             rois, actness, roi_scores = rois[0].cpu().numpy(
             ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
             # import pdb; pdb.set_trace()
-            outputs = [rois, actness, roi_scores, num_feat]
-            result[video_id] = outputs
 
             # save results
             video_lst.extend([video_id] * len(rois))
-            bboxes = [(roi[0] / float(num_feat) * video_duration, roi[1] / float(num_feat) * video_duration, 1,
-                       roi_score*act_score, roi_score) for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
             t_start_lst.extend([roi[0] / float(num_feat) * video_duration for x in rois])
             t_end_lst.extend([roi[1] / float(num_feat) * video_duration for x in v])
             score_lst.extend([roi_score*act_score for (act_score, roi_score) in zip(actness, roi_scores)])
