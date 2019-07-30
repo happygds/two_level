@@ -8,6 +8,7 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim
 import pandas as pd
+import numpy as np
 from torch.nn.utils import clip_grad_norm_
 
 from ssn_opts import parser
@@ -162,7 +163,7 @@ def main():
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
             loss = validate(
-                val_loader, model, criterion_stage1, criterion_stage2, (epoch + 1) * len(train_loader), epoch)
+                val_loader, model, ground_truth, (epoch + 1) * len(train_loader), epoch)
 
         # remember best prec@1 and save checkpoint
             is_best = 1.0001 * loss < best_loss
@@ -269,7 +270,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
                   )
 
 
-def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch):
+def validate(val_loader, model, ground_truth, iter, epoch):
     batch_time = AverageMeter()
     model.eval()
     end_time = time.time()
