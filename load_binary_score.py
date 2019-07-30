@@ -43,8 +43,6 @@ class BinaryVideoRecord:
         # frame_cnt = len(files)
         # frame_cnt = frame_counts[self.id]
         vid_name = 'v_{}'.format(self.id)
-        print(self._data.duration)
-        import pdb; pdb.set_trace()
         self.duration = self._data.duration
 
         with h5py.File(rgb_h5_path, 'r') as f:
