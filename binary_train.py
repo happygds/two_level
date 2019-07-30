@@ -126,7 +126,6 @@ def main():
         batch_size=1, shuffle=False,
         num_workers=8, pin_memory=True)
 
-    video_list = pickle.load(open('./video_list', 'rb'))
     ground_truth, cls_to_idx = grd_activity('data/activity_net.v1-3.min_save.json', subset='validation')
     del cls_to_idx['background']
 
