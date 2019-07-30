@@ -104,7 +104,7 @@ def main():
         BinaryDataSet(args.feat_root, args.feat_model, train_prop_file, train_videos,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
-                      fg_ratio=6, bg_ratio=6, num_local=args.num_local, 
+                      fg_ratio=6, bg_ratio=6, num_local=args.num_local,
                       use_flow=args.use_flow, only_flow=args.only_flow),
         batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=pin_memory,
@@ -114,18 +114,22 @@ def main():
         BinaryDataSet(args.feat_root, args.feat_model, val_prop_file, val_videos,
                       exclude_empty=True, body_seg=args.num_body_segments,
                       input_dim=args.d_model, prop_per_video=args.prop_per_video,
-                      fg_ratio=6, bg_ratio=6, num_local=args.num_local, 
+                      fg_ratio=6, bg_ratio=6, num_local=args.num_local,
                       use_flow=args.use_flow, only_flow=args.only_flow),
         batch_size=args.batch_size//2, shuffle=False,
         num_workers=args.workers*2, pin_memory=pin_memory)
+
+    video_list = pickle.load(open('./video_list', 'rb'))
+    ground_truth, cls_to_idx = grd_activity('data/activity_net.v1-3.min_save.json', subset='validation')
+    del cls_to_idx['background']
 
     # optimizer = torch.optim.Adam(
     #         model.parameters(),
     #         args.lr, weight_decay=args.weight_decay)
 
     optimizer = AdamW(
-            model.parameters(),
-            args.lr, weight_decay=args.weight_decay)
+        model.parameters(),
+        args.lr, weight_decay=args.weight_decay)
 
     # optimizer = torch.optim.SGD(model.parameters(),
     #                             args.lr,
@@ -133,7 +137,8 @@ def main():
     #                             weight_decay=args.weight_decay, nesterov=False)
 
     if args.resume is not None and len(args.resume) > 0:
-        model.load_state_dict(torch.load(args.resume)['state_dict'], strict=False)
+        model.load_state_dict(torch.load(args.resume)[
+                              'state_dict'], strict=False)
     criterion_stage1 = CE_Criterion_multi(use_weight=True)
     criterion_stage2 = Rank_Criterion(epsilon=0.02)
 
@@ -143,7 +148,8 @@ def main():
         # train for one epoch
         if patience > 5:
             break
-        train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, epoch, logger)
+        train(train_loader, model, optimizer, criterion_stage1,
+              criterion_stage2, epoch, logger)
 
         # evaluate on validation list
         if (epoch + 1) % args.eval_freq == 0 or epoch == args.epochs - 1:
@@ -265,39 +271,34 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
 
 def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch):
     batch_time = AverageMeter()
-    attn_losses = AverageMeter()
     losses = AverageMeter()
-    score_losses = AverageMeter()
-    start_losses = AverageMeter()
-    end_losses = AverageMeter()
-    roi_losses = AverageMeter()
 
     model.eval()
 
     end_time = time.time()
 
-    for i, (feature, feature_mask, target, start, end, pos_ind, gts) in enumerate(val_loader):
+    video_lst, t_start_lst, t_end_lst, score_lst = [], [], [], []
+    for i, (feature, feature_mask, num_feat, pos_ind, video_id, video_duration) in enumerate(val_loader):
+        feature = feature[0].cuda()
+        feature_mask = feature_mask[0].cuda()
+        pos_ind = pos_ind[0].cuda()
+        video_id = video_id[0]
         with torch.no_grad():
-            # feature_mask = feature.abs().mean(2).ne(0).float()
-            feature = feature.cuda().requires_grad_(False)
-            feature_mask = feature_mask.cuda().requires_grad_(False)
-            pos_ind = pos_ind.cuda().requires_grad_(False)
+            rois, actness, roi_scores = net(
+                feature, pos_ind, feature_mask=feature_mask, test_mode=True)
+            rois, actness, roi_scores = rois[0].cpu().numpy(
+            ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
+            # import pdb; pdb.set_trace()
+            outputs = [rois, actness, roi_scores, num_feat]
+            result[video_id] = outputs
 
-            # compute output
-            score_output, enc_slf_attn, roi_scores, labels, rois_mask = model(
-                feature, pos_ind, target, gts=gts, feature_mask=feature_mask, epoch_id=epoch)
-            score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
-                score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
-            roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-            loss = score_loss + 5. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
-            score_losses.update(score_loss.item(), feature.size(0))
-            start_losses.update(start_loss.item(), feature.size(0))
-            end_losses.update(end_loss.item(), feature.size(0))
-            roi_losses.update(roi_loss.item(), feature.size(0))
-            losses.update(loss.item(), feature.size(0))
-            if np.isnan(loss.data.cpu().numpy()).any():
-                import pdb; pdb.set_trace()
-        del loss, score_loss, roi_loss, score_output, enc_slf_attn, roi_scores, labels, rois_mask
+            # save results
+            video_lst.extend([video_id] * len(rois))
+            bboxes = [(roi[0] / float(num_feat) * video_duration, roi[1] / float(num_feat) * video_duration, 1,
+                       roi_score*act_score, roi_score) for (roi, act_score, roi_score) in zip(rois, actness, roi_scores)]
+            t_start_lst.extend([roi[0] / float(num_feat) * video_duration for x in rois])
+            t_end_lst.extend([roi[1] / float(num_feat) * video_duration for x in v])
+            score_lst.extend([roi_score*act_score for (act_score, roi_score) in zip(actness, roi_scores)])
 
         batch_time.update(time.time() - end_time)
         end_time = time.time()
@@ -310,20 +311,28 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
                   'Start_Loss {start_loss.val:.4f} ({start_loss.avg:.4f})\t'
                   'End_Loss {end_loss.val:.4f} ({end_loss.avg:.4f})\t'
                   'ROI_Loss {roi_loss.val:.4f} ({roi_loss.avg:.4f})\t'
-                  .format(i, len(val_loader), batch_time=batch_time, 
-                  loss=losses, score_loss=score_losses, start_loss=start_losses, 
-                  end_loss=end_losses, roi_loss=roi_losses))
+                  .format(i, len(val_loader), batch_time=batch_time,
+                          loss=losses, score_loss=score_losses, start_loss=start_losses,
+                          end_loss=end_losses, roi_loss=roi_losses))
+
+    prediction = pd.DataFrame({'video-id': video_lst,
+                                't-start': t_start_lst,
+                                't-end': t_end_lst,
+                                'score': score_lst})
+    auc, ar_at_prop, nr_proposals_lst = area_under_curve(prediction, ground_truth, max_avg_nr_proposals=100,
+                                                        tiou_thresholds=np.linspace(0.5, 0.95, 10))
+    nr_proposals_lst = np.around(nr_proposals_lst)
+    print('AR@1 is {:.6f}, AR@10 is {:.6f}, AR@20 is {:.6f}'.format(ar_at_prop[0], ar_at_prop[9], ar_at_prop[19]))
+    print('AR@50 is {:.6f}, AR@100 is {:.6f}, AUC is {:.6f}'.format(ar_at_prop[49], ar_at_prop[99], auc))
 
     print('Testing Results: Loss {loss.avg:.5f} \t'
-          .format(loss=losses))
-    if math.isnan(losses.avg):
-        import pdb; pdb.set_trace()
+          .format(loss=auc))
 
     return losses.avg, score_losses.avg, start_losses.avg, end_losses.avg, roi_losses.avg
 
 
 def save_checkpoint(state, is_best, save_path, filename='/checkpoint.pth.tar'):
-        
+
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     filename = save_path + filename

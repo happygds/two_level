@@ -134,7 +134,7 @@ def runner_func(dataset, state_dict, gpu_id, index_queue, result_queue):
     net.cuda()
     while True:
         index = index_queue.get()
-        feature, feature_mask, num_feat, pos_ind, video_id = dataset[index]
+        feature, feature_mask, num_feat, pos_ind, video_id, _ = dataset[index]
         feature = feature.cuda()
         feature_mask = feature_mask.cuda()
         pos_ind = pos_ind.cuda()
@@ -156,7 +156,7 @@ def process(loader, state_dict, net):
     net.eval()
     net.cuda()
     result = {}
-    for i, (feature, feature_mask, num_feat, pos_ind, video_id) in enumerate(loader):
+    for i, (feature, feature_mask, num_feat, pos_ind, video_id, _) in enumerate(loader):
         feature = feature[0].cuda()
         feature_mask = feature_mask[0].cuda()
         pos_ind = pos_ind[0].cuda()

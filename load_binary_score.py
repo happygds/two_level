@@ -43,6 +43,9 @@ class BinaryVideoRecord:
         # frame_cnt = len(files)
         # frame_cnt = frame_counts[self.id]
         vid_name = 'v_{}'.format(self.id)
+        print(self._data.duration)
+        import pdb; pdb.set_trace()
+        self.duration = self._data.duration
 
         with h5py.File(rgb_h5_path, 'r') as f:
             rgb_feat = f[vid_name][rgb_feat_key][:]
@@ -280,7 +283,7 @@ class BinaryDataSet(data.Dataset):
         out_feat = torch.from_numpy(np.expand_dims(feat, axis=0))
         out_mask = torch.from_numpy(np.expand_dims(feat_mask, axis=0))
 
-        return out_feat, out_mask, num_feat, pos_ind, video_id
+        return out_feat, out_mask, num_feat, pos_ind, video_id, video.duration
 
     def __len__(self):
         return len(self.video_list) * self.epoch_multiplier
