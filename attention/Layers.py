@@ -109,11 +109,11 @@ class ROI_Relation(nn.Module):
         # self.roi_fc = nn.Sequential(nn.Linear(d_model*in_ch, d_model), nn.Dropout(dropout), nn.SELU())
 
         self.left_fc = nn.Sequential(nn.Linear(
-            (self.bpool_size+roipool_size//2+1)*d_model, d_model), nn.Dropout(dropout), nn.SELU())
+            self.bpool_size*d_model, d_model), nn.Dropout(dropout), nn.SELU())
         self.inner_fc = nn.Sequential(
             nn.Linear(roipool_size*d_model, d_model), nn.Dropout(dropout), nn.SELU())
         self.right_fc = nn.Sequential(nn.Linear(
-            (self.bpool_size+roipool_size//2+1)*d_model, d_model), nn.Dropout(dropout), nn.SELU())
+            self.bpool_size*d_model, d_model), nn.Dropout(dropout), nn.SELU())
         self.roi_fc = nn.Sequential(
             nn.Linear(3*d_model, d_model), nn.Dropout(dropout), nn.SELU())
 
@@ -135,11 +135,11 @@ class ROI_Relation(nn.Module):
         # roi_feats = self.roi_fc(roi_feats).view(roi_feat_size[:3])
 
         # use SSN-like fc-layers
-        left_feats = self.left_fc(roi_feats[:, :, :, 0:(
-            self.roipool_size//2+self.bpool_size+1)].contiguous().view(roi_feat_size[:2]+(-1,)))
+        left_feats = self.left_fc(roi_feats[:, :, :, 0:
+            self.bpool_size].contiguous().view(roi_feat_size[:2]+(-1,)))
         inner_feats = self.inner_fc(roi_feats[:, :, :, self.bpool_size:(
             self.roipool_size+self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
-        right_feats = self.left_fc(roi_feats[:, :, :, (self.roipool_size//2+self.bpool_size):(
+        right_feats = self.left_fc(roi_feats[:, :, :, (self.roipool_size+self.bpool_size):(
             self.roipool_size+2*self.bpool_size)].contiguous().view(roi_feat_size[:2]+(-1,)))
         roi_feats = self.roi_fc(torch.cat([left_feats, inner_feats, right_feats], dim=2))
         # roi_feats = inner_feats
