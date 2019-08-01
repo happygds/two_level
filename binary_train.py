@@ -132,13 +132,13 @@ def main():
     ground_truth, cls_to_idx = grd_activity('data/activity_net.v1-3.min_save.json', subset='validation')
     del cls_to_idx['background']
 
-    optimizer = torch.optim.Adam(
-            model.parameters(),
-            args.lr, weight_decay=args.weight_decay)
+    # optimizer = torch.optim.Adam(
+    #         model.parameters(),
+    #         args.lr, weight_decay=args.weight_decay)
 
-    # optimizer = AdamW(
-    #     model.parameters(),
-    #     args.lr, weight_decay=args.weight_decay)
+    optimizer = AdamW(
+        model.parameters(),
+        args.lr, weight_decay=args.weight_decay)
 
     # optimizer = torch.optim.SGD(model.parameters(),
     #                             args.lr,

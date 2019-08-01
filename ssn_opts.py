@@ -23,11 +23,11 @@ parser.add_argument('--att_kernel_type', default='self_attn',
                     type=str, help='the kernel type for attention computing, as in non-local networks (self_attn, concat, addition, dot, highorder)')
 parser.add_argument('--n_layers', default=1,
                     type=int, help='the number of encoder layers in the self_attention encoder')
-parser.add_argument('--reduce_dim', default=256,
+parser.add_argument('--reduce_dim', default=512,
                     type=int, help='if -1, not rediced; if > 0, reduce the input feature dimension first')
 parser.add_argument('--n_head', default=8,
                     type=int, help='the number of attention head used in one encoder layer')
-parser.add_argument('--d_inner_hid', default=1024, type=int,
+parser.add_argument('--d_inner_hid', default=2048, type=int,
                     help='the layer dimension for positionwise fc layers')
 parser.add_argument('--prop_per_video', type=int, default=12)
 parser.add_argument('--num_local', type=int, default=0)
@@ -58,8 +58,8 @@ parser.add_argument('--lr_steps', default=[3, 6], type=float, nargs="+",
                     metavar='LRSteps', help='epochs to decay learning rate by 10')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-3, type=float,
-                    metavar='W', help='weight decay (default: 1e-3)')
+parser.add_argument('--weight-decay', '--wd', default=1e-2, type=float,
+                    metavar='W', help='weight decay (default: 1e-2)')
 parser.add_argument('--clip-gradient', '--gd', default=None, type=float,
                     metavar='W', help='gradient norm clipping (default: disabled)')
 parser.add_argument('--comp_loss_weight', '--lw', default=0.1, type=float,
