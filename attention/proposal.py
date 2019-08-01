@@ -29,7 +29,7 @@ def gen_prop(x):
             (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
-                 for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
+                 for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre and pstarts[x] > pends[x] and pends[y] > pstarts[y]]
     if scores.mean() > min_thre:
         props += [(0, len(scores), 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
@@ -183,7 +183,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     if not test_mode:
         labels = torch.from_numpy(labels).cuda().requires_grad_(False).float()
-        actness = torch.from_numpy(actness).cuda().requires_grad_(False).float()
+        actness = torch.from_numpy(
+            actness).cuda().requires_grad_(False).float()
         return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels, actness
     else:
         actness = torch.from_numpy(
