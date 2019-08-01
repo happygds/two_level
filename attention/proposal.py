@@ -22,7 +22,7 @@ def gen_prop(x):
     if len(scores) > 1 and pstarts.max() > pstarts.mean() and pends.max() > pends.mean():
         diff_pstarts, diff_pends = pstarts[1:, ] - \
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
-        gd_scores = gaussian_filter(diff_scores, 3)
+        # gd_scores = gaussian_filter(diff_scores, 3)
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[
                       0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
         ends = list(np.nonzero(
