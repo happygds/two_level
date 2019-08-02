@@ -20,6 +20,7 @@ from ops.thumos_db import THUMOSDB
 from torch.utils import model_zoo
 from attention.utils import Rank_Criterion, CE_Criterion_multi
 from ops.eval_utils import area_under_curve, grd_thumos
+from ops.AdamW import AdamW
 # from tensorboard import Logger
 best_loss = 100
 
@@ -124,9 +125,9 @@ def main():
         batch_size=1, shuffle=False,
         num_workers=args.workers * 2, pin_memory=pin_memory)
 
-    optimizer = torch.optim.Adam(
-            model.parameters(),
-            args.lr, weight_decay=args.weight_decay)
+    # optimizer = torch.optim.Adam(
+    #         model.parameters(),
+    #         args.lr, weight_decay=args.weight_decay)
     optimizer = AdamW(
             model.parameters(),
             args.lr, weight_decay=args.weight_decay)
