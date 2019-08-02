@@ -41,8 +41,8 @@ parser.add_argument('--roi_poolsize', type=str, default="1_3")
 parser.add_argument('--num_aug_segments', type=int, default=2)
 parser.add_argument('--num_body_segments', type=int, default=5)
 
-parser.add_argument('--dropout', '--do', default=0.5, type=float,
-                    metavar='DO', help='dropout ratio (default: 0.5)')
+parser.add_argument('--dropout', '--do', default=0.1, type=float,
+                    metavar='DO', help='dropout ratio (default: 0.1)')
 
 # ========================= Learning Configs ==========================
 parser.add_argument('--epochs', default=15, type=int, metavar='N',
@@ -59,8 +59,8 @@ parser.add_argument('--lr_steps', default=[3, 6], type=float, nargs="+",
                     metavar='LRSteps', help='epochs to decay learning rate by 10')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-3, type=float,
-                    metavar='W', help='weight decay (default: 1e-3)')
+parser.add_argument('--weight-decay', '--wd', default=1e-2, type=float,
+                    metavar='W', help='weight decay (default: 1e-2)')
 parser.add_argument('--clip-gradient', '--gd', default=None, type=float,
                     metavar='W', help='gradient norm clipping (default: disabled)')
 parser.add_argument('--comp_loss_weight', '--lw', default=0.1, type=float,
