@@ -11,7 +11,7 @@ from ops.eval_utils import wrapper_segment_iou
 def gen_prop(x):
     k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id = x
     # the k-th sample
-    bboxes = []
+    bboxes, props = [], []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
     min_thre = 0.1
@@ -22,18 +22,16 @@ def gen_prop(x):
     if len(scores) > 1 and pstarts.max() > pstarts.mean() and pends.max() > pends.mean():
         diff_pstarts, diff_pends = pstarts[1:, ] - \
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
-        # gd_scores = gaussian_filter(diff_scores, bw)
+        # gd_scores = gaussian_filter(diff_scores, 3)
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[
-                      0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
+                      0] + 1) + list(np.nonzero(pstarts > 0.7)[0])
         ends = list(np.nonzero(
-            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
+            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7)[0])
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
-        # props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[max(int(round(1.1*x-0.1*y)), 0):int(round(0.9*x+0.1*y))+1].mean()*pends[int(round(0.9*y+0.1*x)):min(int(round(1.1*y-0.1*x))+1, num_feat)].mean()))
-        #          for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
-    else:
-        props = [(0, len(scores)-1, 1, scores.mean()*(pstarts[0]*pends[-1]))]
+    if scores.mean() > min_thre:
+        props += [(0, len(scores), 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
     bboxes.extend(props)
     # bboxes = list(filter(lambda b: b[1] - b[0] > 0, bboxes))
@@ -45,19 +43,22 @@ def gen_prop(x):
     num_keep = rpn_post_nms_top
     bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
     if len(bboxes) == 0:
-        bboxes = [(0, len(scores)-1, 1, scores.mean()*pstarts[0]*pends[-1])]
+        bboxes = [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
+        # print("only one proposal")
 
     # compute iou with ground-truths
+    actness = np.asarray([x[3] for x in bboxes])
     if gt_k is not None:
         if len(gt_k) == 0:
-            gt_k = [(0, 1)]
+            gt_k = [(0, len(scores))]
         rois = [(x[0], x[1]) for x in bboxes]
         gt_k, rois = np.asarray(gt_k), np.asarray(rois)
         rois_iou = wrapper_segment_iou(gt_k, rois).max(axis=1).reshape((-1, 1))
         rois_iou = np.concatenate([1. - rois_iou, rois_iou], axis=1)
     else:
-        rois_iou = np.asarray([x[3] for x in bboxes])
-    return k, bboxes, rois_iou
+        rois_iou = None
+
+    return k, bboxes, rois_iou, actness
 
 
 def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_prob=0.,
@@ -84,17 +85,18 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     if test_mode:
         assert len(feature_mask) == 1
         # rpn_post_nms_top = 160
-        actness = np.zeros((batch_size, rpn_post_nms_top))
+    actness = np.zeros((batch_size, rpn_post_nms_top))
     rpn_rois = np.zeros((batch_size, rpn_post_nms_top, 3))
     start_rois, end_rois = np.zeros_like(rpn_rois), np.zeros_like(rpn_rois)
     labels = np.zeros((batch_size, rpn_post_nms_top, 2))
 
     # global bboxes_dict, rois_iou_dict
-    bboxes_dict, rois_iou_dict = {}, {}
+    bboxes_dict, rois_iou_dict, actness_dict = {}, {}, {}
 
     def call_back(rst):
         bboxes_dict[rst[0]] = rst[1]
         rois_iou_dict[rst[0]] = rst[2]
+        actness_dict[rst[0]] = rst[3]
         import sys
         # print(rst[0], len(rst[1]))
         sys.stdout.flush()
@@ -103,7 +105,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         assert batch_size == 1
         num_feat = int(feature_mask[0].sum())
         scores_k = score_output[0][:num_feat]
-        _, bboxes_dict[0], rois_iou_dict[0] = gen_prop(
+        _, bboxes_dict[0], rois_iou_dict[0],  actness_dict[0] = gen_prop(
             [0, num_feat, scores_k, None, rpn_post_nms_top, epoch_id])
     else:
         sample_infos = []
@@ -121,6 +123,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             x,), callback=call_back) for x in sample_infos]
         pool.close()
         pool.join()
+        del pool, handle
 
     for k in range(batch_size):
         bboxes = bboxes_dict[k][:rpn_post_nms_top]
@@ -140,8 +143,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         # import pdb; pdb.set_trace()
         if not test_mode:
             labels[k, :len(bboxes), :] = rois_iou_dict[k][:rpn_post_nms_top]
-        else:
-            actness[k, :len(bboxes)] = rois_iou_dict[k][:rpn_post_nms_top]
+        actness[k, :len(bboxes)] = actness_dict[k][:rpn_post_nms_top]
     # compute mask
     rpn_rois_mask = (np.abs(rpn_rois[:, :, 1:]).mean(
         axis=2) > 0.).astype('float32')
@@ -150,21 +152,19 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
     # compute geometric attention
     rois_cent, rois_dura = rpn_rois[:, :, 1:].mean(
         axis=2), rpn_rois[:, :, 2] - rpn_rois[:, :, 1]
-    rois_start, rois_end = rpn_rois[:, :, 1], rpn_rois[:, :, 2]
+    # rois_start, rois_end = rpn_rois[:, :, 1], rpn_rois[:, :, 2]
     # xx1, yy1 = np.maximum(rois_start[:, np.newaxis, :], rois_start[:, :, np.newaxis]), np.minimum(rois_end[:, np.newaxis, :], rois_end[:, :, np.newaxis])
-    # rois_iou = (yy1 - xx1).clip(0.)
+    # rois_iou = (yy1 - xx1).clip(0.) > 0
     # rois_relative_pos[:, :, :, 0] = 1. * (rois_start[:, np.newaxis, :] -
     #                                       rois_start[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
     # rois_relative_pos[:, :, :, 1] = 1. * (rois_end[:, np.newaxis, :] -
     #                                       rois_end[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 0] = 1. * (rois_cent[:, np.newaxis, :] -
-                                          rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14)
-    rois_relative_pos[:, :, :, 1] = 1. * \
-        np.log2((rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14))
-    rois_relative_pos = 1. * \
-        rois_relative_pos.clip(-16., 16.) * rpn_rois_mask[:, :, np.newaxis,
-                                                        np.newaxis] * rpn_rois_mask[:, np.newaxis, :, np.newaxis]
-    # import pdb; pdb.set_trace()
+
+    rois_relative_pos[:, :, :, 0] = (
+        rois_cent[:, np.newaxis, :] - rois_cent[:, :, np.newaxis]) / rois_dura[:, np.newaxis, :].clip(1e-14) * rpn_rois_mask[:, np.newaxis, :] * rpn_rois_mask[:, :, np.newaxis]
+    rois_relative_pos[:, :, :, 1] = np.log2(
+        (rois_dura[:, :, np.newaxis] / rois_dura[:, np.newaxis, :].clip(1e-14)).clip(1e-14)) * rpn_rois_mask[:, np.newaxis, :] * rpn_rois_mask[:, :, np.newaxis]
+    rois_relative_pos = 1. * rois_relative_pos.clip(-16., 16.)
 
     start_rois = torch.from_numpy(
         start_rois).cuda().requires_grad_(False).cuda()
@@ -177,6 +177,8 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
 
     if not test_mode:
         labels = torch.from_numpy(labels).cuda().requires_grad_(False).float()
+        actness = torch.from_numpy(
+            actness).cuda().requires_grad_(False).float()
         return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels
     else:
         actness = torch.from_numpy(
