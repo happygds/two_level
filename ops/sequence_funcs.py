@@ -99,7 +99,7 @@ def temporal_nms_fallback(bboxes, thresh, score_ind=3):
 
 
 def IOU(s1,e1,s2,e2):
-    if (s2>e1) or (s1>e2):
+    if (s2>=e1) or (s1>=e2):
         return 0
     Aor=max(e1,e2)-min(s1,s2)
     Aand=min(e1,e2)-max(s1,s2)
