@@ -288,7 +288,7 @@ def validate(val_loader, model, ground_truth, iter, epoch):
             rois, actness, roi_scores = rois[0].cpu().numpy(
             ), actness[0].cpu().numpy(), roi_scores[0].cpu().numpy()[:, 1]
             # import pdb; pdb.set_trace()
-            rois = list(filter(lambda b: b[0]+b[1] > 0, rois))
+            rois = list(filter(lambda b: b[1]-b[0] > 0, rois))
             actness = list(filter(lambda b: b > 0, actness))
             roi_scores = list(filter(lambda b: b > 0, roi_scores))
 
