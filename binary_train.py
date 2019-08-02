@@ -295,8 +295,10 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             this_rois, this_actness, this_roi_scores = this_rois.cpu().numpy(
             ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()[:, :, 1]
+            this_rois = list(filter(lambda b: b[1] + b[0] > 0, this_rois))
             this_rois += seg_ind.cpu().numpy().reshape((-1, 1, 1))
             this_roi_scores *= this_actness
+            this_roi_scores = list(filter(lambda b: b[0] > 0, this_roi_scores))
             for k, v in enumerate(this_rois):
                 video_info = val_loader.dataset.video_list[index[k]]
                 video_id, fps = video_info.id, video_info.fps
