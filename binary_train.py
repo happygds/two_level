@@ -295,17 +295,17 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
                 feature, pos_ind, feature_mask=feature_mask, test_mode=True)
             this_rois, this_actness, this_roi_scores = this_rois.cpu().numpy(
             ), this_actness.cpu().numpy(), this_roi_scores.cpu().numpy()[:, :, 1]
-            this_rois = list(filter(lambda b: b[1] + b[0] > 0, this_rois))
             this_rois += seg_ind.cpu().numpy().reshape((-1, 1, 1))
             this_roi_scores *= this_actness
-            this_roi_scores = list(filter(lambda b: b > 0, this_roi_scores))
             for k, v in enumerate(this_rois):
                 video_info = val_loader.dataset.video_list[index[k]]
                 video_id, fps = video_info.id, video_info.fps
+                v = list(filter(lambda b: b[1] + b[0] > 0, v))
+                k_roi_scores = list(filter(lambda b: b > 0, this_roi_scores[k]))
                 video_lst.extend([video_id] * len(v))
                 t_start_lst.extend([x[0] * 5 / fps for x in v])
                 t_end_lst.extend([x[1] * 5 / fps for x in v])
-                score_lst.extend([x for x in this_roi_scores[k]])
+                score_lst.extend([x for x in k_roi_scores])
 
     prediction = pd.DataFrame({'video-id': video_lst,
                         't-start': t_start_lst,
