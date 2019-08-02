@@ -24,12 +24,12 @@ def gen_prop(x):
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
         # gd_scores = gaussian_filter(diff_scores, 3)
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[
-                      0] + 1) + list(np.nonzero(pstarts > 0.7 * pstarts.max())[0])
+                      0] + 1) + list(np.nonzero(pstarts > 0.7)[0])
         ends = list(np.nonzero(
-            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7 * pends.max())[0])
+            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7)[0])
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
-                 for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre and pstarts[x] > pstarts[y] and pends[y] > pends[x]]
+                 for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
     if scores.mean() > min_thre:
         props += [(0, len(scores), 1, scores.mean()*(pstarts[0]*pends[-1]))]
     # props = [(x[0], x[1], 1, scores[x[0]:x[1]+1].mean()*(pstarts[x[0]]*pends[min(x[1], num_feat-1)])) for x in props]
