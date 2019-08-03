@@ -97,8 +97,8 @@ class Rank_Criterion(nn.Module):
         pred = (F.relu(y_diff - (x.unsqueeze(1) - x.unsqueeze(2))))* y_mask * mask
         # pred = (F.relu(torch.log((y.unsqueeze(1) - y.unsqueeze(2)).clamp(eps)) -
         #                torch.log((x.unsqueeze(1) - x.unsqueeze(2)).clamp(eps)))) * y_mask * mask
-        output = pred.sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
-        # output = (pred ** 2).sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
+        # output = pred.sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
+        output = (pred ** 2).sum(2).sum(1) / (y_mask * mask).sum(2).sum(1).clamp(eps)
 
         return output.mean()
 
