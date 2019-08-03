@@ -116,6 +116,6 @@ class BinaryClassifier(torch.nn.Module):
         #     (roi_feat_max ** 2).sum(2) * (roi_feats ** 2).sum(2)).clamp(1e-14)).clamp(0.)
 
         if not test_mode:
-            return score_output, enc_slf_attn, (roi_scores*actness)**0.25, labels, rois_mask
+            return score_output, enc_slf_attn, roi_scores, labels, rois_mask
 
         return rois[:, :, 1:], actness, roi_scores
