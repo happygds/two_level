@@ -14,7 +14,7 @@ def gen_prop(x):
     bboxes, props = [], []
     # num_feat = int(new_feature_mask[k].sum())
     # scores_k = new_score_output[k][:num_feat]
-    min_thre = 0.3
+    min_thre = 0.1
     scores = scores_k[:num_feat]
 
     # # use change point
@@ -179,7 +179,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
         labels = torch.from_numpy(labels).cuda().requires_grad_(False).float()
         actness = torch.from_numpy(
             actness).cuda().requires_grad_(False).float()
-        return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels
+        return start_rois, end_rois, rpn_rois, rpn_rois_mask, rois_relative_pos, labels, actness
     else:
         actness = torch.from_numpy(
             actness).cuda().requires_grad_(False).float()
