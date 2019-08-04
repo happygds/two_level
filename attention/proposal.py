@@ -48,7 +48,6 @@ def gen_prop(x):
         bboxes = Soft_NMS(bboxes, length=len(scores), max_num=num_keep)
     if len(bboxes) == 0:
         bboxes = [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
-        # print("only one proposal")
 
     # compute iou with ground-truths
     actness = np.asarray([x[3] for x in bboxes])
