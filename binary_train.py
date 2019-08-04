@@ -127,7 +127,7 @@ def main():
                       input_dim=args.d_model, test_mode=True, use_flow=args.use_flow,
                       verbose=False, num_local=args.num_local, only_flow=args.only_flow),
         batch_size=1, shuffle=False,
-        num_workers=8, pin_memory=True)
+        num_workers=10, pin_memory=True)
 
     ground_truth, cls_to_idx = grd_activity('data/activity_net.v1-3.min_save.json', subset='validation')
     del cls_to_idx['background']
@@ -209,7 +209,7 @@ def train(train_loader, model, optimizer, criterion_stage1, criterion_stage2, ep
         score_loss, start_loss, end_loss, attn_loss = criterion_stage1(
             score_output, target, start, end, attn=enc_slf_attn, mask=feature_mask)
         roi_loss = criterion_stage2(roi_scores, labels, rois_mask)
-        loss = score_loss + 10. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
+        loss = score_loss + 20. * roi_loss + 0.5 * start_loss + 0.5 * end_loss
         score_losses.update(score_loss.item(), feature.size(0))
         start_losses.update(start_loss.item(), feature.size(0))
         end_losses.update(end_loss.item(), feature.size(0))
