@@ -24,9 +24,9 @@ def gen_prop(x):
             pstarts[:-1, ], pends[1:, ] - pends[:-1, ]
         # gd_scores = gaussian_filter(diff_scores, 3)
         starts = list(np.nonzero((diff_pstarts[:-1] > 0) & (diff_pstarts[1:] < 0))[
-                      0] + 1) + list(np.nonzero(pstarts > 0.7*pstarts.max())[0])
+                      0] + 1) + list(np.nonzero(pstarts > 0.7*pstarts.max() )[0])
         ends = list(np.nonzero(
-            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7*pends.max())[0])
+            (diff_pends[:-1] > 0) & (diff_pends[1:] < 0))[0] + 1) + list(np.nonzero(pends > 0.7*pends.max() )[0])
         starts, ends = list(set(starts)), list(set(ends))
         props = [(x, y, 1, scores[x:y+1].mean()*(pstarts[x]*pends[y]))
                  for x in starts for y in ends if x < y and scores[x:y+1].mean() > min_thre]
@@ -41,7 +41,7 @@ def gen_prop(x):
     # num_keep = int(round(0.125*len(bboxes)))
     # num_keep = min(max(num_keep, rpn_post_nms_top//2), rpn_post_nms_top)
     num_keep = rpn_post_nms_top
-    bboxes = temporal_nms(bboxes, 0.9)[:num_keep]
+    bboxes = temporal_nms(bboxes, 0.85)[:num_keep]
     if len(bboxes) == 0:
         bboxes = [(0, len(scores), 1, scores.mean()*pstarts[0]*pends[-1])]
         # print("only one proposal")
@@ -118,7 +118,7 @@ def proposal_layer(score_output, feature_mask, gts=None, test_mode=False, ss_pro
             sample_infos.append(
                 [k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
             # _, bboxes_dict[k], rois_iou_dict[k] = gen_prop([k, num_feat, scores_k, gt_k, rpn_post_nms_top, epoch_id])
-        pool = mp.Pool(processes=4)
+        pool = mp.Pool(processes=8)
         handle = [pool.apply_async(gen_prop, args=(
             x,), callback=call_back) for x in sample_infos]
         pool.close()
