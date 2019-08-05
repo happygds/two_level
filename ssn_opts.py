@@ -59,8 +59,8 @@ parser.add_argument('--lr_steps', default=[3, 6], type=float, nargs="+",
                     metavar='LRSteps', help='epochs to decay learning rate by 10')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-3, type=float,
-                    metavar='W', help='weight decay (default: 1e-3)')
+parser.add_argument('--weight-decay', '--wd', default=1e-2, type=float,
+                    metavar='W', help='weight decay (default: 1e-2)')
 parser.add_argument('--clip-gradient', '--gd', default=None, type=float,
                     metavar='W', help='gradient norm clipping (default: disabled)')
 parser.add_argument('--comp_loss_weight', '--lw', default=0.1, type=float,
