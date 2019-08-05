@@ -301,13 +301,12 @@ def validate(val_loader, model, criterion_stage1, criterion_stage2, iter, epoch)
             for k, v in enumerate(this_rois):
                 video_info = val_loader.dataset.video_list[index[k]]
                 video_id, fps = video_info.id, video_info.fps
-                v = list(filter(lambda b: b[1] - b[0] > 0, v))
-                k_roi_scores = list(filter(lambda b: b > 0, this_roi_scores[k]))
+                bboxes = [(x[0], x[1], roi_score for (x, roi_score) in zip(v, this_roi_scores[k]) if roi_score > 0)]
                 assert len(v) == len(k_roi_scores)
-                video_lst.extend([video_id] * len(v))
-                t_start_lst.extend([x[0] * 5 / fps for x in v])
-                t_end_lst.extend([x[1] * 5 / fps for x in v])
-                score_lst.extend(k_roi_scores)
+                video_lst.extend([video_id] * len(bboxes))
+                t_start_lst.extend([x[0] * 5 / fps for x in bboxes])
+                t_end_lst.extend([x[1] * 5 / fps for x in bboxes])
+                score_lst.extend([x[2] for x in bboxes])
 
     prediction = pd.DataFrame({'video-id': video_lst,
                         't-start': t_start_lst,
